@@ -3,7 +3,7 @@ Hydrogen Inventory Simulations for PFCs (HISP) is a series of code that uses FES
 
 ## How to Run:
 
-First, run this in the terminal:
+First, run this in the terminal to create a new environment with the right dependencies:
 ```
 conda env create -f environment.yml
 ```
