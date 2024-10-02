@@ -68,10 +68,7 @@ my_model.species = [
     trap2_D,
     trap2_T,
     trap3_D,
-    trap3_T,
-    empty_trap1,
-    empty_trap2,
-    empty_trap3 
+    trap3_T
 ]
 
 # hydrogen reactions - 1 per trap per species
@@ -81,6 +78,7 @@ my_model.reactions = [
         E_k=0.20,
         p_0=1e13,
         E_p=0.85,
+        volume=w_subdomain,
         reactant=[mobile_D, empty_trap1],
         product=trap1_D,
     ),
@@ -89,6 +87,7 @@ my_model.reactions = [
         E_k=0.2,
         p_0=1e13,
         E_p=0.85,
+        volume=w_subdomain,
         reactant=[mobile_T, empty_trap1],
         product=trap1_T,
     ),
@@ -97,6 +96,7 @@ my_model.reactions = [
         E_k=0.2,
         p_0=1e13,
         E_p=1,
+        volume=w_subdomain,
         reactant=[mobile_D, empty_trap2],
         product=trap2_D,
     ),
@@ -105,6 +105,7 @@ my_model.reactions = [
         E_k=0.2,
         p_0=1e13,
         E_p=1,
+        volume=w_subdomain,
         reactant=[mobile_T, empty_trap2],
         product=trap2_T,
     ),
@@ -113,6 +114,7 @@ my_model.reactions = [
         E_k=0.2,
         p_0=1e13,
         E_p=1.5,
+        volume=w_subdomain,
         reactant=[mobile_D, empty_trap3],
         product=trap3_D,
     ),
@@ -121,6 +123,7 @@ my_model.reactions = [
         E_k=0.2,
         p_0=1e13,
         E_p=1.5,
+        volume=w_subdomain,
         reactant=[mobile_T, empty_trap3],
         product=trap3_T,
     )
@@ -128,7 +131,7 @@ my_model.reactions = [
 
 # temperature 
 # my_model.temperature = 1000 - (1000-350)/L*x
-my_model.temperature = 10000
+my_model.temperature = 1000
 
 # boundary conditions
 
@@ -149,12 +152,12 @@ folder = "multi_isotope_trapping_example"
 my_model.exports = [
     F.XDMFExport(f"{folder}/mobile_concentration_t.xdmf", field=mobile_T),
     F.XDMFExport(f"{folder}/mobile_concentration_d.xdmf", field=mobile_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_t1.xdmf", field=trap1_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_t2.xdmf", field=trap1_T),
-    F.XDMFExport(f"{folder}/trapped_concentration_d1.xdmf", field=trap2_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_d2.xdmf", field=trap2_T),
-    F.XDMFExport(f"{folder}/trapped_concentration_dt.xdmf", field=trap3_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_dt.xdmf", field=trap3_T)
+    F.XDMFExport(f"{folder}/trapped_concentration_d1.xdmf", field=trap1_D),
+    F.XDMFExport(f"{folder}/trapped_concentration_t1.xdmf", field=trap1_T),
+    F.XDMFExport(f"{folder}/trapped_concentration_d2.xdmf", field=trap2_D),
+    F.XDMFExport(f"{folder}/trapped_concentration_t2.xdmf", field=trap2_T),
+    F.XDMFExport(f"{folder}/trapped_concentration_d3.xdmf", field=trap3_D),
+    F.XDMFExport(f"{folder}/trapped_concentration_t3.xdmf", field=trap3_T),
 ]
 
 # settings
