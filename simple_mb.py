@@ -2,24 +2,28 @@
 
 import festim as F
 import numpy as np
-import h_transport_materials as htm 
+import h_transport_materials as htm
 
 my_model = F.HydrogenTransportProblem()
 
 # building 1D mesh, W mb
 
-L = 6e-3 # m
-vertices = np.linspace(0,L,num=300)
+L = 6e-3  # m
+vertices = np.linspace(0, L, num=300)
 my_model.mesh = F.Mesh1D(vertices)
 
 
 # W material parameters
-w_density = 6.3382e28 # atoms/m3
+w_density = 6.3382e28  # atoms/m3
 tungsten_diff = htm.diffusivities.filter(material=htm.TUNGSTEN).mean()
-tungsten = F.Material(D_0=tungsten_diff.pre_exp.magnitude, E_D=tungsten_diff.act_energy.magnitude, name="tungsten")
+tungsten = F.Material(
+    D_0=tungsten_diff.pre_exp.magnitude,
+    E_D=tungsten_diff.act_energy.magnitude,
+    name="tungsten",
+)
 
 # subdomains
-w_subdomain = F.VolumeSubdomain1D(id=1, borders=[0,L], material=tungsten)
+w_subdomain = F.VolumeSubdomain1D(id=1, borders=[0, L], material=tungsten)
 inlet = F.SurfaceSubdomain1D(id=1, x=0)
 outlet = F.SurfaceSubdomain1D(id=2, x=L)
 
@@ -42,20 +46,20 @@ trap3_T = F.Species("trap3_T", mobile=False)
 
 
 # traps
-empty_trap1 = F.ImplicitSpecies( # implicit trap 1
-    n=6.338e24, # 1e-4 at.fr.
+empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
+    n=6.338e24,  # 1e-4 at.fr.
     others=[trap1_T, trap1_D],
     name="empty_trap1",
 )
 
-empty_trap2 = F.ImplicitSpecies( # implicit trap 2
+empty_trap2 = F.ImplicitSpecies(  # implicit trap 2
     n=6.338e24,
     others=[trap2_T, trap2_D],
     name="empty_trap2",
 )
 
-empty_trap3 = F.ImplicitSpecies( # fermi-dirac-like trap 3
-    n=6.338e27, # 1e-1 at.fr.
+empty_trap3 = F.ImplicitSpecies(  # fermi-dirac-like trap 3
+    n=6.338e27,  # 1e-1 at.fr.
     others=[trap3_T, trap3_D],
     name="empty_trap3",
 )
@@ -68,13 +72,13 @@ my_model.species = [
     trap2_D,
     trap2_T,
     trap3_D,
-    trap3_T
+    trap3_T,
 ]
 
 # hydrogen reactions - 1 per trap per species
 my_model.reactions = [
     F.Reaction(
-        k_0=1e13,
+        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.20,
         p_0=1e13,
         E_p=0.85,
@@ -83,7 +87,7 @@ my_model.reactions = [
         product=trap1_D,
     ),
     F.Reaction(
-        k_0=1e13,
+        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=0.85,
@@ -92,7 +96,7 @@ my_model.reactions = [
         product=trap1_T,
     ),
     F.Reaction(
-        k_0=1e13,
+        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=1,
@@ -101,7 +105,7 @@ my_model.reactions = [
         product=trap2_D,
     ),
     F.Reaction(
-        k_0=1e13,
+        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=1,
@@ -110,7 +114,7 @@ my_model.reactions = [
         product=trap2_T,
     ),
     F.Reaction(
-        k_0=1e13,
+        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=1.5,
@@ -119,24 +123,24 @@ my_model.reactions = [
         product=trap3_D,
     ),
     F.Reaction(
-        k_0=1e13,
+        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=1.5,
         volume=w_subdomain,
         reactant=[mobile_T, empty_trap3],
         product=trap3_T,
-    )
+    ),
 ]
 
-# temperature 
+# temperature
 # my_model.temperature = 1000 - (1000-350)/L*x
 my_model.temperature = 1000
 
 # boundary conditions
 
 my_model.boundary_conditions = [
-    F.DirichletBC(subdomain=inlet, value=1e20, species=mobile_T), 
+    F.DirichletBC(subdomain=inlet, value=1e20, species=mobile_T),
     F.DirichletBC(subdomain=inlet, value=1e19, species=mobile_D),
     F.DirichletBC(subdomain=outlet, value=0, species=mobile_T),
     F.DirichletBC(subdomain=outlet, value=0, species=mobile_D),
@@ -150,14 +154,14 @@ right_flux = F.SurfaceFlux(field=mobile_T, surface=outlet)
 folder = "multi_isotope_trapping_example"
 
 my_model.exports = [
-    F.XDMFExport(f"{folder}/mobile_concentration_t.xdmf", field=mobile_T),
-    F.XDMFExport(f"{folder}/mobile_concentration_d.xdmf", field=mobile_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_d1.xdmf", field=trap1_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_t1.xdmf", field=trap1_T),
-    F.XDMFExport(f"{folder}/trapped_concentration_d2.xdmf", field=trap2_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_t2.xdmf", field=trap2_T),
-    F.XDMFExport(f"{folder}/trapped_concentration_d3.xdmf", field=trap3_D),
-    F.XDMFExport(f"{folder}/trapped_concentration_t3.xdmf", field=trap3_T),
+    F.VTXExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+    F.VTXExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+    F.VTXExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+    F.VTXExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+    F.VTXExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
+    F.VTXExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
+    F.VTXExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+    F.VTXExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
 ]
 
 # settings
