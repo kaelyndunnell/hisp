@@ -1,0 +1,10 @@
+name: hisp-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - fenics-dolfinx=0.8.0
+  - pip 
+  - pip:
+    - git+https://github.com/festim-dev/FESTIM@77c97b30b7b9db90cc35754c8228b3f8f52a7f6d
+    - h_transport_materials~=0.16
