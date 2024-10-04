@@ -104,7 +104,7 @@ my_model.reactions = [
         product=trap1_T,
     ),
     F.Reaction(
-        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
+        k_00=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=1,
