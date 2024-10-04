@@ -20,7 +20,6 @@ vertices = np.concatenate(
 )
 my_model.mesh = F.Mesh1D(vertices)
 
-
 # W material parameters
 w_density = 6.3382e28  # atoms/m3
 tungsten_diff = htm.diffusivities.filter(material=htm.TUNGSTEN).mean()
@@ -51,7 +50,6 @@ trap2_D = F.Species("trap2_D", mobile=False)
 trap2_T = F.Species("trap2_T", mobile=False)
 trap3_D = F.Species("trap3_D", mobile=False)
 trap3_T = F.Species("trap3_T", mobile=False)
-
 
 # traps
 empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
@@ -104,7 +102,7 @@ my_model.reactions = [
         product=trap1_T,
     ),
     F.Reaction(
-        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
+        k_00=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=1,
@@ -145,19 +143,62 @@ my_model.reactions = [
 # my_model.temperature = 1000 - (1000-350)/L*x
 my_model.temperature = 1000
 
+
+def T_surface(t):
+    return 1000
+
+
+def T_coolant(t):
+    return 350
+
+
+def T_function(x, t):
+    a = (T_coolant(t) - T_surface(t)) / L
+    b = T_surface(t)
+    return a * x + b
+
+
+my_model.temperature = T_function
+
+
+# TODO CHANGE THIS!
+def gaussian_distribution(x):
+    depth = 3e-9
+    widht = 1e-9
+    return 1  # TODO replace this by a guassian distribution
+
+
+def deuterium_flux(t):
+    return 1e20  # D/m2/s
+
+
+def tritium_flux(t):
+    return 1e20  # T/m2/s
+
+
+my_model.sources = [
+    F.ParticleSource(
+        value=lambda x, t: deuterium_flux(t) * gaussian_distribution(x),
+        species=mobile_D,
+        volume=w_subdomain,
+    ),
+    F.ParticleSource(
+        value=lambda x, t: tritium_flux(t) * gaussian_distribution(x),
+        species=mobile_T,
+        volume=w_subdomain,
+    ),
+]
+
 # boundary conditions
 
 my_model.boundary_conditions = [
-    F.DirichletBC(subdomain=inlet, value=1e20, species=mobile_T),
+    F.DirichletBC(subdomain=inlet, value=1e20, species=mobile_T),  # TODO change this
     F.DirichletBC(subdomain=inlet, value=1e19, species=mobile_D),
     F.DirichletBC(subdomain=outlet, value=0, species=mobile_T),
     F.DirichletBC(subdomain=outlet, value=0, species=mobile_D),
 ]
 
 # exports
-
-left_flux = F.SurfaceFlux(field=mobile_T, surface=inlet)
-right_flux = F.SurfaceFlux(field=mobile_T, surface=outlet)
 
 folder = "multi_isotope_trapping_example"
 
