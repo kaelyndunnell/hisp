@@ -4,12 +4,20 @@ import festim as F
 import numpy as np
 import h_transport_materials as htm
 
+
 my_model = F.HydrogenTransportProblem()
 
 # building 1D mesh, W mb
 
 L = 6e-3  # m
-vertices = np.linspace(0, L, num=300)
+vertices = np.concatenate(
+    [
+        np.linspace(0, 30e-9, num=200),
+        np.linspace(30e-9, 3e-6, num=300),
+        np.linspace(3e-6, 30e-6, num=200),
+        np.linspace(30e-6, L, num=200),
+    ]
+)
 my_model.mesh = F.Mesh1D(vertices)
 
 
@@ -164,6 +172,12 @@ my_model.exports = [
     F.VTXExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
 ]
 
+quantities = {}
+for species in my_model.species:
+    quantity = F.TotalVolume(field=species, volume=w_subdomain)
+    my_model.exports.append(quantity)
+    quantities[species.name] = quantity
+
 # settings
 
 my_model.settings = F.Settings(
@@ -175,6 +189,32 @@ my_model.settings.stepsize = F.Stepsize(initial_value=20)
 # run simu
 
 my_model.initialise()
-
-print(my_model.formulation)
 my_model.run()
+
+
+import matplotlib.pyplot as plt
+
+for name, quantity in quantities.items():
+    plt.plot(quantity.t, quantity.data, label=name)
+
+plt.xlabel("Time (s)")
+plt.ylabel("Total quantity (atoms/m2)")
+plt.legend()
+plt.yscale("log")
+
+plt.show()
+
+# make the same but with a stack plot
+
+fig, ax = plt.subplots()
+
+ax.stackplot(
+    quantity.t,
+    [quantity.data for quantity in quantities.values()],
+    labels=quantities.keys(),
+)
+
+plt.xlabel("Time (s)")
+plt.ylabel("Total quantity (atoms/m2)")
+plt.legend()
+plt.show()
