@@ -155,17 +155,17 @@ def T_coolant(t):
 def T_function(x, t):
     a = (T_coolant(t) - T_surface(t)) / L
     b = T_surface(t)
-    return a * x + b
+    return a * x[0] + b
 
 
-my_model.temperature = 1000  # T_function
+my_model.temperature = T_function
 
 
 # TODO CHANGE THIS!
 def gaussian_distribution(x):
     depth = 3e-9
     widht = 1e-9
-    return 1  # TODO replace this by a guassian distribution
+    return np.ones_like(x[0])  # TODO replace this by a guassian distribution
 
 
 import ufl
@@ -190,8 +190,14 @@ def deuterium_flux(t: ufl.Constant):
     return flux  # D/m2/s
 
 
-def tritium_flux(t):
-    return 1e20  # T/m2/s
+def tritium_flux(t: ufl.Constant):
+    flat_top_value = 2e20  # replace with value from DINA
+    resting_value = 0
+    # flux = ufl.conditional(
+    #     t % total_time_cycle < total_time_pulse, flat_top_value, resting_value
+    # )
+    flux = ufl.conditional(ufl.lt(t, total_time_pulse), flat_top_value, resting_value)
+    return flux  # T/m2/s
 
 
 my_model.sources = [
@@ -210,8 +216,8 @@ my_model.sources = [
 # boundary conditions
 
 my_model.boundary_conditions = [
-    F.DirichletBC(subdomain=inlet, value=1e20, species=mobile_T),  # TODO change this
-    F.DirichletBC(subdomain=inlet, value=1e19, species=mobile_D),
+    F.DirichletBC(subdomain=inlet, value=0, species=mobile_T),  # TODO change this
+    F.DirichletBC(subdomain=inlet, value=0, species=mobile_D),
     F.DirichletBC(subdomain=outlet, value=0, species=mobile_T),
     F.DirichletBC(subdomain=outlet, value=0, species=mobile_D),
 ]
