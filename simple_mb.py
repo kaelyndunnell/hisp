@@ -102,7 +102,7 @@ my_model.reactions = [
         product=trap1_T,
     ),
     F.Reaction(
-        k_00=4.1e-7 / (1.1e-10**2 * 6 * w_density),
+        k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
         E_k=0.2,
         p_0=1e13,
         E_p=1,
@@ -158,7 +158,7 @@ def T_function(x, t):
     return a * x + b
 
 
-my_model.temperature = T_function
+my_model.temperature = 1000  # T_function
 
 
 # TODO CHANGE THIS!
@@ -168,8 +168,26 @@ def gaussian_distribution(x):
     return 1  # TODO replace this by a guassian distribution
 
 
-def deuterium_flux(t):
-    return 1e20  # D/m2/s
+import ufl
+
+# all in seconds
+flat_top_duration = 400
+ramp_up_duration = 100
+ramp_down_duration = 100
+dwelling_time = 1000
+
+total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
+total_time_cycle = total_time_pulse + dwelling_time
+
+
+def deuterium_flux(t: ufl.Constant):
+    flat_top_value = 1e20  # replace with value from DINA
+    resting_value = 0
+    # flux = ufl.conditional(
+    #     t % total_time_cycle < total_time_pulse, flat_top_value, resting_value
+    # )
+    flux = ufl.conditional(ufl.lt(t, total_time_pulse), flat_top_value, resting_value)
+    return flux  # D/m2/s
 
 
 def tritium_flux(t):
