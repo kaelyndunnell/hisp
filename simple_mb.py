@@ -1,16 +1,72 @@
 # simple monoblock simulation in festim
-
 import festim as F
 import numpy as np
 import h_transport_materials as htm
+import ufl
+from dolfinx.fem.function import Constant
+from scipy import constants
+import dolfinx.fem as fem
+import dolfinx
 
+# dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
+
+############# CUSTOM CLASSES FOR PULSED FLUXES & RECOMBO BC #############
+
+class PulsedSource(F.ParticleSource):
+    def __init__(self, flux, distribution, volume, species):
+        self.flux = flux
+        self.distribution = distribution
+        super().__init__(None, volume, species)
+
+    @property
+    def time_dependent(self):
+        return True
+
+    def create_value_fenics(self, mesh, temperature, t: Constant):
+        self.flux_fenics = Constant(mesh, float(self.flux(t)))
+        x = ufl.SpatialCoordinate(mesh)
+        self.distribution_fenics = self.distribution(x)
+
+        self.value_fenics = self.flux_fenics * self.distribution_fenics
+
+    def update(self, t: float):
+        self.flux_fenics.value = self.flux(t)
+
+class FluxFromSurfaceReaction(F.SurfaceFlux):
+    def __init__(self, reaction: F.SurfaceReactionBC):
+        super().__init__(
+            F.Species(),  # just a dummy species here
+            reaction.subdomain,
+        )
+        self.reaction = reaction.flux_bcs[0]
+
+    def compute(self, ds):
+        self.value = fem.assemble_scalar(
+            fem.form(self.reaction.value_fenics * ds(self.surface.id))
+        )
+        self.data.append(self.value)
+
+# TODO: ADJUST TO HANDLE ANY STRAIGHT W 6MM SIMU
+mb = 50
+
+############# Input Flux, Heat Data #############
+with open('scenario.txt', 'r') as file:
+    lines = []
+    for line in file:
+        lines.append(line.split())
+lines = lines[1:]
+
+DINA_data = np.loadtxt('Binned_Flux_Data.dat', skiprows=1)
+ion_flux = DINA_data[:,2][mb-1]
+atom_flux = DINA_data[:,3][mb-1]
+heat = DINA_data[:,-2][mb-1]
 
 my_model = F.HydrogenTransportProblem()
 
-# building 1D mesh, W mb
+############# Material Parameters #############
 
-L = 6e-3  # m
-vertices = np.concatenate(
+L = 6e-3 # m
+vertices = np.concatenate( # 1D mesh with extra refinement
     [
         np.linspace(0, 30e-9, num=200),
         np.linspace(30e-9, 3e-6, num=300),
@@ -20,17 +76,17 @@ vertices = np.concatenate(
 )
 my_model.mesh = F.Mesh1D(vertices)
 
-
-# W material parameters
+# W material parameters 
+# TODO integrate with htm 
 w_density = 6.3382e28  # atoms/m3
-tungsten_diff = htm.diffusivities.filter(material=htm.TUNGSTEN).mean()
+# tungsten_diff = htm.diffusivities.filter(material=htm.TUNGSTEN).mean()
 tungsten = F.Material(
-    D_0=tungsten_diff.pre_exp.magnitude,
-    E_D=tungsten_diff.act_energy.magnitude,
+    D_0=4.1e-7, # Hodille 2015 paper pg 426
+    E_D=0.39,
     name="tungsten",
 )
 
-# subdomains
+# mb subdomains
 w_subdomain = F.VolumeSubdomain1D(id=1, borders=[0, L], material=tungsten)
 inlet = F.SurfaceSubdomain1D(id=1, x=0)
 outlet = F.SurfaceSubdomain1D(id=2, x=L)
@@ -52,7 +108,6 @@ trap2_T = F.Species("trap2_T", mobile=False)
 trap3_D = F.Species("trap3_D", mobile=False)
 trap3_T = F.Species("trap3_T", mobile=False)
 
-
 # traps
 empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
     n=6.338e24,  # 1e-4 at.fr.
@@ -66,8 +121,9 @@ empty_trap2 = F.ImplicitSpecies(  # implicit trap 2
     name="empty_trap2",
 )
 
+# density_func = 
 empty_trap3 = F.ImplicitSpecies(  # fermi-dirac-like trap 3
-    n=6.338e27,  # 1e-1 at.fr.
+    n=6.338e27, # density_func # 1e-1 at.fr.
     others=[trap3_T, trap3_D],
     name="empty_trap3",
 )
@@ -141,25 +197,153 @@ my_model.reactions = [
     ),
 ]
 
-# temperature
-# my_model.temperature = 1000 - (1000-350)/L*x
-my_model.temperature = 1000
+############# Pulse Parameters (s) #############
+pulses_per_day = 13
 
-# boundary conditions
+flat_top_duration = 50*pulses_per_day
+ramp_up_duration = 33*pulses_per_day 
+ramp_down_duration = 35*pulses_per_day
+dwelling_time = 72000 # 20 hours
 
-my_model.boundary_conditions = [
-    F.DirichletBC(subdomain=inlet, value=1e20, species=mobile_T),
-    F.DirichletBC(subdomain=inlet, value=1e19, species=mobile_D),
-    F.DirichletBC(subdomain=outlet, value=0, species=mobile_T),
-    F.DirichletBC(subdomain=outlet, value=0, species=mobile_D),
+total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
+total_time_cycle = total_time_pulse + dwelling_time
+
+isotope_split = 0.5
+
+############# Temperature Parameters (K) #############
+T_coolant = 343 # 70 degree C cooling water
+
+def T_surface(t): # plasma-facing side
+    return 1.1e-4*heat+T_coolant
+
+def T_rear(t): # coolant facing side
+    return 2.2e-5*heat+T_coolant
+
+def T_function(x, t: Constant):
+    a = (T_rear(t) - T_surface(t)) / L
+    b = T_surface(t)
+    flat_top_value = a * x[0] + b
+    resting_value = T_coolant
+    return (
+        flat_top_value
+        if float(t) % total_time_cycle < total_time_pulse
+        else resting_value
+    )
+
+my_model.temperature = T_function
+
+############# Flux Parameters #############
+
+def gaussian_distribution(x):
+    depth = 3e-9
+    width = 1e-9
+    return ufl.exp(-((x[0] - depth) ** 2) / (2 * width**2))
+
+def deuterium_ion_flux(t: Constant):
+    flat_top_value = ion_flux*isotope_split 
+    resting_value = 0
+    return (
+        flat_top_value
+        if float(t) % total_time_cycle < total_time_pulse
+        else resting_value
+    )
+
+def tritium_ion_flux(t: Constant):
+    flat_top_value = ion_flux*isotope_split  
+    resting_value = 0
+    return (
+        flat_top_value
+        if float(t) % total_time_cycle < total_time_pulse
+        else resting_value
+    )
+
+def deuterium_atom_flux(t: Constant):
+    flat_top_value = atom_flux*isotope_split 
+    resting_value = 0
+    return (
+        flat_top_value
+        if float(t) % total_time_cycle < total_time_pulse
+        else resting_value
+    )
+
+def tritium_atom_flux(t: Constant):
+    flat_top_value = atom_flux*isotope_split  
+    resting_value = 0
+    return (
+        flat_top_value
+        if float(t) % total_time_cycle < total_time_pulse
+        else resting_value
+    )
+
+
+my_model.sources = [
+    PulsedSource(
+        flux=deuterium_ion_flux,
+        distribution=gaussian_distribution,
+        species=mobile_D,
+        volume=w_subdomain,
+    ),
+    PulsedSource(
+        flux=tritium_ion_flux,
+        distribution=gaussian_distribution,
+        species=mobile_T,
+        volume=w_subdomain
+    ),
+    PulsedSource(
+        flux=deuterium_atom_flux,
+        distribution=gaussian_distribution,
+        species=mobile_D,
+        volume=w_subdomain,
+    ),
+    PulsedSource(
+        flux=tritium_atom_flux,
+        distribution=gaussian_distribution,
+        species=mobile_T,
+        volume=w_subdomain
+    )
+    
 ]
 
-# exports
+############# Boundary Conditions #############
+surface_reaction_dd = F.SurfaceReactionBC(
+    reactant=[mobile_D, mobile_D],
+    gas_pressure=0,
+    k_r0=7.94e-17,
+    E_kr=-2,
+    k_d0=0,
+    E_kd=0,
+    subdomain=inlet,
+)
 
-left_flux = F.SurfaceFlux(field=mobile_T, surface=inlet)
-right_flux = F.SurfaceFlux(field=mobile_T, surface=outlet)
+surface_reaction_tt = F.SurfaceReactionBC(
+    reactant=[mobile_T, mobile_T],
+    gas_pressure=0,
+    k_r0=7.94e-17,
+    E_kr=-2,
+    k_d0=0,
+    E_kd=0,
+    subdomain=inlet,
+)
 
-folder = "multi_isotope_trapping_example"
+surface_reaction_dt = F.SurfaceReactionBC(
+    reactant=[mobile_D, mobile_T],
+    gas_pressure=0,
+    k_r0=7.94e-17,
+    E_kr=-2,
+    k_d0=0,
+    E_kd=0,
+    subdomain=inlet,
+)
+
+my_model.boundary_conditions = [
+    surface_reaction_dd,
+    surface_reaction_dt, 
+    surface_reaction_tt
+]
+
+############# Exports #############
+
+folder = f'mb{mb}_results'
 
 my_model.exports = [
     F.VTXExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
@@ -178,19 +362,20 @@ for species in my_model.species:
     my_model.exports.append(quantity)
     quantities[species.name] = quantity
 
-# settings
+############# Settings #############
 
 my_model.settings = F.Settings(
-    atol=1e-10, rtol=1e-10, max_iterations=30, final_time=3000
+    atol=1e-15, rtol=1e-15, max_iterations=1000, final_time=3000
 )
 
 my_model.settings.stepsize = F.Stepsize(initial_value=20)
 
-# run simu
+############# Run Simu #############
 
 my_model.initialise()
 my_model.run()
 
+############# Results Plotting #############
 
 import matplotlib.pyplot as plt
 
