@@ -61,11 +61,11 @@ my_model.mesh = F.Mesh1D(vertices)
 
 # W material parameters 
 w_density = 6.3382e28  # atoms/m3
-w_diffusivity = htm.diffusivities.filter(material="tungsten").filter(isotope="h").filter(author="frauenfelder")
-w_diffusivity = w_diffusivity[0]
+# w_diffusivity = htm.diffusivities.filter(material="tungsten").filter(isotope="h").filter(author="frauenfelder")
+# w_diffusivity = w_diffusivity[0]
 tungsten = F.Material(
-    D_0=w_diffusivity.pre_exp.magnitude,
-    E_D=w_diffusivity.act_energy.magnitude,
+    D_0=4.1e-7 #w_diffusivity.pre_exp.magnitude,
+    E_D=0.39 #w_diffusivity.act_energy.magnitude,
     name="tungsten",
 )
 
@@ -359,8 +359,6 @@ my_model.initialise()
 my_model.run()
 
 ############# Results Plotting #############
-
-import matplotlib.pyplot as plt
 
 for name, quantity in quantities.items():
     plt.plot(quantity.t, quantity.data, label=name)
