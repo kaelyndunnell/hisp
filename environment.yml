@@ -5,7 +5,7 @@ channels:
 dependencies:
   - fenics-dolfinx=0.8.0
   - pip 
+  - matplotlib
   - pip:
     - git+https://github.com/remdelaportemathurin/FESTIM@surface-reactions
     - h_transport_materials~=0.16
-    - matplotlib
