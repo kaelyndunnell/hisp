@@ -8,4 +8,5 @@ dependencies:
   - pip 
   - pip:
     - git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10
+    - scipy
     # - h_transport_materials~=0.16
