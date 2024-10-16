@@ -8,3 +8,4 @@ dependencies:
   - pip:
     - git+https://github.com/remdelaportemathurin/FESTIM@surface-reactions
     - h_transport_materials~=0.16
+    - matplotlib
