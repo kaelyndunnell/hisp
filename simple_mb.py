@@ -1,7 +1,7 @@
 # simple monoblock simulation in festim
 import festim as F
 import numpy as np
-# import h_transport_materials as htm
+import h_transport_materials as htm
 import ufl
 from dolfinx.fem.function import Constant
 from scipy import constants
@@ -32,29 +32,11 @@ class PulsedSource(F.ParticleSource):
     def update(self, t: float):
         self.flux_fenics.value = self.flux(t)
 
-class FluxFromSurfaceReaction(F.SurfaceFlux):
-    def __init__(self, reaction: F.SurfaceReactionBC):
-        super().__init__(
-            F.Species(),  # just a dummy species here
-            reaction.subdomain,
-        )
-        self.reaction = reaction.flux_bcs[0]
-
-    def compute(self, ds):
-        self.value = fem.assemble_scalar(
-            fem.form(self.reaction.value_fenics * ds(self.surface.id))
-        )
-        self.data.append(self.value)
-
 # TODO: ADJUST TO HANDLE ANY STRAIGHT W 6MM SIMU
 mb = 50
 
 ############# Input Flux, Heat Data #############
-with open('scenario.txt', 'r') as file:
-    lines = []
-    for line in file:
-        lines.append(line.split())
-lines = lines[1:]
+lines = np.genfromtxt('scenario.txt', dtype=str, comments='#')
 
 DINA_data = np.loadtxt('Binned_Flux_Data.dat', skiprows=1)
 ion_flux = DINA_data[:,2][mb-1]
@@ -77,12 +59,12 @@ vertices = np.concatenate( # 1D mesh with extra refinement
 my_model.mesh = F.Mesh1D(vertices)
 
 # W material parameters 
-# TODO integrate with htm 
 w_density = 6.3382e28  # atoms/m3
-# tungsten_diff = htm.diffusivities.filter(material=htm.TUNGSTEN).mean()
+w_diffusivity = htm.diffusivities.filter(material="tungsten").filter(isotope="h").filter(author="frauenfelder")
+w_diffusivity = w_diffusivity[0]
 tungsten = F.Material(
-    D_0=4.1e-7, # Hodille 2015 paper pg 426
-    E_D=0.39,
+    D_0=w_diffusivity.pre_exp.magnitude,
+    E_D=w_diffusivity.act_energy.magnitude,
     name="tungsten",
 )
 
