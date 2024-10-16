@@ -7,5 +7,5 @@ dependencies:
   - matplotlib
   - pip 
   - pip:
-    - git+https://github.com/remdelaportemathurin/FESTIM@f8f851303d77d04b00e1bd388e99e26774898303
+    - git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10
     - h_transport_materials~=0.16
