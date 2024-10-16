@@ -1,6 +1,7 @@
 # simple monoblock simulation in festim
 import festim as F
 import numpy as np
+import matplotlib.pyplot as plt
 import h_transport_materials as htm
 import ufl
 from dolfinx.fem.function import Constant
