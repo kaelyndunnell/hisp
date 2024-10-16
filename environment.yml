@@ -4,8 +4,8 @@ channels:
   - defaults
 dependencies:
   - fenics-dolfinx=0.8.0
-  - pip 
   - matplotlib
+  - pip 
   - pip:
-    - git+https://github.com/remdelaportemathurin/FESTIM@surface-reactions
+    - git+https://github.com/remdelaportemathurin/FESTIM@f8f851303d77d04b00e1bd388e99e26774898303
     - h_transport_materials~=0.16
