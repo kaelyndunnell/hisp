@@ -10,14 +10,28 @@ from scipy import constants
 import dolfinx.fem as fem
 import dolfinx
 
-from helpers import PulsedSource
+from helpers import PulsedSource, Scenario
+from new_h_transport_class import CustomProblem
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
+
+NB_FP_PULSES_PER_DAY = 13
+COOLANT_TEMP = 343  # 70 degree C cooling water
 
 ############# CUSTOM CLASSES FOR PULSED FLUXES & RECOMBO BC #############
 
 # TODO: ADJUST TO HANDLE ANY STRAIGHT W 6MM SIMU
 mb = 50
+
+
+# tritium fraction = T/D
+PULSE_TYPE_TO_TRITIUM_FRACTION = {
+    "FP": 0.5,
+    "ICWC": 0,
+    "RISP": 0,
+    "GDC": 0,
+    "BAKE": 0,
+}
 
 
 def gaussian_distribution(x, mod=ufl):
@@ -28,14 +42,9 @@ def gaussian_distribution(x, mod=ufl):
 
 def make_mb_model(nb_mb):
     ############# Input Flux, Heat Data #############
-    lines = np.genfromtxt("scenario.txt", dtype=str, comments="#")
+    my_scenario = Scenario("scenario_test.txt")  # TODO make the filename a parameter
 
-    DINA_data = np.loadtxt("Binned_Flux_Data.dat", skiprows=1)
-    ion_flux = DINA_data[:, 2][mb - 1]
-    atom_flux = DINA_data[:, 3][mb - 1]
-    heat = DINA_data[:, -2][mb - 1]
-
-    my_model = F.HydrogenTransportProblem()
+    my_model = CustomProblem()
 
     ############# Material Parameters #############
 
@@ -172,32 +181,66 @@ def make_mb_model(nb_mb):
     ]
 
     ############# Pulse Parameters (s) #############
-    pulses_per_day = 13
 
-    flat_top_duration = 50 * pulses_per_day
-    ramp_up_duration = 33 * pulses_per_day
-    ramp_down_duration = 35 * pulses_per_day
+    # TODO change the dat file for other pulse types
+    pulse_type_to_DINA_data = {
+        "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+        "ICWC": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+        "RISP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+        "GDC": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+        "BAKE": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+    }
+
+    flat_top_duration = 50 * NB_FP_PULSES_PER_DAY
+    ramp_up_duration = 33 * NB_FP_PULSES_PER_DAY
+    ramp_down_duration = 35 * NB_FP_PULSES_PER_DAY
     dwelling_time = 72000  # 20 hours
 
     total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
     total_time_cycle = total_time_pulse + dwelling_time
 
-    isotope_split = 0.5
+    # isotope_split = 0.5
 
     ############# Temperature Parameters (K) #############
-    T_coolant = 343  # 70 degree C cooling water
 
-    def T_surface(t):  # plasma-facing side
-        return 1.1e-4 * heat + T_coolant
+    def heat(pulse_type: str) -> float:
+        """Returns the surface heat flux for a given pulse type
 
-    def T_rear(t):  # coolant facing side
-        return 2.2e-5 * heat + T_coolant
+        Args:
+            pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+
+        Raises:
+            ValueError: if the pulse type is unknown
+
+        Returns:
+            the surface heat flux in W/m2
+        """
+        if pulse_type not in ["FP", "ICWC", "RISP", "GDC", "BAKE"]:
+            raise ValueError(f"Invalid pulse type {pulse_type}")
+        data = pulse_type_to_DINA_data[pulse_type]
+        return data[:, -2][nb_mb - 1]
+
+    def T_surface(t: dolfinx.fem.Constant) -> float:
+        """Monoblock surface temperature
+
+        Args:
+            t: time in seconds
+
+        Returns:
+            monoblock surface temperature in K
+        """
+        pulse_type = my_scenario.get_pulse_type(float(t))
+        return 1.1e-4 * heat(pulse_type) + COOLANT_TEMP
+
+    def T_rear(t: dolfinx.fem.Constant):
+        pulse_type = my_scenario.get_pulse_type(float(t))
+        return 2.2e-5 * heat(pulse_type) + COOLANT_TEMP
 
     def T_function(x, t: Constant):
         a = (T_rear(t) - T_surface(t)) / L
         b = T_surface(t)
         flat_top_value = a * x[0] + b
-        resting_value = T_coolant
+        resting_value = COOLANT_TEMP
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -218,8 +261,11 @@ def make_mb_model(nb_mb):
 
     ############# Flux Parameters #############
 
-    def deuterium_ion_flux(t: Constant):
-        flat_top_value = ion_flux * isotope_split
+    def deuterium_ion_flux(t: float):
+        pulse_type = my_scenario.get_pulse_type(float(t))
+        ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
         return (
             flat_top_value
@@ -227,8 +273,11 @@ def make_mb_model(nb_mb):
             else resting_value
         )
 
-    def tritium_ion_flux(t: Constant):
-        flat_top_value = ion_flux * isotope_split
+    def tritium_ion_flux(t: float):
+        pulse_type = my_scenario.get_pulse_type(float(t))
+        ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = ion_flux * tritium_fraction
         resting_value = 0
         return (
             flat_top_value
@@ -236,8 +285,11 @@ def make_mb_model(nb_mb):
             else resting_value
         )
 
-    def deuterium_atom_flux(t: Constant):
-        flat_top_value = atom_flux * isotope_split
+    def deuterium_atom_flux(t: float):
+        pulse_type = my_scenario.get_pulse_type(float(t))
+        atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0
         return (
             flat_top_value
@@ -245,8 +297,11 @@ def make_mb_model(nb_mb):
             else resting_value
         )
 
-    def tritium_atom_flux(t: Constant):
-        flat_top_value = atom_flux * isotope_split
+    def tritium_atom_flux(t: float):
+        pulse_type = my_scenario.get_pulse_type(float(t))
+        atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = atom_flux * tritium_fraction
         resting_value = 0
         return (
             flat_top_value
@@ -342,7 +397,11 @@ def make_mb_model(nb_mb):
     ############# Settings #############
 
     my_model.settings = F.Settings(
-        atol=1e-15, rtol=1e-15, max_iterations=1000, final_time=3000
+        atol=1e-15,
+        rtol=1e-15,
+        max_iterations=1000,
+        final_time=my_scenario.get_maximum_time(),
+        # final_time=3000,
     )
 
     my_model.settings.stepsize = F.Stepsize(initial_value=20)
