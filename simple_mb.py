@@ -20,6 +20,12 @@ from helpers import PulsedSource
 mb = 50
 
 
+def gaussian_distribution(x, mod=ufl):
+    depth = 3e-9
+    width = 1e-9
+    return mod.exp(-((x[0] - depth) ** 2) / (2 * width**2))
+
+
 def make_mb_model(nb_mb):
     ############# Input Flux, Heat Data #############
     lines = np.genfromtxt("scenario.txt", dtype=str, comments="#")
@@ -211,11 +217,6 @@ def make_mb_model(nb_mb):
     my_model.temperature = T_function
 
     ############# Flux Parameters #############
-
-    def gaussian_distribution(x):
-        depth = 3e-9
-        width = 1e-9
-        return ufl.exp(-((x[0] - depth) ** 2) / (2 * width**2))
 
     def deuterium_ion_flux(t: Constant):
         flat_top_value = ion_flux * isotope_split
