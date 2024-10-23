@@ -72,6 +72,15 @@ class Scenario:
             float: the total duration of the pulse in seconds
         """
         row_data = self.data[row]
+        pulse_type = row_data[0]
+        if pulse_type == "RISP":  # hard coded because it's zero in the files
+            ramp_up = 10
+            steady_state = 250
+            ramp_down = 10
+            waiting = 1530
+            total_duration = ramp_up + steady_state + ramp_down + waiting
+            return total_duration
+
         ramp_up = float(row_data[2])
         steady_state = float(row_data[4])
         ramp_down = float(row_data[3])

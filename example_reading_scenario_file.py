@@ -27,5 +27,5 @@ colors = [color[pulse_type] for pulse_type in pulse_types]
 
 for i in range(len(times) - 1):
     plt.plot(times[i : i + 2], np.ones_like(times[i : i + 2]), c=colors[i])
-plt.xscale("log")
+# plt.xscale("log")
 plt.show()
