@@ -2,6 +2,7 @@
 import festim as F
 import numpy as np
 import matplotlib.pyplot as plt
+
 # import h_transport_materials as htm
 import ufl
 from dolfinx.fem.function import Constant
@@ -9,47 +10,29 @@ from scipy import constants
 import dolfinx.fem as fem
 import dolfinx
 
+from helpers import PulsedSource
+
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
 ############# CUSTOM CLASSES FOR PULSED FLUXES & RECOMBO BC #############
-
-class PulsedSource(F.ParticleSource):
-    def __init__(self, flux, distribution, volume, species):
-        self.flux = flux
-        self.distribution = distribution
-        super().__init__(None, volume, species)
-
-    @property
-    def time_dependent(self):
-        return True
-
-    def create_value_fenics(self, mesh, temperature, t: Constant):
-        self.flux_fenics = Constant(mesh, float(self.flux(t)))
-        x = ufl.SpatialCoordinate(mesh)
-        self.distribution_fenics = self.distribution(x)
-
-        self.value_fenics = self.flux_fenics * self.distribution_fenics
-
-    def update(self, t: float):
-        self.flux_fenics.value = self.flux(t)
 
 # TODO: ADJUST TO HANDLE ANY STRAIGHT W 6MM SIMU
 mb = 50
 
 ############# Input Flux, Heat Data #############
-lines = np.genfromtxt('scenario.txt', dtype=str, comments='#')
+lines = np.genfromtxt("scenario.txt", dtype=str, comments="#")
 
-DINA_data = np.loadtxt('Binned_Flux_Data.dat', skiprows=1)
-ion_flux = DINA_data[:,2][mb-1]
-atom_flux = DINA_data[:,3][mb-1]
-heat = DINA_data[:,-2][mb-1]
+DINA_data = np.loadtxt("Binned_Flux_Data.dat", skiprows=1)
+ion_flux = DINA_data[:, 2][mb - 1]
+atom_flux = DINA_data[:, 3][mb - 1]
+heat = DINA_data[:, -2][mb - 1]
 
 my_model = F.HydrogenTransportProblem()
 
 ############# Material Parameters #############
 
-L = 6e-3 # m
-vertices = np.concatenate( # 1D mesh with extra refinement
+L = 6e-3  # m
+vertices = np.concatenate(  # 1D mesh with extra refinement
     [
         np.linspace(0, 30e-9, num=200),
         np.linspace(30e-9, 3e-6, num=300),
@@ -59,13 +42,13 @@ vertices = np.concatenate( # 1D mesh with extra refinement
 )
 my_model.mesh = F.Mesh1D(vertices)
 
-# W material parameters 
+# W material parameters
 w_density = 6.3382e28  # atoms/m3
 # w_diffusivity = htm.diffusivities.filter(material="tungsten").filter(isotope="h").filter(author="frauenfelder")
 # w_diffusivity = w_diffusivity[0]
 tungsten = F.Material(
-    D_0=4.1e-7, #w_diffusivity.pre_exp.magnitude,
-    E_D=0.39, #w_diffusivity.act_energy.magnitude,
+    D_0=4.1e-7,  # w_diffusivity.pre_exp.magnitude,
+    E_D=0.39,  # w_diffusivity.act_energy.magnitude,
     name="tungsten",
 )
 
@@ -104,9 +87,9 @@ empty_trap2 = F.ImplicitSpecies(  # implicit trap 2
     name="empty_trap2",
 )
 
-# density_func = 
+# density_func =
 empty_trap3 = F.ImplicitSpecies(  # fermi-dirac-like trap 3
-    n=6.338e27, # density_func # 1e-1 at.fr.
+    n=6.338e27,  # density_func # 1e-1 at.fr.
     others=[trap3_T, trap3_D],
     name="empty_trap3",
 )
@@ -183,10 +166,10 @@ my_model.reactions = [
 ############# Pulse Parameters (s) #############
 pulses_per_day = 13
 
-flat_top_duration = 50*pulses_per_day
-ramp_up_duration = 33*pulses_per_day 
-ramp_down_duration = 35*pulses_per_day
-dwelling_time = 72000 # 20 hours
+flat_top_duration = 50 * pulses_per_day
+ramp_up_duration = 33 * pulses_per_day
+ramp_down_duration = 35 * pulses_per_day
+dwelling_time = 72000  # 20 hours
 
 total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
 total_time_cycle = total_time_pulse + dwelling_time
@@ -194,13 +177,16 @@ total_time_cycle = total_time_pulse + dwelling_time
 isotope_split = 0.5
 
 ############# Temperature Parameters (K) #############
-T_coolant = 343 # 70 degree C cooling water
+T_coolant = 343  # 70 degree C cooling water
 
-def T_surface(t): # plasma-facing side
-    return 1.1e-4*heat+T_coolant
 
-def T_rear(t): # coolant facing side
-    return 2.2e-5*heat+T_coolant
+def T_surface(t):  # plasma-facing side
+    return 1.1e-4 * heat + T_coolant
+
+
+def T_rear(t):  # coolant facing side
+    return 2.2e-5 * heat + T_coolant
+
 
 def T_function(x, t: Constant):
     a = (T_rear(t) - T_surface(t)) / L
@@ -213,35 +199,51 @@ def T_function(x, t: Constant):
         else resting_value
     )
 
+
+# times = np.linspace(0, 10 * total_time_cycle, num=10000)
+
+# x = [0]
+# Ts = [T_function(x, t) for t in times]
+# import matplotlib.pyplot as plt
+
+# plt.plot(times, Ts, marker="o")
+# plt.show()
+# exit()
+
+
 my_model.temperature = T_function
 
 ############# Flux Parameters #############
+
 
 def gaussian_distribution(x):
     depth = 3e-9
     width = 1e-9
     return ufl.exp(-((x[0] - depth) ** 2) / (2 * width**2))
 
+
 def deuterium_ion_flux(t: Constant):
-    flat_top_value = ion_flux*isotope_split 
+    flat_top_value = ion_flux * isotope_split
     resting_value = 0
     return (
         flat_top_value
         if float(t) % total_time_cycle < total_time_pulse
         else resting_value
     )
+
 
 def tritium_ion_flux(t: Constant):
-    flat_top_value = ion_flux*isotope_split  
+    flat_top_value = ion_flux * isotope_split
     resting_value = 0
     return (
         flat_top_value
         if float(t) % total_time_cycle < total_time_pulse
         else resting_value
     )
+
 
 def deuterium_atom_flux(t: Constant):
-    flat_top_value = atom_flux*isotope_split 
+    flat_top_value = atom_flux * isotope_split
     resting_value = 0
     return (
         flat_top_value
@@ -249,8 +251,9 @@ def deuterium_atom_flux(t: Constant):
         else resting_value
     )
 
+
 def tritium_atom_flux(t: Constant):
-    flat_top_value = atom_flux*isotope_split  
+    flat_top_value = atom_flux * isotope_split
     resting_value = 0
     return (
         flat_top_value
@@ -270,7 +273,7 @@ my_model.sources = [
         flux=tritium_ion_flux,
         distribution=gaussian_distribution,
         species=mobile_T,
-        volume=w_subdomain
+        volume=w_subdomain,
     ),
     PulsedSource(
         flux=deuterium_atom_flux,
@@ -282,9 +285,8 @@ my_model.sources = [
         flux=tritium_atom_flux,
         distribution=gaussian_distribution,
         species=mobile_T,
-        volume=w_subdomain
-    )
-    
+        volume=w_subdomain,
+    ),
 ]
 
 ############# Boundary Conditions #############
@@ -320,13 +322,13 @@ surface_reaction_dt = F.SurfaceReactionBC(
 
 my_model.boundary_conditions = [
     surface_reaction_dd,
-    surface_reaction_dt, 
-    surface_reaction_tt
+    surface_reaction_dt,
+    surface_reaction_tt,
 ]
 
 ############# Exports #############
 
-folder = f'mb{mb}_results'
+folder = f"mb{mb}_results"
 
 my_model.exports = [
     F.VTXExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
