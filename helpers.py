@@ -50,11 +50,27 @@ class Scenario:
 
         raise ValueError("Time t is out of bounds of the scenario file")
 
-    def get_pulse_type(self, t: float):
+    def get_pulse_type(self, t: float) -> str:
+        """Returns the pulse type as a string at time t.
+
+        Args:
+            t (float): time in seconds
+
+        Returns:
+            str: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+        """
         row_idx = self.get_row(t)
         return self.data[row_idx][0]
 
-    def get_pulse_duration(self, row: int):
+    def get_pulse_duration(self, row: int) -> float:
+        """Returns the total duration of a pulse in seconds for a given row in the file.
+
+        Args:
+            row (int): the row index in the scenario file
+
+        Returns:
+            float: the total duration of the pulse in seconds
+        """
         row_data = self.data[row]
         ramp_up = float(row_data[2])
         steady_state = float(row_data[4])
@@ -64,7 +80,12 @@ class Scenario:
         total_duration = ramp_up + steady_state + ramp_down + waiting
         return total_duration
 
-    def get_maximum_time(self):
+    def get_maximum_time(self) -> float:
+        """Returns the maximum time in seconds for the scenario file.
+
+        Returns:
+            float: the maximum time in seconds
+        """
         max_time = 0
         for i, row in enumerate(self.data):
             nb_pulses = int(row[1])
