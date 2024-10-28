@@ -3,7 +3,7 @@ import festim as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-# import h_transport_materials as htm
+import h_transport_materials as htm
 import ufl
 from dolfinx.fem.function import Constant
 from scipy import constants
@@ -61,11 +61,13 @@ def make_mb_model(nb_mb):
 
     # W material parameters
     w_density = 6.3382e28  # atoms/m3
-    # w_diffusivity = htm.diffusivities.filter(material="tungsten").filter(isotope="h").filter(author="frauenfelder")
-    # w_diffusivity = w_diffusivity[0]
+    w_diffusivity = htm.diffusivities.filter(material="tungsten").filter(isotope="h").filter(author="frauenfelder")
+    w_diffusivity = w_diffusivity[0]
+    D_0=w_diffusivity.pre_exp.magnitude
+    E_D=w_diffusivity.act_energy.magnitude
     tungsten = F.Material(
-        D_0=4.1e-7,  # w_diffusivity.pre_exp.magnitude,
-        E_D=0.39,  # w_diffusivity.act_energy.magnitude,
+        D_0=D_0,
+        E_D=E_D,
         name="tungsten",
     )
 
@@ -125,8 +127,8 @@ def make_mb_model(nb_mb):
     # hydrogen reactions - 1 per trap per species
     my_model.reactions = [
         F.Reaction(
-            k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
-            E_k=0.20,
+            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            E_k=E_D,
             p_0=1e13,
             E_p=0.85,
             volume=w_subdomain,
@@ -134,8 +136,8 @@ def make_mb_model(nb_mb):
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
-            E_k=0.2,
+            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            E_k=E_D,
             p_0=1e13,
             E_p=0.85,
             volume=w_subdomain,
@@ -143,8 +145,8 @@ def make_mb_model(nb_mb):
             product=trap1_T,
         ),
         F.Reaction(
-            k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
-            E_k=0.2,
+            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            E_k=E_D,
             p_0=1e13,
             E_p=1,
             volume=w_subdomain,
@@ -152,8 +154,8 @@ def make_mb_model(nb_mb):
             product=trap2_D,
         ),
         F.Reaction(
-            k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
-            E_k=0.2,
+            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            E_k=E_D,
             p_0=1e13,
             E_p=1,
             volume=w_subdomain,
@@ -161,8 +163,8 @@ def make_mb_model(nb_mb):
             product=trap2_T,
         ),
         F.Reaction(
-            k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
-            E_k=0.2,
+            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            E_k=E_D,
             p_0=1e13,
             E_p=1.5,
             volume=w_subdomain,
@@ -170,8 +172,8 @@ def make_mb_model(nb_mb):
             product=trap3_D,
         ),
         F.Reaction(
-            k_0=4.1e-7 / (1.1e-10**2 * 6 * w_density),
-            E_k=0.2,
+            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            E_k=E_D,
             p_0=1e13,
             E_p=1.5,
             volume=w_subdomain,
@@ -185,21 +187,19 @@ def make_mb_model(nb_mb):
     # TODO change the dat file for other pulse types
     pulse_type_to_DINA_data = {
         "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
-        "ICWC": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+        "ICWC": np.loadtxt("ICWC_Data.dat", skiprows=1),
         "RISP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
-        "GDC": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+        "GDC": np.loadtxt("GDC_Data.dat", skiprows=1),
         "BAKE": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
     }
 
-    flat_top_duration = 50 * NB_FP_PULSES_PER_DAY
-    ramp_up_duration = 33 * NB_FP_PULSES_PER_DAY
-    ramp_down_duration = 35 * NB_FP_PULSES_PER_DAY
-    dwelling_time = 72000  # 20 hours
+    # flat_top_duration = 50 * NB_FP_PULSES_PER_DAY
+    # ramp_up_duration = 33 * NB_FP_PULSES_PER_DAY
+    # ramp_down_duration = 35 * NB_FP_PULSES_PER_DAY
+    # dwelling_time = 72000  # 20 hours
 
-    total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
-    total_time_cycle = total_time_pulse + dwelling_time
-
-    # isotope_split = 0.5
+    # total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
+    total_time_cycle = my_scenario.get_maximum_time()
 
     ############# Temperature Parameters (K) #############
 
@@ -233,14 +233,33 @@ def make_mb_model(nb_mb):
         return 1.1e-4 * heat(pulse_type) + COOLANT_TEMP
 
     def T_rear(t: dolfinx.fem.Constant):
+        """Monoblock surface temperature
+
+        Args:
+            t: time in seconds
+
+        Returns:
+            monoblock surface temperature in K
+        """
         pulse_type = my_scenario.get_pulse_type(float(t))
         return 2.2e-5 * heat(pulse_type) + COOLANT_TEMP
 
     def T_function(x, t: Constant):
+        """Monoblock temperature function
+
+        Args:
+            x: position along monoblock
+            t: time in seconds
+
+        Returns:
+            pulsed monoblock temperature in K
+        """
         a = (T_rear(t) - T_surface(t)) / L
         b = T_surface(t)
         flat_top_value = a * x[0] + b
         resting_value = COOLANT_TEMP
+        pulse_row = my_scenario.get_row(float(t))
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -267,18 +286,22 @@ def make_mb_model(nb_mb):
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
+        pulse_row = my_scenario.get_row(float(t))
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
             else resting_value
         )
-
+    
     def tritium_ion_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
         ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0
+        pulse_row = my_scenario.get_row(float(t))
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -291,6 +314,8 @@ def make_mb_model(nb_mb):
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0
+        pulse_row = my_scenario.get_row(float(t))
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -303,6 +328,8 @@ def make_mb_model(nb_mb):
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0
+        pulse_row = my_scenario.get_row(float(t))
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -415,7 +442,7 @@ my_model, quantities = make_mb_model(nb_mb=mb)
 
 my_model.initialise()
 my_model.run()
-
+my_model.progress_bar.close()
 
 ############# Results Plotting #############
 
