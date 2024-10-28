@@ -40,9 +40,9 @@ def gaussian_distribution(x, mod=ufl):
     return mod.exp(-((x[0] - depth) ** 2) / (2 * width**2))
 
 
-def make_mb_model(nb_mb):
+def make_mb_model(nb_mb, scenario_file):
     ############# Input Flux, Heat Data #############
-    my_scenario = Scenario("scenario_test.txt")  # TODO make the filename a parameter
+    my_scenario = Scenario(scenario_file)
 
     my_model = CustomProblem()
 
@@ -199,7 +199,7 @@ def make_mb_model(nb_mb):
     # dwelling_time = 72000  # 20 hours
 
     # total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
-    total_time_cycle = my_scenario.get_maximum_time()
+    total_time_cycle = 5120 #my_scenario.get_maximum_time()
 
     ############# Temperature Parameters (K) #############
 
@@ -259,22 +259,26 @@ def make_mb_model(nb_mb):
         flat_top_value = a * x[0] + b
         resting_value = COOLANT_TEMP
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        if float(t) > 2560:
+            print(float(t))
+            print(float(t) % total_time_cycle)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
             else resting_value
         )
 
-    # times = np.linspace(0, 10 * total_time_cycle, num=10000)
+    times = np.linspace(0, total_time_cycle, num=10000)
+    print(times)
 
-    # x = [0]
-    # Ts = [T_function(x, t) for t in times]
-    # import matplotlib.pyplot as plt
+    x = [0]
+    Ts = [T_function(x, t) for t in times]
+    import matplotlib.pyplot as plt
 
-    # plt.plot(times, Ts, marker="o")
-    # plt.show()
-    # exit()
+    plt.plot(times, Ts, marker="o")
+    plt.show()
+    exit()
 
     my_model.temperature = T_function
 
@@ -287,7 +291,7 @@ def make_mb_model(nb_mb):
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -301,7 +305,7 @@ def make_mb_model(nb_mb):
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -315,7 +319,7 @@ def make_mb_model(nb_mb):
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -329,7 +333,7 @@ def make_mb_model(nb_mb):
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         return (
             flat_top_value
             if float(t) % total_time_cycle < total_time_pulse
@@ -436,7 +440,7 @@ def make_mb_model(nb_mb):
     return my_model, quantities
 
 
-my_model, quantities = make_mb_model(nb_mb=mb)
+my_model, quantities = make_mb_model(nb_mb=mb, scenario_file="scenario_test.txt")
 
 ############# Run Simu #############
 

@@ -88,6 +88,31 @@ class Scenario:
 
         total_duration = ramp_up + steady_state + ramp_down + waiting
         return total_duration
+    
+    def get_pulse_duration_no_waiting(self, row: int) -> float:
+        """Returns the total duration of a pulse in seconds for a given row in the file.
+
+        Args:
+            row (int): the row index in the scenario file
+
+        Returns:
+            float: the total duration of the pulse in seconds
+        """
+        row_data = self.data[row]
+        pulse_type = row_data[0]
+        if pulse_type == "RISP":  # hard coded because it's zero in the files
+            ramp_up = 10
+            steady_state = 250
+            ramp_down = 10
+            duration = ramp_up + steady_state + ramp_down
+            return duration
+
+        ramp_up = float(row_data[2])
+        steady_state = float(row_data[4])
+        ramp_down = float(row_data[3])
+
+        duration = ramp_up + steady_state + ramp_down
+        return duration
 
     def get_maximum_time(self) -> float:
         """Returns the maximum time in seconds for the scenario file.
