@@ -6,6 +6,7 @@ dependencies:
   - fenics-dolfinx=0.9.0
   - matplotlib
   - scipy
+  - pint # need to install pint with conda to avoid conflicts (HTM)
   - pip
   - pip:
       - git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10
