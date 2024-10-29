@@ -48,7 +48,9 @@ class Scenario:
             else:
                 current_time += phase_duration
 
-        raise ValueError("Time t is out of bounds of the scenario file")
+        raise ValueError(
+            f"Time t {t} is out of bounds of the scenario file. Maximum time is {self.get_maximum_time()}"
+        )
 
     def get_pulse_type(self, t: float) -> str:
         """Returns the pulse type as a string at time t.
@@ -88,7 +90,7 @@ class Scenario:
 
         total_duration = ramp_up + steady_state + ramp_down + waiting
         return total_duration
-    
+
     def get_pulse_duration_no_waiting(self, row: int) -> float:
         """Returns the total duration of a pulse in seconds for a given row in the file.
 

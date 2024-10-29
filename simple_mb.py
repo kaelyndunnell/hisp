@@ -191,9 +191,9 @@ def make_mb_model(nb_mb, scenario_file):
     # TODO change the dat file for other pulse types
     pulse_type_to_DINA_data = {
         "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
-        "ICWC": np.loadtxt("ICWC_Data.dat", skiprows=1),
+        "ICWC": np.loadtxt("ICWC_data.dat", skiprows=1),
         "RISP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
-        "GDC": np.loadtxt("GDC_Data.dat", skiprows=1),
+        "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
         "BAKE": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
     }
 
@@ -261,7 +261,7 @@ def make_mb_model(nb_mb, scenario_file):
         a = (T_rear(t) - T_surface(t)) / L
         b = T_surface(t)
         flat_top_value = a * x[0] + b
-        resting_value = COOLANT_TEMP
+        resting_value = np.full_like(x[0], COOLANT_TEMP)
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
@@ -272,14 +272,14 @@ def make_mb_model(nb_mb, scenario_file):
             else resting_value
         )
 
-    times = np.linspace(0, total_time_cycle, num=100)
+    # times = np.linspace(0, total_time_cycle, num=100)
 
-    x = [0]
-    Ts = [T_function(x, t) for t in times]
-    import matplotlib.pyplot as plt
+    # x = [0]
+    # Ts = [T_function(x, t) for t in times]
+    # import matplotlib.pyplot as plt
 
-    plt.plot(times, Ts, marker="o")
-    plt.show()
+    # plt.plot(times, Ts, marker="o")
+    # plt.show()
 
     my_model.temperature = T_function
 
@@ -431,7 +431,6 @@ def make_mb_model(nb_mb, scenario_file):
         quantities[species.name] = quantity
 
     ############# Settings #############
-
     my_model.settings = F.Settings(
         atol=1e-15,
         rtol=1e-15,
