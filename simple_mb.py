@@ -10,8 +10,8 @@ from scipy import constants
 import dolfinx.fem as fem
 import dolfinx
 
-from helpers import PulsedSource, Scenario
-from new_h_transport_class import CustomProblem
+from hisp.helpers import PulsedSource, Scenario
+from hisp import CustomProblem
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
