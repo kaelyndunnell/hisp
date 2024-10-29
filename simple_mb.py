@@ -21,7 +21,7 @@ COOLANT_TEMP = 343  # 70 degree C cooling water
 ############# CUSTOM CLASSES FOR PULSED FLUXES & RECOMBO BC #############
 
 # TODO: ADJUST TO HANDLE ANY STRAIGHT W 6MM SIMU
-mb = 50
+mb = 64
 
 
 # tritium fraction = T/D
@@ -197,14 +197,6 @@ def make_mb_model(nb_mb, scenario_file):
         "BAKE": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
     }
 
-    # flat_top_duration = 50 * NB_FP_PULSES_PER_DAY
-    # ramp_up_duration = 33 * NB_FP_PULSES_PER_DAY
-    # ramp_down_duration = 35 * NB_FP_PULSES_PER_DAY
-    # dwelling_time = 72000  # 20 hours
-
-    # total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
-    total_time_cycle = 5120  # my_scenario.get_maximum_time()
-
     ############# Temperature Parameters (K) #############
 
     def heat(pulse_type: str) -> float:
@@ -222,7 +214,11 @@ def make_mb_model(nb_mb, scenario_file):
         if pulse_type not in ["FP", "ICWC", "RISP", "GDC", "BAKE"]:
             raise ValueError(f"Invalid pulse type {pulse_type}")
         data = pulse_type_to_DINA_data[pulse_type]
-        return data[:, -2][nb_mb - 1]
+        return (
+            data[:, -2][nb_mb - 1]
+            if pulse_type == "FP"
+            else data[:, -1][nb_mb - 1]
+        )
 
     def T_surface(t: dolfinx.fem.Constant) -> float:
         """Monoblock surface temperature
@@ -287,7 +283,10 @@ def make_mb_model(nb_mb, scenario_file):
 
     def deuterium_ion_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
+        if pulse_type == "FP":
+            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
+        else: 
+            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 0][nb_mb - 1]
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
@@ -299,10 +298,19 @@ def make_mb_model(nb_mb, scenario_file):
             if float(t) % total_time_pulse < total_time_on
             else resting_value
         )
+    
+    # times = np.linspace(0, my_scenario.get_maximum_time(), num=100)
+
+    # plt.plot(times, [deuterium_ion_flux(t) for t in times], marker="o")
+    # plt.show()
+    # exit()
 
     def tritium_ion_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
+        if pulse_type == "FP":
+            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
+        else: 
+            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 0][nb_mb - 1]
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0
@@ -317,7 +325,10 @@ def make_mb_model(nb_mb, scenario_file):
 
     def deuterium_atom_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
+        if pulse_type == "FP":
+            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
+        else: 
+            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 1][nb_mb - 1]
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0
@@ -332,7 +343,10 @@ def make_mb_model(nb_mb, scenario_file):
 
     def tritium_atom_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
+        if pulse_type == "FP":
+            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
+        else: 
+            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 1][nb_mb - 1]
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0
@@ -435,8 +449,7 @@ def make_mb_model(nb_mb, scenario_file):
         atol=1e-15,
         rtol=1e-15,
         max_iterations=1000,
-        final_time=my_scenario.get_maximum_time(),
-        # final_time=3000,
+        final_time=my_scenario.get_maximum_time()
     )
 
     my_model.settings.stepsize = F.Stepsize(initial_value=20)
@@ -478,4 +491,4 @@ if __name__ == "__main__":
     plt.xlabel("Time (s)")
     plt.ylabel("Total quantity (atoms/m2)")
     plt.legend()
-    plt.show()
+    # plt.show()
