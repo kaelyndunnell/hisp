@@ -259,18 +259,34 @@ def make_mb_model(nb_mb, scenario_file):
         flat_top_value = a * x[0] + b
         resting_value = COOLANT_TEMP
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
-        if float(t) > 2560:
-            print(float(t))
-            print(float(t) % total_time_cycle)
+        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+
         return (
             flat_top_value
-            if float(t) % total_time_cycle < total_time_pulse
+            if float(t) % total_time_pulse < total_time_on
             else resting_value
         )
 
-    times = np.linspace(0, total_time_cycle, num=10000)
-    print(times)
+    times = np.linspace(0, total_time_cycle, num=100)
+    # on_array = np.zeros_like(times)
+    # for i, t in enumerate(times):
+    #     pulse_row = my_scenario.get_row(float(t))
+    #     total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+    #     total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+    #     print("t ", t)
+    #     print("Pulse type ", my_scenario.get_pulse_type(t))
+    #     print("Total time on ", total_time_on)
+    #     print("Total pulse_time ", total_time_pulse)
+    #     inside_pulse = t % total_time_pulse < total_time_on
+    #     print("is on?", inside_pulse)
+    #     if inside_pulse:
+    #         on_array[i] = 1
+
+    # import matplotlib.pyplot as plt
+    # plt.plot(times, on_array)
+    # plt.show()
+    # exit()
 
     x = [0]
     Ts = [T_function(x, t) for t in times]
@@ -278,7 +294,6 @@ def make_mb_model(nb_mb, scenario_file):
 
     plt.plot(times, Ts, marker="o")
     plt.show()
-    exit()
 
     my_model.temperature = T_function
 
@@ -291,10 +306,11 @@ def make_mb_model(nb_mb, scenario_file):
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_cycle < total_time_pulse
+            if float(t) % total_time_pulse < total_time_on
             else resting_value
         )
     
@@ -305,10 +321,11 @@ def make_mb_model(nb_mb, scenario_file):
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_cycle < total_time_pulse
+            if float(t) % total_time_pulse < total_time_on
             else resting_value
         )
 
@@ -319,10 +336,11 @@ def make_mb_model(nb_mb, scenario_file):
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_cycle < total_time_pulse
+            if float(t) % total_time_pulse < total_time_on
             else resting_value
         )
 
@@ -333,10 +351,11 @@ def make_mb_model(nb_mb, scenario_file):
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0
         pulse_row = my_scenario.get_row(float(t))
-        total_time_pulse = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
+        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_cycle < total_time_pulse
+            if float(t) % total_time_pulse < total_time_on
             else resting_value
         )
 
