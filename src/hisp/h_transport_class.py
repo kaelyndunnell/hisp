@@ -50,6 +50,11 @@ class CustomProblem(F.HydrogenTransportProblem):
                 )
 
     def update_time_dependent_values(self):
+
+        # this is for the last time step, don't update the fluxes to avoid overshoot in the scenario file
+        if float(self.t) > self.settings.final_time:
+            return
+
         F.ProblemBase.update_time_dependent_values(self)
 
         if not self.temperature_time_dependent:
