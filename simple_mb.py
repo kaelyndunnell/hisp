@@ -61,10 +61,14 @@ def make_mb_model(nb_mb, scenario_file):
 
     # W material parameters
     w_density = 6.3382e28  # atoms/m3
-    w_diffusivity = htm.diffusivities.filter(material="tungsten").filter(isotope="h").filter(author="frauenfelder")
+    w_diffusivity = (
+        htm.diffusivities.filter(material="tungsten")
+        .filter(isotope="h")
+        .filter(author="frauenfelder")
+    )
     w_diffusivity = w_diffusivity[0]
-    D_0=w_diffusivity.pre_exp.magnitude
-    E_D=w_diffusivity.act_energy.magnitude
+    D_0 = w_diffusivity.pre_exp.magnitude
+    E_D = w_diffusivity.act_energy.magnitude
     tungsten = F.Material(
         D_0=D_0,
         E_D=E_D,
@@ -199,7 +203,7 @@ def make_mb_model(nb_mb, scenario_file):
     # dwelling_time = 72000  # 20 hours
 
     # total_time_pulse = flat_top_duration + ramp_up_duration + ramp_down_duration
-    total_time_cycle = 5120 #my_scenario.get_maximum_time()
+    total_time_cycle = 5120  # my_scenario.get_maximum_time()
 
     ############# Temperature Parameters (K) #############
 
@@ -269,24 +273,6 @@ def make_mb_model(nb_mb, scenario_file):
         )
 
     times = np.linspace(0, total_time_cycle, num=100)
-    # on_array = np.zeros_like(times)
-    # for i, t in enumerate(times):
-    #     pulse_row = my_scenario.get_row(float(t))
-    #     total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
-    #     total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-    #     print("t ", t)
-    #     print("Pulse type ", my_scenario.get_pulse_type(t))
-    #     print("Total time on ", total_time_on)
-    #     print("Total pulse_time ", total_time_pulse)
-    #     inside_pulse = t % total_time_pulse < total_time_on
-    #     print("is on?", inside_pulse)
-    #     if inside_pulse:
-    #         on_array[i] = 1
-
-    # import matplotlib.pyplot as plt
-    # plt.plot(times, on_array)
-    # plt.show()
-    # exit()
 
     x = [0]
     Ts = [T_function(x, t) for t in times]
@@ -313,7 +299,7 @@ def make_mb_model(nb_mb, scenario_file):
             if float(t) % total_time_pulse < total_time_on
             else resting_value
         )
-    
+
     def tritium_ion_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
         ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
@@ -459,37 +445,38 @@ def make_mb_model(nb_mb, scenario_file):
     return my_model, quantities
 
 
-my_model, quantities = make_mb_model(nb_mb=mb, scenario_file="scenario_test.txt")
+if __name__ == "__main__":
+    my_model, quantities = make_mb_model(nb_mb=mb, scenario_file="scenario_test.txt")
 
-############# Run Simu #############
+    ############# Run Simu #############
 
-my_model.initialise()
-my_model.run()
-my_model.progress_bar.close()
+    my_model.initialise()
+    my_model.run()
+    my_model.progress_bar.close()
 
-############# Results Plotting #############
+    ############# Results Plotting #############
 
-for name, quantity in quantities.items():
-    plt.plot(quantity.t, quantity.data, label=name)
+    for name, quantity in quantities.items():
+        plt.plot(quantity.t, quantity.data, label=name)
 
-plt.xlabel("Time (s)")
-plt.ylabel("Total quantity (atoms/m2)")
-plt.legend()
-plt.yscale("log")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Total quantity (atoms/m2)")
+    plt.legend()
+    plt.yscale("log")
 
-plt.show()
+    plt.show()
 
-# make the same but with a stack plot
+    # make the same but with a stack plot
 
-fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
-ax.stackplot(
-    quantity.t,
-    [quantity.data for quantity in quantities.values()],
-    labels=quantities.keys(),
-)
+    ax.stackplot(
+        quantity.t,
+        [quantity.data for quantity in quantities.values()],
+        labels=quantities.keys(),
+    )
 
-plt.xlabel("Time (s)")
-plt.ylabel("Total quantity (atoms/m2)")
-plt.legend()
-plt.show()
+    plt.xlabel("Time (s)")
+    plt.ylabel("Total quantity (atoms/m2)")
+    plt.legend()
+    plt.show()

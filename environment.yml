@@ -3,10 +3,10 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - fenics-dolfinx=0.8.0
+  - fenics-dolfinx=0.9.0
   - matplotlib
   - scipy
-  - pip 
+  - pip
   - pip:
-    - git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10
-    # - h_transport_materials~=0.16
+      - git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10
+      - h_transport_materials~=0.16
