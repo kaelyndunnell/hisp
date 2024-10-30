@@ -10,8 +10,8 @@ from scipy import constants
 import dolfinx.fem as fem
 import dolfinx
 
-from hisp.helpers import PulsedSource, Scenario
-from hisp import CustomProblem
+from src.hisp.helpers import PulsedSource, Scenario
+from src.hisp import CustomProblem
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
@@ -458,7 +458,7 @@ def make_mb_model(nb_mb, scenario_file):
 
 
 if __name__ == "__main__":
-    my_model, quantities = make_mb_model(nb_mb=mb, scenario_file="scenario_test.txt")
+    my_model, quantities = make_mb_model(nb_mb=mb, scenario_file="one_line_scenario.txt")
 
     ############# Run Simu #############
 

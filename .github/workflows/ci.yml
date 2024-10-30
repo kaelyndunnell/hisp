@@ -34,4 +34,4 @@ jobs:
 
       - name: Run example
         shell: bash -l {0}
-        run: python simple_mb.py
+        run: python mb_scenario.py

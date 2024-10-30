@@ -1,4 +1,4 @@
-from hisp.helpers import Scenario
+from src.hisp.helpers import Scenario
 import os
 import pytest
 import numpy as np
@@ -53,3 +53,13 @@ def test_reading_a_file():
         plt.plot(times[i : i + 2], np.ones_like(times[i : i + 2]), c=colors[i])
     # plt.xscale("log")
     # plt.show()
+
+one_line_scenario_path = os.path.join(current_dir, "one_line_scenario.txt")
+
+@pytest.mark.parametrize("t, expected_row", [(100, 0)])
+def test_one_line_scenario(t, expected_row):
+    my_scenario = Scenario(one_line_scenario_path)
+
+    pulse_row = my_scenario.get_row(t=t)
+
+    assert pulse_row == expected_row 

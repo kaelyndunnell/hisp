@@ -28,7 +28,11 @@ class PulsedSource(F.ParticleSource):
 class Scenario:
     def __init__(self, filename: str):
         self.filename = filename
-        self.data = np.genfromtxt(filename, dtype=str, comments="#")
+        data = np.genfromtxt(filename, dtype=str, comments="#")
+        if isinstance(data[0], str):
+            self.data = [data]
+        else:
+            self.data = data
 
     def get_row(self, t: float):
         """Returns the row of the scenario file that corresponds to the time t.
