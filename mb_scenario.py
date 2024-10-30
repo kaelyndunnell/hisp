@@ -261,18 +261,16 @@ def make_mb_model(nb_mb, scenario_file):
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on
+            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
             else resting_value
         )
 
-    # times = np.linspace(0, total_time_cycle, num=100)
+    times = np.linspace(0, my_scenario.get_maximum_time(), num=100)
 
     # x = [0]
     # Ts = [T_function(x, t) for t in times]
-    # import matplotlib.pyplot as plt
 
     # plt.plot(times, Ts, marker="o")
     # plt.show()
@@ -295,12 +293,10 @@ def make_mb_model(nb_mb, scenario_file):
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on
+            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
             else resting_value
         )
     
-    # times = np.linspace(0, my_scenario.get_maximum_time(), num=100)
-
     # plt.plot(times, [deuterium_ion_flux(t) for t in times], marker="o")
     # plt.show()
     # exit()
@@ -319,7 +315,7 @@ def make_mb_model(nb_mb, scenario_file):
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on
+            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -337,7 +333,7 @@ def make_mb_model(nb_mb, scenario_file):
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on
+            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -355,7 +351,7 @@ def make_mb_model(nb_mb, scenario_file):
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on
+            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -458,7 +454,7 @@ def make_mb_model(nb_mb, scenario_file):
 
 
 if __name__ == "__main__":
-    my_model, quantities = make_mb_model(nb_mb=mb, scenario_file="one_line_scenario.txt")
+    my_model, quantities = make_mb_model(nb_mb=mb, scenario_file="scenario_test.txt")
 
     ############# Run Simu #############
 
