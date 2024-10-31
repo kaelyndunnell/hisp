@@ -111,8 +111,8 @@ def make_mb_model(nb_mb, scenario_file):
     )
 
     # density_func =
-    empty_trap3 = F.ImplicitSpecies(  # fermi-dirac-like trap 3
-        n=6.338e27,  # density_func # 1e-1 at.fr.
+    empty_trap3 = F.ImplicitSpecies(  # not implicit, but can simplify trap creation model to small damanged zone in first 10nm
+        n=6.338e27,  # 1e-1 at.fr.
         others=[trap3_T, trap3_D],
         name="empty_trap3",
     )
@@ -261,9 +261,10 @@ def make_mb_model(nb_mb, scenario_file):
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        time_elapsed = my_scenario.get_time_till_row(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
+            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -291,9 +292,10 @@ def make_mb_model(nb_mb, scenario_file):
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        time_elapsed = my_scenario.get_time_till_row(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
+            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
     
@@ -313,9 +315,10 @@ def make_mb_model(nb_mb, scenario_file):
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        time_elapsed = my_scenario.get_time_till_row(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
+            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -331,9 +334,10 @@ def make_mb_model(nb_mb, scenario_file):
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        time_elapsed = my_scenario.get_time_till_row(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
+            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -349,9 +353,10 @@ def make_mb_model(nb_mb, scenario_file):
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
+        time_elapsed = my_scenario.get_time_till_row(pulse_row)
         return (
             flat_top_value
-            if float(t) % total_time_pulse < total_time_on and float(t) % total_time_pulse != 0.0
+            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
 
