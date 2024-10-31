@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools >= 61", "wheel", "setuptools-scm[toml] >= 7.0.5"]
+build-backend = "setuptools.build_meta"
+
+[project]
+authors = [
+    { name = "Kaelyn Dunnell" },
+    { email = "kaelyn@mit.edu" },
+]
+dynamic = ["version"]
+name = "HISP"
+description = "Hydrogen Inventory Simulations of PFCs"
+readme = "README/md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+dependencies = [
+    "h_transport_materials",
+    "festim@git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10"]
+
+classifiers = [
+    "Natural Language :: English",
+    "Topic :: Scientific/Engineering",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: MIT",
+    "Operating System :: OS Independent",
+]
+
+[project.optional-dependencies]
+test = ["pytest >= 5.4.3", "pytest-cov"]
+
+[project.urls]
+Homepage = "https://github.com/RemDelaporteMathurin/FESTIM"
+Issues = "https://github.com/RemDelaporteMathurin/FESTIM/issues"
+
+
+[tool.setuptools_scm]
+write_to = "src/hisp/_version.py"
