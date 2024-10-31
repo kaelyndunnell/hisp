@@ -118,17 +118,11 @@ class Scenario:
         row_data = self.data[row]
         pulse_type = row_data[0]
         if pulse_type == "RISP":  # hard coded because it's zero in the files
-            ramp_up = 10
-            steady_state = 250
-            ramp_down = 10
-            duration = ramp_up + steady_state + ramp_down
-            return duration
+            waiting_time = 1530
+        else:
+            waiting_time = float(row_data[5])
 
-        ramp_up = float(row_data[2])
-        steady_state = float(row_data[4])
-        ramp_down = float(row_data[3])
-
-        duration = ramp_up + steady_state + ramp_down
+        duration = self.get_pulse_duration(row) - waiting_time
         return duration
     
     def get_time_till_row(self, row:int) -> float:
