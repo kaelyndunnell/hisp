@@ -119,6 +119,21 @@ class Scenario:
 
         duration = ramp_up + steady_state + ramp_down
         return duration
+    
+    def get_time_till_row(self, row:int) -> float:
+        """Returns the time that has elapsed in scenario up until input row.
+
+        Args:
+            row (int): the row index in the scenario file
+
+        Returns:
+            float: the time that has elapsed in scenario until input row 
+        """
+        time_elapsed = 0
+        for row in range(0,row):
+            nb_pulses = int(self.data[row][1])
+            time_elapsed += nb_pulses * self.get_pulse_duration(row)
+        return time_elapsed
 
     def get_maximum_time(self) -> float:
         """Returns the maximum time in seconds for the scenario file.

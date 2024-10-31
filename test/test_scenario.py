@@ -79,3 +79,11 @@ def test_get_pulse_duration_no_waiting(row, expected_duration):
     duration = my_scenario.get_pulse_duration_no_waiting(row=row)
 
     assert duration == expected_duration 
+
+@pytest.mark.parametrize("row, expected_time", [(0,0.0), (1,5120.0)])
+def test_get_time_till_row(row, expected_time): 
+    my_scenario = Scenario(scenario_path)
+
+    elapsed_time = my_scenario.get_time_till_row(row=row)
+
+    assert elapsed_time == expected_time 
