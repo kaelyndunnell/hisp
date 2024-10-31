@@ -14,8 +14,8 @@ readme = "README/md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
 dependencies = [
-    "h_transport_materials",
-    "pip@git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10"]
+    "h_transport_materials"]
+
 classifiers = [
     "Natural Language :: English",
     "Topic :: Scientific/Engineering",

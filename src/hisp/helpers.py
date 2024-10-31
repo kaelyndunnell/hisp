@@ -6,6 +6,17 @@ import numpy as np
 
 class PulsedSource(F.ParticleSource):
     def __init__(self, flux, distribution, volume, species):
+        """Initalizes flux and distribution for PulsedSource. 
+
+        Args:
+            flux (float): the input flux value from DINA data
+            distribution (function of x): distribution of flux throughout mb 
+            volume (F.VolumeSubdomain1D): volume where this flux is imposed 
+            species (F.species): species of flux (e.g. D/T)
+
+        Returns:
+            flux and distribution of species.
+        """
         self.flux = flux
         self.distribution = distribution
         super().__init__(None, volume, species)
@@ -121,18 +132,18 @@ class Scenario:
         return duration
     
     def get_time_till_row(self, row:int) -> float:
-        """Returns the time that has elapsed in scenario up until input row.
+        """Returns the time that has elapsed in scenario up until start of current row.
 
         Args:
             row (int): the row index in the scenario file
 
         Returns:
-            float: the time that has elapsed in scenario until input row 
+            float: the time that has elapsed in scenario until and not including input row.
         """
         time_elapsed = 0
-        for row in range(0,row):
-            nb_pulses = int(self.data[row][1])
-            time_elapsed += nb_pulses * self.get_pulse_duration(row)
+        for prev_row_id in range(0,row):
+            nb_pulses = int(self.data[prev_row_id][1])
+            time_elapsed += nb_pulses * self.get_pulse_duration(prev_row_id)
         return time_elapsed
 
     def get_maximum_time(self) -> float:

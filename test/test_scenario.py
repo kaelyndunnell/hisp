@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 current_dir = os.path.dirname(__file__)
 scenario_path = os.path.join(current_dir, "scenario_test.txt")
+one_line_scenario_path = os.path.join(current_dir, "one_line_scenario.txt")
 
 
 def test_maximum_time():
@@ -20,13 +21,16 @@ def test_maximum_time():
     assert computed_maximum_time == expected_maximum_time
 
 
-@pytest.mark.parametrize("t, expected_row", [(0, 0), (6000, 1)])
+@pytest.mark.parametrize("t, expected_row", [(0, 0), (6000, 1), (1e5, ValueError)])
 def test_get_pulse_row(t, expected_row):
     my_scenario = Scenario(scenario_path)
 
-    pulse_row = my_scenario.get_row(t=t)
-
-    assert pulse_row == expected_row
+    if isinstance(expected_row, type) and issubclass(expected_row, Exception):
+        with pytest.raises(expected_row):
+            my_scenario.get_row(t=t)
+    else:
+        pulse_row = my_scenario.get_row(t=t)
+        assert pulse_row == expected_row
 
 
 def test_reading_a_file():
@@ -53,9 +57,6 @@ def test_reading_a_file():
         plt.plot(times[i : i + 2], np.ones_like(times[i : i + 2]), c=colors[i])
     # plt.xscale("log")
     # plt.show()
-
-
-one_line_scenario_path = os.path.join(current_dir, "one_line_scenario.txt")
 
 
 @pytest.mark.parametrize("t, expected_row", [(100, 0)])
