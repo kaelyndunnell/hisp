@@ -63,3 +63,19 @@ def test_one_line_scenario(t, expected_row):
     pulse_row = my_scenario.get_row(t=t)
 
     assert pulse_row == expected_row 
+
+@pytest.mark.parametrize("row, expected_duration", [(0,2560), (1,1252)])
+def test_get_pulse_duration(row, expected_duration):
+    my_scenario = Scenario(scenario_path)
+
+    duration = my_scenario.get_pulse_duration(row=row)
+
+    assert duration == expected_duration 
+
+@pytest.mark.parametrize("row, expected_duration", [(0,1560), (1,252)])
+def test_get_pulse_duration_no_waiting(row, expected_duration):
+    my_scenario = Scenario(scenario_path)
+
+    duration = my_scenario.get_pulse_duration_no_waiting(row=row)
+
+    assert duration == expected_duration 
