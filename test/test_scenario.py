@@ -1,4 +1,4 @@
-from src.hisp.helpers import Scenario
+from hisp import Scenario
 import os
 import pytest
 import numpy as np
@@ -54,7 +54,9 @@ def test_reading_a_file():
     # plt.xscale("log")
     # plt.show()
 
+
 one_line_scenario_path = os.path.join(current_dir, "one_line_scenario.txt")
+
 
 @pytest.mark.parametrize("t, expected_row", [(100, 0)])
 def test_one_line_scenario(t, expected_row):
@@ -62,28 +64,31 @@ def test_one_line_scenario(t, expected_row):
 
     pulse_row = my_scenario.get_row(t=t)
 
-    assert pulse_row == expected_row 
+    assert pulse_row == expected_row
 
-@pytest.mark.parametrize("row, expected_duration", [(0,2560), (1,1252)])
+
+@pytest.mark.parametrize("row, expected_duration", [(0, 2560), (1, 1252)])
 def test_get_pulse_duration(row, expected_duration):
     my_scenario = Scenario(scenario_path)
 
     duration = my_scenario.get_pulse_duration(row=row)
 
-    assert duration == expected_duration 
+    assert duration == expected_duration
 
-@pytest.mark.parametrize("row, expected_duration", [(0,1560), (1,252)])
+
+@pytest.mark.parametrize("row, expected_duration", [(0, 1560), (1, 252)])
 def test_get_pulse_duration_no_waiting(row, expected_duration):
     my_scenario = Scenario(scenario_path)
 
     duration = my_scenario.get_pulse_duration_no_waiting(row=row)
 
-    assert duration == expected_duration 
+    assert duration == expected_duration
 
-@pytest.mark.parametrize("row, expected_time", [(0,0.0), (1,5120.0)])
-def test_get_time_till_row(row, expected_time): 
+
+@pytest.mark.parametrize("row, expected_time", [(0, 0.0), (1, 5120.0)])
+def test_get_time_till_row(row, expected_time):
     my_scenario = Scenario(scenario_path)
 
     elapsed_time = my_scenario.get_time_till_row(row=row)
 
-    assert elapsed_time == expected_time 
+    assert elapsed_time == expected_time
