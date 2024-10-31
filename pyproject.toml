@@ -13,7 +13,9 @@ description = "Hydrogen Inventory Simulations of PFCs"
 readme = "README/md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
-dependencies = ["h_transport_materials"]
+dependencies = [
+    "h_transport_materials",
+    "sphinx@git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10"]
 classifiers = [
     "Natural Language :: English",
     "Topic :: Scientific/Engineering",
