@@ -107,7 +107,7 @@ class Scenario:
         return total_duration
 
     def get_pulse_duration_no_waiting(self, row: int) -> float:
-        """Returns the total duration of a pulse in seconds for a given row in the file.
+        """Returns the total duration (without the waiting time) of a pulse in seconds for a given row in the file.
 
         Args:
             row (int): the row index in the scenario file
