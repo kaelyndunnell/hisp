@@ -126,6 +126,7 @@ class Scenario:
         duration = self.get_pulse_duration(row) - waiting_time
         return duration
     
+    # TODO rename this get_start_time_current_pulse()
     def get_time_till_row(self, row:int) -> float:
         """Returns the time that has elapsed in scenario up until start of current row.
 
