@@ -31,11 +31,11 @@ pulse_type_to_DINA_data = {
 }
 
 
-def RISP_data(monob: int, t_rel: float | int) -> NDArray:
+def RISP_data(nb_mb: int, t_rel: float | int) -> NDArray:
     """Returns the correct RISP data file for indicated monoblock
 
     Args:
-        monob: mb number
+        nb_mb: mb number
         t_rel: t_rel as an integer(in seconds).
             t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
@@ -45,11 +45,11 @@ def RISP_data(monob: int, t_rel: float | int) -> NDArray:
     inner_swept_bins = list(range(46, 65))
     outer_swept_bins = list(range(19, 34))
 
-    if monob in inner_swept_bins:
+    if nb_mb in inner_swept_bins:
         label = "RISP"
         div = True
         offset_mb = 46
-    elif monob in outer_swept_bins:
+    elif nb_mb in outer_swept_bins:
         label = "ROSP"
         div = True
         offset_mb = 19
@@ -73,15 +73,15 @@ def RISP_data(monob: int, t_rel: float | int) -> NDArray:
     else:
         data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
 
-    return data[monob - offset_mb, :]
+    return data[nb_mb - offset_mb, :]
 
 
-def get_particle_flux(pulse_type: str, monob: int, t_rel: float, ion=True) -> float:
+def get_particle_flux(pulse_type: str, nb_mb: int, t_rel: float, ion=True) -> float:
     """_summary_
 
     Args:
         pulse_type (str): _description_
-        monob (int): _description_
+        nb_mb (int): _description_
         t_rel: t_rel as an integer (in seconds).
             t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
         ion (bool, optional): _description_. Defaults to True.
@@ -97,14 +97,14 @@ def get_particle_flux(pulse_type: str, monob: int, t_rel: float, ion=True) -> fl
         other_index = 1
 
     if pulse_type == "FP":
-        flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][monob - 1]
+        flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][nb_mb - 1]
     elif pulse_type == "RISP":
         assert isinstance(t_rel, float), f"t_rel should be a float, not {type(t_rel)}"
-        flux = RISP_data(monob=monob, t_rel=t_rel)[other_index]
+        flux = RISP_data(nb_mb=nb_mb, t_rel=t_rel)[other_index]
     elif pulse_type == "BAKE":
         flux = 0.0
     else:
-        flux = pulse_type_to_DINA_data[pulse_type][:, other_index][monob - 1]
+        flux = pulse_type_to_DINA_data[pulse_type][:, other_index][nb_mb - 1]
 
     return flux
 
@@ -196,7 +196,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         ion_flux = get_particle_flux(
-            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True
+            pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=True
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
@@ -223,7 +223,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         ion_flux = get_particle_flux(
-            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True
+            pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=True
         )
 
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
         relative_time = t - time_start_current_pulse
         atom_flux = get_particle_flux(
-            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False
+            pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=False
         )
 
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
@@ -269,7 +269,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         atom_flux = get_particle_flux(
-            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False
+            pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=False
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
