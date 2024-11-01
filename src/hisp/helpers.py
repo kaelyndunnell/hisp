@@ -2,6 +2,7 @@ import festim as F
 from dolfinx.fem.function import Constant
 import ufl
 import numpy as np
+import numpy.typing as npt
 
 
 class PulsedSource(F.ParticleSource):
@@ -152,5 +153,5 @@ class Scenario:
             max_time += nb_pulses * self.get_pulse_duration(i)
         return max_time
 
-def gaussian_distribution(x, mean, width, mod=ufl):
+def gaussian_distribution(x: npt.NDArray, mean:float, width:float, mod=ufl) -> ufl.core.expr.Expr:
     return mod.exp(-((x[0] - mean) ** 2) / (2 * width**2))
