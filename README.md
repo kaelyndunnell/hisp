@@ -1,4 +1,6 @@
+[![CI](https://github.com/kaelyndunnell/hisp/actions/workflows/ci.yml/badge.svg)](https://github.com/kaelyndunnell/hisp/actions/workflows/ci.yml)
 # HISP
+
 Hydrogen Inventory Simulations for PFCs (HISP) is a series of code that uses FESTIM to simulate deuterium and tritium inventories in a fusion tokamak first wall and divertor PFCs. 
 
 ## How to Run:
@@ -31,3 +33,12 @@ This will also install the pip dependencies like `h-transport-materials` and `FE
 
 > **_NOTE:_**  Using `-e` with pip will install the package in editable mode, meaning the source code can be modified without having to reinstall the package.
 
+## Run the tests
+
+After cloning the repo and installing hisp, run:
+
+```
+python -m pytest test
+```
+
+> **_NOTE:_**  Make sure to install the test dependencies with `python -m pip install -e .[test]`
