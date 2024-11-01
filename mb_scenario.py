@@ -144,28 +144,6 @@ if __name__ == "__main__":
     nb_mb = 64
     L = 6e-3
 
-    def T_surface(heat_flux: float) -> float:
-        """Monoblock surface temperature
-
-        Args:
-            heat_flux: surface heat flux in W/m2
-
-        Returns:
-            monoblock surface temperature in K
-        """
-        return 1.1e-4 * heat_flux + COOLANT_TEMP
-
-    def T_rear(heat_flux: float) -> float:
-        """Monoblock surface temperature
-
-        Args:
-            heat_flux: surface heat flux in W/m2
-
-        Returns:
-            monoblock rear temperature in K
-        """
-        return 2.2e-5 * heat_flux + COOLANT_TEMP
-
     def T_function(x, t: Constant) -> float:
         """Monoblock temperature function
 
@@ -185,8 +163,10 @@ if __name__ == "__main__":
             flat_top_value = 483.15  # TODO, we probably have to return np.full_like(x[0], 483.15)
         else:
             heat_flux = heat(nb_mb, pulse_type, t_rel) 
-            a = (T_rear(heat_flux) - T_surface(heat_flux)) / L
-            b = T_surface(heat_flux)
+            T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
+            T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
+            a = (T_rear - T_surface) / L
+            b = T_surface
             flat_top_value = a * x[0] + b
 
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
