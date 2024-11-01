@@ -30,7 +30,8 @@ pulse_type_to_DINA_data = {
     "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
 }
 
-def RISP_data(monob: int, t_rel: float | int) -> NDArray: 
+
+def RISP_data(monob: int, t_rel: float | int) -> NDArray:
     """Returns the correct RISP data file for indicated monoblock
 
     Args:
@@ -39,11 +40,11 @@ def RISP_data(monob: int, t_rel: float | int) -> NDArray:
             t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
     Returns:
-        data: data from correct file as a numpy array 
+        data: data from correct file as a numpy array
     """
-    inner_swept_bins = list(range(46,65))
-    outer_swept_bins = list(range(19,34))
-    
+    inner_swept_bins = list(range(46, 65))
+    outer_swept_bins = list(range(19, 34))
+
     if monob in inner_swept_bins:
         label = "RISP"
         div = True
@@ -72,7 +73,8 @@ def RISP_data(monob: int, t_rel: float | int) -> NDArray:
     else:
         data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
 
-    return data[monob-offset_mb,:]
+    return data[monob - offset_mb, :]
+
 
 def get_particle_flux(pulse_type: str, monob: int, t_rel: float, ion=True) -> float:
     """_summary_
@@ -90,23 +92,24 @@ def get_particle_flux(pulse_type: str, monob: int, t_rel: float, ion=True) -> fl
     if ion:
         FP_index = 2
         other_index = 0
-    if not ion: 
+    if not ion:
         FP_index = 3
         other_index = 1
 
     if pulse_type == "FP":
         flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][monob - 1]
-    elif pulse_type == "RISP": 
+    elif pulse_type == "RISP":
         assert isinstance(t_rel, float), f"t_rel should be a float, not {type(t_rel)}"
         flux = RISP_data(monob=monob, t_rel=t_rel)[other_index]
-    elif pulse_type == "BAKE": 
+    elif pulse_type == "BAKE":
         flux = 0.0
-    else: 
+    else:
         flux = pulse_type_to_DINA_data[pulse_type][:, other_index][monob - 1]
-    
+
     return flux
 
-def heat(nb_mb:int, pulse_type: str, t_rel:float) -> float:
+
+def heat(nb_mb: int, pulse_type: str, t_rel: float) -> float:
     """Returns the surface heat flux (W/m2) for a given pulse type
 
     Args:
@@ -123,7 +126,7 @@ def heat(nb_mb:int, pulse_type: str, t_rel:float) -> float:
     """
     if pulse_type == "RISP":
         data = RISP_data(nb_mb, t_rel=t_rel)
-    elif pulse_type in pulse_type_to_DINA_data.keys(): 
+    elif pulse_type in pulse_type_to_DINA_data.keys():
         data = pulse_type_to_DINA_data[pulse_type]
     else:
         raise ValueError(f"Invalid pulse type {pulse_type}")
@@ -159,11 +162,11 @@ if __name__ == "__main__":
         pulse_type = my_scenario.get_pulse_type(float(t))
         t_rel = t - my_scenario.get_time_till_row(pulse_row)
 
-        if pulse_type == "BAKE": 
+        if pulse_type == "BAKE":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
-            heat_flux = heat(nb_mb, pulse_type, t_rel) 
+            heat_flux = heat(nb_mb, pulse_type, t_rel)
             T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
             T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
             a = (T_rear - T_surface) / L
@@ -174,10 +177,11 @@ if __name__ == "__main__":
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
 
-        relative_time = t-time_start_current_pulse
+        relative_time = t - time_start_current_pulse
         return (
             flat_top_value
-            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
+            if relative_time % total_time_pulse < total_time_on
+            and relative_time % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -189,14 +193,16 @@ if __name__ == "__main__":
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
-        relative_time = t-time_start_current_pulse
-        
-        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True)
+        relative_time = t - time_start_current_pulse
+
+        ion_flux = get_particle_flux(
+            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True
+        )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
-        
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
         if is_pulse_active:
             return flat_top_value
         else:
@@ -214,15 +220,17 @@ if __name__ == "__main__":
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
-        relative_time = t-time_start_current_pulse
-        
-        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True)
-        
+        relative_time = t - time_start_current_pulse
+
+        ion_flux = get_particle_flux(
+            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True
+        )
+
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0.0
 
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
         if is_pulse_active:
             return flat_top_value
         else:
@@ -236,13 +244,15 @@ if __name__ == "__main__":
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
-        relative_time = t-time_start_current_pulse
-        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False)
-        
+        relative_time = t - time_start_current_pulse
+        atom_flux = get_particle_flux(
+            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False
+        )
+
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0.0
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
         if is_pulse_active:
             return flat_top_value
         else:
@@ -251,18 +261,20 @@ if __name__ == "__main__":
     def tritium_atom_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
         pulse_type = my_scenario.get_pulse_type(t)
-        
+
         pulse_row = my_scenario.get_row(t)
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
-        relative_time = t-time_start_current_pulse
-        
-        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False)
+        relative_time = t - time_start_current_pulse
+
+        atom_flux = get_particle_flux(
+            pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False
+        )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0.0
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
         if is_pulse_active:
             return flat_top_value
         else:
@@ -276,7 +288,7 @@ if __name__ == "__main__":
         tritium_atom_flux=tritium_atom_flux,
         final_time=my_scenario.get_maximum_time(),
         L=6e-3,
-        folder=f"mb{nb_mb}_results"
+        folder=f"mb{nb_mb}_results",
     )
     ############# Run Simu #############
 
