@@ -106,11 +106,14 @@ def get_particle_flux(pulse_type: str, monob: int, t_rel: float, ion=True) -> fl
     
     return flux
 
-def heat(nb_mb:int, pulse_type: str, t:float) -> float:
+def heat(nb_mb:int, pulse_type: str, t_rel:float) -> float:
     """Returns the surface heat flux (W/m2) for a given pulse type
 
     Args:
+        nb_mb: monoblock number
         pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+        t_rel: t_rel as an integer (in seconds).
+            t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
     Raises:
         ValueError: if the pulse type is unknown
@@ -119,7 +122,7 @@ def heat(nb_mb:int, pulse_type: str, t:float) -> float:
         the surface heat flux in W/m2
     """
     if pulse_type == "RISP":
-        data = RISP_data(nb_mb, t_rel=t)
+        data = RISP_data(nb_mb, t_rel=t_rel)
     elif pulse_type in pulse_type_to_DINA_data.keys(): 
         data = pulse_type_to_DINA_data[pulse_type]
     else:
@@ -141,29 +144,27 @@ if __name__ == "__main__":
     nb_mb = 64
     L = 6e-3
 
-    def T_surface(t: dolfinx.fem.Constant) -> float:
+    def T_surface(heat_flux: float) -> float:
         """Monoblock surface temperature
 
         Args:
-            t: time in seconds
+            heat_flux: surface heat flux in W/m2
 
         Returns:
             monoblock surface temperature in K
         """
-        pulse_type = my_scenario.get_pulse_type(float(t))
-        return 1.1e-4 * heat(nb_mb=nb_mb, pulse_type=pulse_type, t=t) + COOLANT_TEMP
+        return 1.1e-4 * heat_flux + COOLANT_TEMP
 
-    def T_rear(t: dolfinx.fem.Constant) -> float:
+    def T_rear(heat_flux: float) -> float:
         """Monoblock surface temperature
 
         Args:
-            t: time in seconds
+            heat_flux: surface heat flux in W/m2
 
         Returns:
-            monoblock surface temperature in K
+            monoblock rear temperature in K
         """
-        pulse_type = my_scenario.get_pulse_type(float(t))
-        return 2.2e-5 * heat(nb_mb=nb_mb, pulse_type=pulse_type, t=t) + COOLANT_TEMP
+        return 2.2e-5 * heat_flux + COOLANT_TEMP
 
     def T_function(x, t: Constant) -> float:
         """Monoblock temperature function
@@ -178,12 +179,14 @@ if __name__ == "__main__":
         resting_value = np.full_like(x[0], COOLANT_TEMP)
         pulse_row = my_scenario.get_row(float(t))
         pulse_type = my_scenario.get_pulse_type(float(t))
+        t_rel = t - my_scenario.get_time_till_row(pulse_row)
 
         if pulse_type == "BAKE": 
             flat_top_value = 483.15  # TODO, we probably have to return np.full_like(x[0], 483.15)
-        else: 
-            a = (T_rear(t) - T_surface(t)) / L
-            b = T_surface(t)
+        else:
+            heat_flux = heat(nb_mb, pulse_type, t_rel) 
+            a = (T_rear(heat_flux) - T_surface(heat_flux)) / L
+            b = T_surface(heat_flux)
             flat_top_value = a * x[0] + b
 
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
