@@ -39,15 +39,16 @@ pulse_type_to_DINA_data = {
     "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
 }
 
-def RISP_data(monob, time): 
+def RISP_data(monob: int, t_rel: float | int) -> NDArray: 
     """Returns the correct RISP data file for indicated monoblock
 
     Args:
-        monob (int): mb number
-        t (int): time as an integer  # TODO: what does that mean? what units? will it be a float? I don't get it
+        monob: mb number
+        t_rel: t_rel as an integer(in seconds).
+            t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
     Returns:
-        data (np.array): data from correct file as a numpy array 
+        data: data from correct file as a numpy array 
     """
     inner_swept_bins = list(range(46,65))
     outer_swept_bins = list(range(19,34))
@@ -64,16 +65,16 @@ def RISP_data(monob, time):
         div = False
         offset_mb = 0
 
-    t = int(time)
+    t_rel = int(t_rel)
 
     if div:
-        if 1 <= t <= 9:
+        if 1 <= t_rel <= 9:
             data = np.loadtxt(f"{label}_data/time0.dat", skiprows=1)
-        elif 10 <= t <= 98:
+        elif 10 <= t_rel <= 98:
             data = np.loadtxt(f"{label}_data/time10.dat", skiprows=1)
-        elif 100 <= t <= 260:
-            data = np.loadtxt(f"{label}_data/time{t}.dat", skiprows=1)
-        elif 261 <= t <= 269:
+        elif 100 <= t_rel <= 260:
+            data = np.loadtxt(f"{label}_data/time{t_rel}.dat", skiprows=1)
+        elif 261 <= t_rel <= 269:
             data = np.loadtxt(f"{label}_data/time270.dat", skiprows=1)
         else:
             data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
