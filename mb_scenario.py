@@ -174,28 +174,31 @@ if __name__ == "__main__":
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
 
+        relative_time = t-time_start_current_pulse
         return (
             flat_top_value
-            if (float(t)-time_start_current_pulse) % total_time_pulse < total_time_on and (float(t)-time_start_current_pulse) % total_time_pulse != 0.0
+            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
             else resting_value
         )
 
     def deuterium_ion_flux(t: float) -> float:
-        pulse_type = my_scenario.get_pulse_type(float(t))
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+        pulse_type = my_scenario.get_pulse_type(t)
 
-        pulse_row = my_scenario.get_row(float(t))
+        pulse_row = my_scenario.get_row(t)
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        relative_time = t-time_start_current_pulse
         
-        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_start_current_pulse, ion=True)
+        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True)
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
         
         return (
             flat_top_value
-            if (float(t)-time_start_current_pulse) % total_time_pulse < total_time_on and (float(t)-time_start_current_pulse) % total_time_pulse != 0.0
+            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -204,58 +207,64 @@ if __name__ == "__main__":
     # exit()
 
     def tritium_ion_flux(t: float) -> float:
-        pulse_type = my_scenario.get_pulse_type(float(t))
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+        pulse_type = my_scenario.get_pulse_type(t)
 
-        pulse_row = my_scenario.get_row(float(t))
+        pulse_row = my_scenario.get_row(t)
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        relative_time = t-time_start_current_pulse
         
-        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_elapsed, ion=True)
+        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=True)
         
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0.0
+
         return (
             flat_top_value
-            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
+            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
             else resting_value
         )
 
     def deuterium_atom_flux(t: float) -> float:
-        pulse_type = my_scenario.get_pulse_type(float(t))
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+        pulse_type = my_scenario.get_pulse_type(t)
 
-        pulse_row = my_scenario.get_row(float(t))
+        pulse_row = my_scenario.get_row(t)
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_elapsed = my_scenario.get_time_till_row(pulse_row)
-        
-        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_elapsed, ion=False)
+        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        relative_time = t-time_start_current_pulse
+        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False)
         
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0.0
         return (
             flat_top_value
-            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
+            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
             else resting_value
         )
 
     def tritium_atom_flux(t: float) -> float:
-        pulse_type = my_scenario.get_pulse_type(float(t))
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+        pulse_type = my_scenario.get_pulse_type(t)
         
-        pulse_row = my_scenario.get_row(float(t))
+        pulse_row = my_scenario.get_row(t)
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        relative_time = t-time_start_current_pulse
         
-        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_elapsed, ion=False)
+        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=relative_time, ion=False)
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0.0
         return (
             flat_top_value
-            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
+            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
             else resting_value
         )
 
