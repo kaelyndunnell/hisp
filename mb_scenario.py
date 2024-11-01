@@ -196,7 +196,7 @@ def make_mb_model(nb_mb, scenario_file):
 
         Args:
             monob (int): mb number
-            t (int): time as an integer
+            t (int): time as an integer  # TODO: what does that mean? what units? will it be a float? I don't get it
 
         Returns:
             data (np.array): data from correct file as a numpy array 
