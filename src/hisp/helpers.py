@@ -26,7 +26,7 @@ class PulsedSource(F.ParticleSource):
         return True
 
     def create_value_fenics(self, mesh, temperature, t: Constant):
-        self.flux_fenics = F.as_fenics_constant(float(self.flux(t)), mesh)
+        self.flux_fenics = F.as_fenics_constant(self.flux(float(t)), mesh)
         x = ufl.SpatialCoordinate(mesh)
         self.distribution_fenics = self.distribution(x)
 

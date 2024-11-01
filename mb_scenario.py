@@ -351,7 +351,7 @@ def make_mb_model(nb_mb, scenario_file):
         
         return flux
 
-    def deuterium_ion_flux(t: float):
+    def deuterium_ion_flux(t: float) -> float:
         pulse_type = my_scenario.get_pulse_type(float(t))
 
         pulse_row = my_scenario.get_row(float(t))
@@ -374,7 +374,7 @@ def make_mb_model(nb_mb, scenario_file):
     # plt.show()
     # exit()
 
-    def tritium_ion_flux(t: float):
+    def tritium_ion_flux(t: float) -> float:
         pulse_type = my_scenario.get_pulse_type(float(t))
 
         pulse_row = my_scenario.get_row(float(t))
@@ -386,14 +386,14 @@ def make_mb_model(nb_mb, scenario_file):
         
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * tritium_fraction
-        resting_value = 0
+        resting_value = 0.0
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
 
-    def deuterium_atom_flux(t: float):
+    def deuterium_atom_flux(t: float) -> float:
         pulse_type = my_scenario.get_pulse_type(float(t))
 
         pulse_row = my_scenario.get_row(float(t))
@@ -405,14 +405,14 @@ def make_mb_model(nb_mb, scenario_file):
         
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
-        resting_value = 0
+        resting_value = 0.0
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
 
-    def tritium_atom_flux(t: float):
+    def tritium_atom_flux(t: float) -> float:
         pulse_type = my_scenario.get_pulse_type(float(t))
         
         pulse_row = my_scenario.get_row(float(t))
@@ -423,7 +423,7 @@ def make_mb_model(nb_mb, scenario_file):
         atom_flux = get_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed, ion=False)
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
-        resting_value = 0
+        resting_value = 0.0
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
