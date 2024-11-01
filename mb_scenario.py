@@ -23,7 +23,6 @@ COOLANT_TEMP = 343  # 70 degree C cooling water
 # TODO: ADJUST TO HANDLE ANY STRAIGHT W 6MM SIMU
 mb = 64
 
-
 # tritium fraction = T/D
 PULSE_TYPE_TO_TRITIUM_FRACTION = {
     "FP": 0.5,
@@ -192,14 +191,50 @@ def make_mb_model(nb_mb, scenario_file):
     pulse_type_to_DINA_data = {
         "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
         "ICWC": np.loadtxt("ICWC_data.dat", skiprows=1),
-        "RISP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
         "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
-        "BAKE": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
     }
+
+    def RISP_data(monob, time): 
+        """Returns the correct RISP data file for indicated monoblock
+
+        Args:
+            monob (int): mb number
+            t (int): time as an integer
+
+        Returns:
+            data (np.array): data from correct file as a numpy array 
+        """
+        inner_swept_bins = list(range(46,65))
+        outer_swept_bins = list(range(19,34))
+        
+        if monob in inner_swept_bins:
+            label = "RISP"
+            div = True
+            offset_mb = 46
+        elif monob in outer_swept_bins:
+            label = "ROSP"
+            div = True
+            offset_mb = 19
+        else:
+            div = False
+            offset_mb = 0
+
+        t = int(time)
+
+        if div:
+            if t in list(range(1,10)): data = np.loadtxt(label+"_data/time0.dat", skiprows=1)
+            elif t in list(range(11,99)): data = np.loadtxt(label+"_data/time10.dat", skiprows=1)
+            elif t in list(range(100,261)): data = np.loadtxt(label+"_data/time"+str(t)+".dat", skiprows=1)
+            elif t in list(range(261,270)): data = np.loadtxt(label+"_data/time270.dat", skiprows=1)
+            else: data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
+        else: 
+            data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
+
+        return data[monob-offset_mb,:]
 
     ############# Temperature Parameters (K) #############
 
-    def heat(pulse_type: str) -> float:
+    def heat(pulse_type: str, t:float) -> float:
         """Returns the surface heat flux for a given pulse type
 
         Args:
@@ -213,12 +248,17 @@ def make_mb_model(nb_mb, scenario_file):
         """
         if pulse_type not in ["FP", "ICWC", "RISP", "GDC", "BAKE"]:
             raise ValueError(f"Invalid pulse type {pulse_type}")
-        data = pulse_type_to_DINA_data[pulse_type]
-        return (
-            data[:, -2][nb_mb - 1]
-            if pulse_type == "FP"
-            else data[:, -1][nb_mb - 1]
-        )
+        
+        if pulse_type == "RISP":
+            data = RISP_data(nb_mb, time=t)
+        else: 
+            data = pulse_type_to_DINA_data[pulse_type]
+
+        if pulse_type == "FP": heat_val = data[:, -2][nb_mb - 1]
+        elif pulse_type == "RISP": heat_val = data[-1]
+        else: heat_val = data[:, -1][nb_mb - 1]
+
+        return heat_val
 
     def T_surface(t: dolfinx.fem.Constant) -> float:
         """Monoblock surface temperature
@@ -230,7 +270,7 @@ def make_mb_model(nb_mb, scenario_file):
             monoblock surface temperature in K
         """
         pulse_type = my_scenario.get_pulse_type(float(t))
-        return 1.1e-4 * heat(pulse_type) + COOLANT_TEMP
+        return 1.1e-4 * heat(pulse_type, t=t) + COOLANT_TEMP
 
     def T_rear(t: dolfinx.fem.Constant):
         """Monoblock surface temperature
@@ -242,7 +282,7 @@ def make_mb_model(nb_mb, scenario_file):
             monoblock surface temperature in K
         """
         pulse_type = my_scenario.get_pulse_type(float(t))
-        return 2.2e-5 * heat(pulse_type) + COOLANT_TEMP
+        return 2.2e-5 * heat(pulse_type, t=t) + COOLANT_TEMP
 
     def T_function(x, t: Constant):
         """Monoblock temperature function
@@ -254,21 +294,28 @@ def make_mb_model(nb_mb, scenario_file):
         Returns:
             pulsed monoblock temperature in K
         """
-        a = (T_rear(t) - T_surface(t)) / L
-        b = T_surface(t)
-        flat_top_value = a * x[0] + b
         resting_value = np.full_like(x[0], COOLANT_TEMP)
         pulse_row = my_scenario.get_row(float(t))
+        pulse_type = my_scenario.get_pulse_type(float(t))
+
+        if pulse_type == "BAKE": 
+            flat_top_value = 483.15
+        else: 
+            a = (T_rear(t) - T_surface(t)) / L
+            b = T_surface(t)
+            flat_top_value = a * x[0] + b
+
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
+
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
             else resting_value
         )
 
-    times = np.linspace(0, my_scenario.get_maximum_time(), num=100)
+    # times = np.linspace(0, my_scenario.get_maximum_time(), num=100)
 
     # x = [0]
     # Ts = [T_function(x, t) for t in times]
@@ -280,19 +327,38 @@ def make_mb_model(nb_mb, scenario_file):
 
     ############# Flux Parameters #############
 
+    def get_flux(pulse_type, monob, t: float, ion=True): 
+        FP_index = 2
+        other_index = 0
+        if not ion: 
+            FP_index += FP_index+1
+            other_index += other_index+1
+
+        if pulse_type == "FP":
+            flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][monob - 1]
+        elif pulse_type == "RISP": 
+            t_value = int(t.value) if isinstance(t, Constant) else int(t)
+            flux = RISP_data(monob=nb_mb, time=t_value)[other_index]
+        elif pulse_type == "BAKE": 
+            flux = 0.0
+        else: 
+            flux = pulse_type_to_DINA_data[pulse_type][:, other_index][monob - 1]
+        
+        return flux
+
     def deuterium_ion_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        if pulse_type == "FP":
-            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
-        else: 
-            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 0][nb_mb - 1]
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
-        flat_top_value = ion_flux * (1 - tritium_fraction)
-        resting_value = 0
+
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        
+        ion_flux = get_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed)
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = ion_flux * (1 - tritium_fraction)
+        resting_value = 0
+        
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
@@ -305,17 +371,17 @@ def make_mb_model(nb_mb, scenario_file):
 
     def tritium_ion_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        if pulse_type == "FP":
-            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 2][nb_mb - 1]
-        else: 
-            ion_flux = pulse_type_to_DINA_data[pulse_type][:, 0][nb_mb - 1]
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
-        flat_top_value = ion_flux * tritium_fraction
-        resting_value = 0
+
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        
+        ion_flux = get_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed)
+        
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = ion_flux * tritium_fraction
+        resting_value = 0
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
@@ -324,17 +390,17 @@ def make_mb_model(nb_mb, scenario_file):
 
     def deuterium_atom_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        if pulse_type == "FP":
-            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
-        else: 
-            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 1][nb_mb - 1]
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
-        flat_top_value = atom_flux * (1 - tritium_fraction)
-        resting_value = 0
+
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        
+        atom_flux = get_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed, ion=False)
+        
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = atom_flux * (1 - tritium_fraction)
+        resting_value = 0
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
@@ -343,17 +409,16 @@ def make_mb_model(nb_mb, scenario_file):
 
     def tritium_atom_flux(t: float):
         pulse_type = my_scenario.get_pulse_type(float(t))
-        if pulse_type == "FP":
-            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 3][nb_mb - 1]
-        else: 
-            atom_flux = pulse_type_to_DINA_data[pulse_type][:, 1][nb_mb - 1]
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
-        flat_top_value = atom_flux * tritium_fraction
-        resting_value = 0
+        
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        
+        atom_flux = get_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed, ion=False)
+        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        flat_top_value = atom_flux * tritium_fraction
+        resting_value = 0
         return (
             flat_top_value
             if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
@@ -453,7 +518,7 @@ def make_mb_model(nb_mb, scenario_file):
         final_time=my_scenario.get_maximum_time()
     )
 
-    my_model.settings.stepsize = F.Stepsize(initial_value=20)
+    my_model.settings.stepsize = F.Stepsize(initial_value=1)
 
     return my_model, quantities
 
