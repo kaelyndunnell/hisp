@@ -222,12 +222,17 @@ def make_mb_model(nb_mb, scenario_file):
         t = int(time)
 
         if div:
-            if t in list(range(1,10)): data = np.loadtxt(label+"_data/time0.dat", skiprows=1)
-            elif t in list(range(11,99)): data = np.loadtxt(label+"_data/time10.dat", skiprows=1)
-            elif t in list(range(100,261)): data = np.loadtxt(label+"_data/time"+str(t)+".dat", skiprows=1)
-            elif t in list(range(261,270)): data = np.loadtxt(label+"_data/time270.dat", skiprows=1)
-            else: data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
-        else: 
+            if 1 <= t <= 9:
+                data = np.loadtxt(f"{label}_data/time0.dat", skiprows=1)
+            elif 10 <= t <= 98:
+                data = np.loadtxt(f"{label}_data/time10.dat", skiprows=1)
+            elif 100 <= t <= 260:
+                data = np.loadtxt(f"{label}_data/time{t}.dat", skiprows=1)
+            elif 261 <= t <= 269:
+                data = np.loadtxt(f"{label}_data/time270.dat", skiprows=1)
+            else:
+                data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
+        else:
             data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
 
         return data[monob-offset_mb,:]
