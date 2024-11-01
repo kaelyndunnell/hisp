@@ -144,8 +144,8 @@ if __name__ == "__main__":
     nb_mb = 64
     L = 6e-3
 
-    def T_function(x, t: Constant) -> float:
-        """Monoblock temperature function
+    def T_function(x: NDArray, t: Constant) -> float:
+        """Monoblock temperature function.
 
         Args:
             x: position along monoblock
@@ -160,7 +160,8 @@ if __name__ == "__main__":
         t_rel = t - my_scenario.get_time_till_row(pulse_row)
 
         if pulse_type == "BAKE": 
-            flat_top_value = 483.15  # TODO, we probably have to return np.full_like(x[0], 483.15)
+            T_bake = 483.15  # K
+            flat_top_value = np.full_like(x[0], T_bake)
         else:
             heat_flux = heat(nb_mb, pulse_type, t_rel) 
             T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
