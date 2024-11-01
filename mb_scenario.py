@@ -74,7 +74,19 @@ def RISP_data(monob: int, t_rel: float | int) -> NDArray:
 
     return data[monob-offset_mb,:]
 
-def get_particle_flux(pulse_type: str, monob: int, t: float, ion=True) -> float:
+def get_particle_flux(pulse_type: str, monob: int, t_rel: float, ion=True) -> float:
+    """_summary_
+
+    Args:
+        pulse_type (str): _description_
+        monob (int): _description_
+        t_rel: t_rel as an integer (in seconds).
+            t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
+        ion (bool, optional): _description_. Defaults to True.
+
+    Returns:
+        float: _description_
+    """
     if ion:
         FP_index = 2
         other_index = 0
@@ -85,8 +97,8 @@ def get_particle_flux(pulse_type: str, monob: int, t: float, ion=True) -> float:
     if pulse_type == "FP":
         flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][monob - 1]
     elif pulse_type == "RISP": 
-        t_value = int(t.value) if isinstance(t, Constant) else int(t)
-        flux = RISP_data(monob=monob, t_rel=t_value)[other_index]
+        assert isinstance(t_rel, float), f"t_rel should be a float, not {type(t_rel)}"
+        flux = RISP_data(monob=monob, t_rel=t_rel)[other_index]
     elif pulse_type == "BAKE": 
         flux = 0.0
     else: 
@@ -176,11 +188,11 @@ if __name__ == "__main__":
 
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
 
         return (
             flat_top_value
-            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
+            if (float(t)-time_start_current_pulse) % total_time_pulse < total_time_on and (float(t)-time_start_current_pulse) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -190,16 +202,16 @@ if __name__ == "__main__":
         pulse_row = my_scenario.get_row(float(t))
         total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
         
-        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed, ion=True)
+        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_start_current_pulse, ion=True)
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
         
         return (
             flat_top_value
-            if (float(t)-time_elapsed) % total_time_pulse < total_time_on and (float(t)-time_elapsed) % total_time_pulse != 0.0
+            if (float(t)-time_start_current_pulse) % total_time_pulse < total_time_on and (float(t)-time_start_current_pulse) % total_time_pulse != 0.0
             else resting_value
         )
 
@@ -215,7 +227,7 @@ if __name__ == "__main__":
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
         
-        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed, ion=True)
+        ion_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_elapsed, ion=True)
         
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * tritium_fraction
@@ -234,7 +246,7 @@ if __name__ == "__main__":
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
         
-        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed, ion=False)
+        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_elapsed, ion=False)
         
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
@@ -253,7 +265,7 @@ if __name__ == "__main__":
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_elapsed = my_scenario.get_time_till_row(pulse_row)
         
-        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t=t-time_elapsed, ion=False)
+        atom_flux = get_particle_flux(pulse_type=pulse_type, monob=nb_mb, t_rel=t-time_elapsed, ion=False)
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0.0
