@@ -270,7 +270,9 @@ def make_mb_model(nb_mb, scenario_file):
             monoblock surface temperature in K
         """
         pulse_type = my_scenario.get_pulse_type(float(t))
-        return 1.1e-4 * heat(pulse_type, t=t) + COOLANT_TEMP
+        pulse_row = my_scenario.get_row(float(t))
+        time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        return 1.1e-4 * heat(pulse_type, t=t-time_elapsed) + COOLANT_TEMP
 
     def T_rear(t: dolfinx.fem.Constant):
         """Monoblock surface temperature
@@ -282,7 +284,9 @@ def make_mb_model(nb_mb, scenario_file):
             monoblock surface temperature in K
         """
         pulse_type = my_scenario.get_pulse_type(float(t))
-        return 2.2e-5 * heat(pulse_type, t=t) + COOLANT_TEMP
+        pulse_row = my_scenario.get_row(float(t))
+        time_elapsed = my_scenario.get_time_till_row(pulse_row)
+        return 2.2e-5 * heat(pulse_type, t=t-time_elapsed) + COOLANT_TEMP
 
     def T_function(x, t: Constant):
         """Monoblock temperature function
