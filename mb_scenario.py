@@ -84,7 +84,7 @@ def RISP_data(monob: int, t_rel: float | int) -> NDArray:
 
     return data[monob-offset_mb,:]
 
-def get_flux(pulse_type: str, monob: int, t: float, ion=True):
+def get_flux(pulse_type: str, monob: int, t: float, ion=True) -> float:
     if ion:
         FP_index = 2
         other_index = 0
