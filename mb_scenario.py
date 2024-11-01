@@ -328,11 +328,12 @@ def make_mb_model(nb_mb, scenario_file):
     ############# Flux Parameters #############
 
     def get_flux(pulse_type, monob, t: float, ion=True): 
-        FP_index = 2
-        other_index = 0
+        if ion:
+            FP_index = 2
+            other_index = 0
         if not ion: 
-            FP_index += FP_index+1
-            other_index += other_index+1
+            FP_index = 3
+            other_index = 1
 
         if pulse_type == "FP":
             flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][monob - 1]
