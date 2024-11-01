@@ -104,7 +104,35 @@ def get_flux(pulse_type: str, monob: int, t: float, ion=True) -> float:
     
     return flux
 
-def make_mb_model(nb_mb, scenario_file):
+def heat(nb_mb:int, pulse_type: str, t:float) -> float:
+    """Returns the surface heat flux for a given pulse type
+
+    Args:
+        pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+
+    Raises:
+        ValueError: if the pulse type is unknown
+
+    Returns:
+        the surface heat flux in W/m2
+    """
+    if pulse_type == "RISP":
+        data = RISP_data(nb_mb, time=t)
+    elif pulse_type in pulse_type_to_DINA_data.keys(): 
+        data = pulse_type_to_DINA_data[pulse_type]
+    else:
+        raise ValueError(f"Invalid pulse type {pulse_type}")
+
+    if pulse_type == "FP":
+        heat_val = data[:, -2][nb_mb - 1]
+    elif pulse_type == "RISP":
+        heat_val = data[-1]
+    else:
+        heat_val = data[:, -1][nb_mb - 1]
+
+    return heat_val
+
+def make_mb_model(nb_mb: int, scenario_file: str):
     ############# Input Flux, Heat Data #############
     my_scenario = Scenario(scenario_file)
 
@@ -252,34 +280,6 @@ def make_mb_model(nb_mb, scenario_file):
 
     ############# Temperature Parameters (K) #############
 
-    def heat(pulse_type: str, t:float) -> float:
-        """Returns the surface heat flux for a given pulse type
-
-        Args:
-            pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
-
-        Raises:
-            ValueError: if the pulse type is unknown
-
-        Returns:
-            the surface heat flux in W/m2
-        """
-        if pulse_type == "RISP":
-            data = RISP_data(nb_mb, time=t)
-        elif pulse_type in pulse_type_to_DINA_data.keys(): 
-            data = pulse_type_to_DINA_data[pulse_type]
-        else:
-            raise ValueError(f"Invalid pulse type {pulse_type}")
-
-        if pulse_type == "FP":
-            heat_val = data[:, -2][nb_mb - 1]
-        elif pulse_type == "RISP":
-            heat_val = data[-1]
-        else:
-            heat_val = data[:, -1][nb_mb - 1]
-
-        return heat_val
-
     def T_surface(t: dolfinx.fem.Constant) -> float:
         """Monoblock surface temperature
 
@@ -290,9 +290,9 @@ def make_mb_model(nb_mb, scenario_file):
             monoblock surface temperature in K
         """
         pulse_type = my_scenario.get_pulse_type(float(t))
-        return 1.1e-4 * heat(pulse_type, t=t) + COOLANT_TEMP
+        return 1.1e-4 * heat(nb_mb=nb_mb, pulse_type=pulse_type, t=t) + COOLANT_TEMP
 
-    def T_rear(t: dolfinx.fem.Constant):
+    def T_rear(t: dolfinx.fem.Constant) -> float:
         """Monoblock surface temperature
 
         Args:
@@ -302,9 +302,9 @@ def make_mb_model(nb_mb, scenario_file):
             monoblock surface temperature in K
         """
         pulse_type = my_scenario.get_pulse_type(float(t))
-        return 2.2e-5 * heat(pulse_type, t=t) + COOLANT_TEMP
+        return 2.2e-5 * heat(nb_mb=nb_mb, pulse_type=pulse_type, t=t) + COOLANT_TEMP
 
-    def T_function(x, t: Constant):
+    def T_function(x, t: Constant) -> float:
         """Monoblock temperature function
 
         Args:
