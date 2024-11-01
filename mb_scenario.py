@@ -196,11 +196,11 @@ if __name__ == "__main__":
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
         
-        return (
-            flat_top_value
-            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
-            else resting_value
-        )
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+        if is_pulse_active:
+            return flat_top_value
+        else:
+            return resting_value
 
     # plt.plot(times, [deuterium_ion_flux(t) for t in times], marker="o")
     # plt.show()
@@ -222,11 +222,11 @@ if __name__ == "__main__":
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0.0
 
-        return (
-            flat_top_value
-            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
-            else resting_value
-        )
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+        if is_pulse_active:
+            return flat_top_value
+        else:
+            return resting_value
 
     def deuterium_atom_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
@@ -242,11 +242,11 @@ if __name__ == "__main__":
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0.0
-        return (
-            flat_top_value
-            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
-            else resting_value
-        )
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+        if is_pulse_active:
+            return flat_top_value
+        else:
+            return resting_value
 
     def tritium_atom_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
@@ -262,11 +262,11 @@ if __name__ == "__main__":
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0.0
-        return (
-            flat_top_value
-            if relative_time % total_time_pulse < total_time_on and relative_time % total_time_pulse != 0.0
-            else resting_value
-        )
+        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on 
+        if is_pulse_active:
+            return flat_top_value
+        else:
+            return resting_value
 
     my_model, quantities = make_mb_model(
         T_function=T_function,
