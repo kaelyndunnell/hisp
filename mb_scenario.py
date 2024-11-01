@@ -32,6 +32,13 @@ PULSE_TYPE_TO_TRITIUM_FRACTION = {
     "BAKE": 0,
 }
 
+# TODO change the dat file for other pulse types
+pulse_type_to_DINA_data = {
+    "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
+    "ICWC": np.loadtxt("ICWC_data.dat", skiprows=1),
+    "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
+}
+
 def RISP_data(monob, time): 
     """Returns the correct RISP data file for indicated monoblock
 
@@ -222,15 +229,6 @@ def make_mb_model(nb_mb, scenario_file):
             product=trap3_T,
         ),
     ]
-
-    ############# Pulse Parameters (s) #############
-
-    # TODO change the dat file for other pulse types
-    pulse_type_to_DINA_data = {
-        "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
-        "ICWC": np.loadtxt("ICWC_data.dat", skiprows=1),
-        "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
-    }
 
     ############# Temperature Parameters (K) #############
 
