@@ -246,17 +246,19 @@ def make_mb_model(nb_mb, scenario_file):
         Returns:
             the surface heat flux in W/m2
         """
-        if pulse_type not in ["FP", "ICWC", "RISP", "GDC", "BAKE"]:
-            raise ValueError(f"Invalid pulse type {pulse_type}")
-        
         if pulse_type == "RISP":
             data = RISP_data(nb_mb, time=t)
-        else: 
+        elif pulse_type in pulse_type_to_DINA_data.keys(): 
             data = pulse_type_to_DINA_data[pulse_type]
+        else:
+            raise ValueError(f"Invalid pulse type {pulse_type}")
 
-        if pulse_type == "FP": heat_val = data[:, -2][nb_mb - 1]
-        elif pulse_type == "RISP": heat_val = data[-1]
-        else: heat_val = data[:, -1][nb_mb - 1]
+        if pulse_type == "FP":
+            heat_val = data[:, -2][nb_mb - 1]
+        elif pulse_type == "RISP":
+            heat_val = data[-1]
+        else:
+            heat_val = data[:, -1][nb_mb - 1]
 
         return heat_val
 
