@@ -32,7 +32,48 @@ PULSE_TYPE_TO_TRITIUM_FRACTION = {
     "BAKE": 0,
 }
 
+def RISP_data(monob, time): 
+    """Returns the correct RISP data file for indicated monoblock
 
+    Args:
+        monob (int): mb number
+        t (int): time as an integer  # TODO: what does that mean? what units? will it be a float? I don't get it
+
+    Returns:
+        data (np.array): data from correct file as a numpy array 
+    """
+    inner_swept_bins = list(range(46,65))
+    outer_swept_bins = list(range(19,34))
+    
+    if monob in inner_swept_bins:
+        label = "RISP"
+        div = True
+        offset_mb = 46
+    elif monob in outer_swept_bins:
+        label = "ROSP"
+        div = True
+        offset_mb = 19
+    else:
+        div = False
+        offset_mb = 0
+
+    t = int(time)
+
+    if div:
+        if 1 <= t <= 9:
+            data = np.loadtxt(f"{label}_data/time0.dat", skiprows=1)
+        elif 10 <= t <= 98:
+            data = np.loadtxt(f"{label}_data/time10.dat", skiprows=1)
+        elif 100 <= t <= 260:
+            data = np.loadtxt(f"{label}_data/time{t}.dat", skiprows=1)
+        elif 261 <= t <= 269:
+            data = np.loadtxt(f"{label}_data/time270.dat", skiprows=1)
+        else:
+            data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
+    else:
+        data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
+
+    return data[monob-offset_mb,:]
 
 
 
@@ -190,49 +231,6 @@ def make_mb_model(nb_mb, scenario_file):
         "ICWC": np.loadtxt("ICWC_data.dat", skiprows=1),
         "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
     }
-
-    def RISP_data(monob, time): 
-        """Returns the correct RISP data file for indicated monoblock
-
-        Args:
-            monob (int): mb number
-            t (int): time as an integer  # TODO: what does that mean? what units? will it be a float? I don't get it
-
-        Returns:
-            data (np.array): data from correct file as a numpy array 
-        """
-        inner_swept_bins = list(range(46,65))
-        outer_swept_bins = list(range(19,34))
-        
-        if monob in inner_swept_bins:
-            label = "RISP"
-            div = True
-            offset_mb = 46
-        elif monob in outer_swept_bins:
-            label = "ROSP"
-            div = True
-            offset_mb = 19
-        else:
-            div = False
-            offset_mb = 0
-
-        t = int(time)
-
-        if div:
-            if 1 <= t <= 9:
-                data = np.loadtxt(f"{label}_data/time0.dat", skiprows=1)
-            elif 10 <= t <= 98:
-                data = np.loadtxt(f"{label}_data/time10.dat", skiprows=1)
-            elif 100 <= t <= 260:
-                data = np.loadtxt(f"{label}_data/time{t}.dat", skiprows=1)
-            elif 261 <= t <= 269:
-                data = np.loadtxt(f"{label}_data/time270.dat", skiprows=1)
-            else:
-                data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
-        else:
-            data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
-
-        return data[monob-offset_mb,:]
 
     ############# Temperature Parameters (K) #############
 
