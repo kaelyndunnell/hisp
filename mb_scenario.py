@@ -10,7 +10,7 @@ from scipy import constants
 import dolfinx.fem as fem
 import dolfinx
 
-from hisp.helpers import PulsedSource, Scenario
+from hisp.helpers import PulsedSource, Scenario, gaussian_distribution
 from hisp import CustomProblem
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
@@ -33,10 +33,7 @@ PULSE_TYPE_TO_TRITIUM_FRACTION = {
 }
 
 
-def gaussian_distribution(x, mod=ufl):
-    depth = 3e-9
-    width = 1e-9
-    return mod.exp(-((x[0] - depth) ** 2) / (2 * width**2))
+
 
 
 def make_mb_model(nb_mb, scenario_file):
@@ -430,28 +427,31 @@ def make_mb_model(nb_mb, scenario_file):
             else resting_value
         )
 
+    # TODO this is hard coded and show depend on incident energy?
+    implantation_range = 3e-9  # m
+    width = 1e-9  # m
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=gaussian_distribution,
+            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=gaussian_distribution,
+            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_T,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=gaussian_distribution,
+            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=gaussian_distribution,
+            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_T,
             volume=w_subdomain,
         ),

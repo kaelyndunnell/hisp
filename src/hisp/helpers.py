@@ -151,3 +151,6 @@ class Scenario:
             nb_pulses = int(row[1])
             max_time += nb_pulses * self.get_pulse_duration(i)
         return max_time
+
+def gaussian_distribution(x, mean, width, mod=ufl):
+    return mod.exp(-((x[0] - mean) ** 2) / (2 * width**2))
