@@ -9,6 +9,7 @@ from dolfinx.fem.function import Constant
 from scipy import constants
 import dolfinx.fem as fem
 import dolfinx
+from numpy.typing import NDArray
 
 from hisp.helpers import PulsedSource, Scenario, gaussian_distribution
 from hisp import CustomProblem
@@ -83,7 +84,25 @@ def RISP_data(monob: int, t_rel: float | int) -> NDArray:
 
     return data[monob-offset_mb,:]
 
+def get_flux(pulse_type: str, monob: int, t: float, ion=True):
+    if ion:
+        FP_index = 2
+        other_index = 0
+    if not ion: 
+        FP_index = 3
+        other_index = 1
 
+    if pulse_type == "FP":
+        flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][monob - 1]
+    elif pulse_type == "RISP": 
+        t_value = int(t.value) if isinstance(t, Constant) else int(t)
+        flux = RISP_data(monob=monob, time=t_value)[other_index]
+    elif pulse_type == "BAKE": 
+        flux = 0.0
+    else: 
+        flux = pulse_type_to_DINA_data[pulse_type][:, other_index][monob - 1]
+    
+    return flux
 
 def make_mb_model(nb_mb, scenario_file):
     ############# Input Flux, Heat Data #############
@@ -327,26 +346,6 @@ def make_mb_model(nb_mb, scenario_file):
     my_model.temperature = T_function
 
     ############# Flux Parameters #############
-
-    def get_flux(pulse_type, monob, t: float, ion=True): 
-        if ion:
-            FP_index = 2
-            other_index = 0
-        if not ion: 
-            FP_index = 3
-            other_index = 1
-
-        if pulse_type == "FP":
-            flux = pulse_type_to_DINA_data[pulse_type][:, FP_index][monob - 1]
-        elif pulse_type == "RISP": 
-            t_value = int(t.value) if isinstance(t, Constant) else int(t)
-            flux = RISP_data(monob=nb_mb, time=t_value)[other_index]
-        elif pulse_type == "BAKE": 
-            flux = 0.0
-        else: 
-            flux = pulse_type_to_DINA_data[pulse_type][:, other_index][monob - 1]
-        
-        return flux
 
     def deuterium_ion_flux(t: float) -> float:
         pulse_type = my_scenario.get_pulse_type(float(t))
