@@ -6,7 +6,7 @@ from dolfinx.fem.function import Constant
 from numpy.typing import NDArray
 
 from hisp import make_mb_model
-from hisp.dina import FilesDINA
+from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.festim_models import make_mb_model
 from hisp.scenario import Scenario
 
@@ -26,7 +26,7 @@ PULSE_TYPE_TO_TRITIUM_FRACTION = {
 
 if __name__ == "__main__":
     my_scenario = Scenario.from_txt_file("scenario_test.txt", old_format=True)
-    my_dina_files = FilesDINA(
+    plasma_data_handling = PlasmaDataHandling(
         pulse_type_to_data = {
             "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
             "ICWC": np.loadtxt("ICWC_data.dat", skiprows=1),
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
-            heat_flux = my_dina_files.heat(pulse_type, nb_mb, t_rel)
+            heat_flux = plasma_data_handling.heat(pulse_type, nb_mb, t_rel)
             T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
             T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
             a = (T_rear - T_surface) / L
@@ -88,7 +88,7 @@ if __name__ == "__main__":
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
         relative_time = t - time_start_current_pulse
 
-        ion_flux = my_dina_files.get_particle_flux(
+        ion_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=True
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
         relative_time = t - time_start_current_pulse
 
-        ion_flux = my_dina_files.get_particle_flux(
+        ion_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=True
         )
 
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
         relative_time = t - time_start_current_pulse
-        atom_flux = my_dina_files.get_particle_flux(
+        atom_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=False
         )
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
         relative_time = t - time_start_current_pulse
 
-        atom_flux = my_dina_files.get_particle_flux(
+        atom_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=False
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]

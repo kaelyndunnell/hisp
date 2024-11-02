@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 from typing import Dict
 
 
-class FilesDINA:
+class PlasmaDataHandling:
     def __init__(
         self,
         pulse_type_to_data: Dict[str, NDArray],

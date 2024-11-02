@@ -1,1 +1,0 @@
-from .dina import FilesDINA
