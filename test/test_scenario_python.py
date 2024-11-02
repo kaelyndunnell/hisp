@@ -1,5 +1,7 @@
 from hisp.scenario import Scenario, Pulse
 import pytest
+import matplotlib.pyplot as plt
+import numpy as np
 
 def test_scenario():
     scenario = Scenario()
@@ -185,3 +187,28 @@ def test_get_time_till_row(row, expected_time):
     elapsed_time = my_scenario.get_time_till_row(row=row)
 
     assert elapsed_time == expected_time
+
+def test_reading_a_file():
+    my_scenario = Scenario([pulse1, pulse2])
+
+    times = np.linspace(0, my_scenario.get_maximum_time(), 1000)
+    pulse_types = []
+    for t in times:
+        pulse_type = my_scenario.get_pulse_type(t)
+        pulse_types.append(pulse_type)
+
+    # color the line based on the pulse type
+    color = {
+        "FP": "red",
+        "ICWC": "blue",
+        "RISP": "green",
+        "GDC": "orange",
+        "BAKE": "purple",
+    }
+
+    colors = [color[pulse_type] for pulse_type in pulse_types]
+
+    for i in range(len(times) - 1):
+        plt.plot(times[i : i + 2], np.ones_like(times[i : i + 2]), c=colors[i])
+    # plt.xscale("log")
+    # plt.show()
