@@ -33,7 +33,6 @@ class CustomProblem(F.HydrogenTransportProblem):
                     mesh=self.mesh.mesh, value=self.temperature(t=float(self.t))
                 )
             else:
-                x = ufl.SpatialCoordinate(self.mesh.mesh)
                 degree = 1
                 element_temperature = basix.ufl.element(
                     basix.ElementFamily.P,
