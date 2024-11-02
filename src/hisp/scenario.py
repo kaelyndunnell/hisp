@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import List
+import warnings
 
 class Pulse:
     pulse_type: str
@@ -19,6 +20,10 @@ class Pulse:
     
     @property
     def total_duration(self) -> float:
+        all_zeros = self.ramp_up == 0 and self.steady_state == 0 and self.ramp_down == 0 and self.waiting == 0
+        if self.pulse_type == "RISP" and all_zeros:
+            warnings.warn("RISP pulse has all zeros for ramp_up, steady_state, ramp_down, waiting. Using hardcoded values. Please check the values in the scenario file.")
+            return 10 + 250 + 10 + 1530
         return self.ramp_up + self.steady_state + self.ramp_down + self.waiting
 
     @property
