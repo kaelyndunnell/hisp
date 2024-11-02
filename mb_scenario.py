@@ -278,7 +278,7 @@ if __name__ == "__main__":
             return resting_value
 
     my_model, quantities = make_mb_model(
-        T_function=T_function,
+        temperature=T_function,
         deuterium_ion_flux=deuterium_ion_flux,
         tritium_ion_flux=tritium_ion_flux,
         deuterium_atom_flux=deuterium_atom_flux,
