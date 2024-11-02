@@ -10,7 +10,8 @@ from scipy import constants
 import dolfinx.fem as fem
 import dolfinx
 
-from hisp.helpers import PulsedSource, Scenario
+from hisp.helpers import PulsedSource
+from hisp.scenario import Scenario
 from hisp import CustomProblem
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
@@ -42,7 +43,7 @@ def gaussian_distribution(x, mod=ufl):
 
 def make_mb_model(nb_mb, scenario_file):
     ############# Input Flux, Heat Data #############
-    my_scenario = Scenario(scenario_file)
+    my_scenario = Scenario.from_txt_file(scenario_file, old_format=True)
 
     my_model = CustomProblem()
 
