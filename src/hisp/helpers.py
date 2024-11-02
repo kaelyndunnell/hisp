@@ -10,7 +10,7 @@ class PulsedSource(F.ParticleSource):
         """Initalizes flux and distribution for PulsedSource. 
 
         Args:
-            flux (float): the input flux value from DINA data
+            flux (callable): the input flux value from DINA data
             distribution (function of x): distribution of flux throughout mb 
             volume (F.VolumeSubdomain1D): volume where this flux is imposed 
             species (F.species): species of flux (e.g. D/T)

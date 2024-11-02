@@ -13,10 +13,10 @@ width = 1e-9  # m
 
 def make_mb_model(
     temperature: Callable | float | int,
-    deuterium_ion_flux: Callable | float | int,
-    tritium_ion_flux: Callable | float | int,
-    deuterium_atom_flux: Callable | float | int,
-    tritium_atom_flux: Callable | float | int,
+    deuterium_ion_flux: Callable,
+    tritium_ion_flux: Callable,
+    deuterium_atom_flux: Callable,
+    tritium_atom_flux: Callable,
     final_time: float,
     folder: str,
     L: float = 6e-3,
