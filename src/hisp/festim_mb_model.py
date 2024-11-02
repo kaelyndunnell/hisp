@@ -5,22 +5,37 @@ import numpy as np
 import festim as F
 import h_transport_materials as htm
 
-from typing import Callable
+from typing import Callable, Tuple, Dict
 
 # TODO this is hard coded and show depend on incident energy?
 implantation_range = 3e-9  # m
 width = 1e-9  # m
 
 def make_mb_model(
-    T_function: Callable,
-    deuterium_ion_flux: Callable,
-    tritium_ion_flux: Callable,
-    deuterium_atom_flux: Callable,
-    tritium_atom_flux: Callable,
+    temperature: Callable | float | int,
+    deuterium_ion_flux: Callable | float | int,
+    tritium_ion_flux: Callable | float | int,
+    deuterium_atom_flux: Callable | float | int,
+    tritium_atom_flux: Callable | float | int,
     final_time: float,
     folder: str,
     L: float = 6e-3,
-):
+) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
+    """Create a FESTIM model for the MB scenario.
+
+    Args:
+        temperature: the temperature in K.
+        deuterium_ion_flux: the deuterium ion flux in m^-2 s^-1.
+        tritium_ion_flux: the tritium ion flux in m^-2 s^-1.
+        deuterium_atom_flux: the deuterium atom flux in m^-2 s^-1.
+        tritium_atom_flux: the tritium atom flux in m^-2 s^-1.
+        final_time: the final time in s.
+        folder: the folder to save the results.
+        L: the length of the domain in m.
+
+    Returns:
+        the FESTIM model, the quantities to export.
+    """
     my_model = CustomProblem()
 
     ############# Material Parameters #############
@@ -161,7 +176,7 @@ def make_mb_model(
 
     ############# Temperature Parameters (K) #############
 
-    my_model.temperature = T_function
+    my_model.temperature = temperature
 
     ############# Flux Parameters #############
 
