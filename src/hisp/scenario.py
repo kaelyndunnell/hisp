@@ -48,7 +48,12 @@ class Pulse:
 
 
 class Scenario:
-    def __init__(self, pulses=None):
+    def __init__(self, pulses: List[Pulse] = None):
+        """Initializes a Scenario object containing several pulses.
+
+        Args:
+            pulses: The list of pulses in the scenario. Each pulse is a Pulse object.
+        """
         self._pulses = pulses if pulses is not None else []
 
     @property
@@ -72,7 +77,7 @@ class Scenario:
         df.to_csv(filename, index=False)
 
     @staticmethod
-    def from_txt_file(filename: str, old_format=False):
+    def from_txt_file(filename: str, old_format=False) -> "Scenario":
         if old_format:
             pulses = []
             with open(filename, "r") as f:
