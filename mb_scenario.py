@@ -57,8 +57,9 @@ def RISP_data(nb_mb: int, t_rel: float | int) -> NDArray:
         div = False
         offset_mb = 0
 
-    t_rel = int(t_rel)
+    t_rel = int(t_rel)  # convert t_rel to an integer
 
+    # NOTE: what is the point of this test since it takes nb_mb as an argument?
     if div:
         if 1 <= t_rel <= 9:
             data = np.loadtxt(f"{label}_data/time0.dat", skiprows=1)
@@ -68,7 +69,7 @@ def RISP_data(nb_mb: int, t_rel: float | int) -> NDArray:
             data = np.loadtxt(f"{label}_data/time{t_rel}.dat", skiprows=1)
         elif 261 <= t_rel <= 269:
             data = np.loadtxt(f"{label}_data/time270.dat", skiprows=1)
-        else:
+        else:  # NOTE: so if time is too large a MB transforms into a FW element???
             data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
     else:
         data = np.loadtxt("RISP_Wall_data.dat", skiprows=1)
@@ -77,17 +78,17 @@ def RISP_data(nb_mb: int, t_rel: float | int) -> NDArray:
 
 
 def get_particle_flux(pulse_type: str, nb_mb: int, t_rel: float, ion=True) -> float:
-    """_summary_
+    """Returns the particle flux for a given pulse type
 
     Args:
-        pulse_type (str): _description_
-        nb_mb (int): _description_
+        pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+        nb_mb: monoblock number
         t_rel: t_rel as an integer (in seconds).
             t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
         ion (bool, optional): _description_. Defaults to True.
 
     Returns:
-        float: _description_
+        float: particle flux in part/m2/s
     """
     if ion:
         FP_index = 2
@@ -145,7 +146,7 @@ if __name__ == "__main__":
     my_scenario = Scenario("scenario_test.txt")
 
     nb_mb = 64
-    L = 6e-3
+    L = 6e-3  # m
 
     def T_function(x: NDArray, t: Constant) -> float:
         """Monoblock temperature function.
@@ -207,10 +208,6 @@ if __name__ == "__main__":
             return flat_top_value
         else:
             return resting_value
-
-    # plt.plot(times, [deuterium_ion_flux(t) for t in times], marker="o")
-    # plt.show()
-    # exit()
 
     def tritium_ion_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
@@ -308,8 +305,6 @@ if __name__ == "__main__":
 
     plt.show()
 
-    # make the same but with a stack plot
-
     fig, ax = plt.subplots()
 
     ax.stackplot(
@@ -321,4 +316,4 @@ if __name__ == "__main__":
     plt.xlabel("Time (s)")
     plt.ylabel("Total quantity (atoms/m2)")
     plt.legend()
-    # plt.show()
+    plt.show()
