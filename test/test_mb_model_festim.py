@@ -4,10 +4,10 @@ import festim as F
 
 import pytest
 
+
 @pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
 def test_mb_model(temp):
-    """Builds a festim model, run it, and tests the output.
-    """
+    """Builds a festim model, run it, and tests the output."""
     (mb_model, quantities) = make_mb_model(
         temperature=temp,
         deuterium_ion_flux=lambda _: 1e22,
@@ -15,7 +15,7 @@ def test_mb_model(temp):
         tritium_ion_flux=lambda _: 1e22,
         tritium_atom_flux=lambda _: 1e22,
         final_time=50,
-        folder="."
+        folder=".",
     )
 
     mb_model.initialise()
