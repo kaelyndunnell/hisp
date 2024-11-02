@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 from dolfinx.fem.function import Constant
 from numpy.typing import NDArray
 
-from hisp.helpers import Scenario
-from hisp import make_mb_model
+from hisp.festim_models import make_mb_model
 from hisp.dina import get_particle_flux, heat
+from hisp.scenario import Scenario
+from hisp import CustomProblem
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
@@ -24,7 +25,7 @@ PULSE_TYPE_TO_TRITIUM_FRACTION = {
 }
 
 if __name__ == "__main__":
-    my_scenario = Scenario("scenario_test.txt")
+    my_scenario = Scenario.from_txt_file("scenario_test.txt", old_format=True)
 
     nb_mb = 64
     L = 6e-3  # m
