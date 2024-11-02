@@ -45,6 +45,18 @@ def test_pulse_total_duration_with_zeros():
 
     assert pulse.total_duration == 1800.0
 
+def test_pulse_total_duration_no_waiting_with_zeros():
+    pulse = Pulse(
+        pulse_type="RISP",
+        nb_pulses=1,
+        ramp_up=0.0,
+        steady_state=0.0,
+        ramp_down=0.0,
+        waiting=0.0,
+    )
+
+    assert pulse.duration_no_waiting == 270.0
+
 def test_pulse_risp_with_zeros_raises_warning():
     with pytest.warns(UserWarning):
         pulse = Pulse(
