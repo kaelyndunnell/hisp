@@ -36,7 +36,7 @@ class PulsedSource(F.ParticleSource):
         self.flux_fenics.value = self.flux(t)
 
 
-class Scenario:
+class ScenarioOld:
     def __init__(self, filename: str):
         self.filename = filename
         data = np.genfromtxt(filename, dtype=str, comments="#")

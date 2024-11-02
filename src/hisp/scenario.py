@@ -50,7 +50,28 @@ class Scenario:
         df.to_csv(filename, index=False)
 
     @staticmethod
-    def from_txt_file(filename: str):
+    def from_txt_file(filename: str, old_format=False):
+        if old_format:
+            pulses = []
+            with open(filename, "r") as f:
+                for line in f:
+                    # skip first line
+                    if line.startswith("#"):
+                        continue
+
+                    # assume this is the format
+                    pulse_type, nb_pulses, ramp_up, steady_state, ramp_down, waiting = line.split()
+                    pulses.append(
+                        Pulse(
+                            pulse_type=pulse_type,
+                            nb_pulses=int(nb_pulses),
+                            ramp_up=float(ramp_up),
+                            steady_state=float(steady_state),
+                            ramp_down=float(ramp_down),
+                            waiting=float(waiting),
+                        )
+                    )
+            return Scenario(pulses)
         df = pd.read_csv(filename)
         pulses = [
             Pulse(
