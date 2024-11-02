@@ -87,12 +87,12 @@ def RISP_data(nb_mb: int, t_rel: float | int) -> NDArray:
     return data[nb_mb - offset_mb, :]
 
 
-def heat(nb_mb: int, pulse_type: str, t_rel: float) -> float:
+def heat(pulse_type: str, nb_mb: int, t_rel: float) -> float:
     """Returns the surface heat flux (W/m2) for a given pulse type
 
     Args:
-        nb_mb: monoblock number
         pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+        nb_mb: monoblock number
         t_rel: t_rel as an integer (in seconds).
             t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
