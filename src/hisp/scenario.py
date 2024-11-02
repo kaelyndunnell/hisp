@@ -36,10 +36,15 @@ class Pulse:
             and self.waiting == 0
         )
         if self.pulse_type == "RISP" and all_zeros:
-            warnings.warn(
-                "RISP pulse has all zeros for ramp_up, steady_state, ramp_down, waiting. Using hardcoded values. Please check the values in the scenario file."
-            )
-            return 10 + 250 + 10 + 1530
+            msg = "RISP pulse has all zeros for ramp_up, steady_state, ramp_down, waiting. "
+            msg += "Setting hardcoded values. Please check the values in the scenario file."
+            warnings.warn(msg, UserWarning)
+
+            self.ramp_up = 10
+            self.steady_state = 250
+            self.ramp_down = 10
+            self.waiting = 1530
+
         return self.ramp_up + self.steady_state + self.ramp_down + self.waiting
 
     @property
