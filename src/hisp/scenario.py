@@ -2,6 +2,7 @@ import pandas as pd
 from typing import List
 import warnings
 
+
 class Pulse:
     pulse_type: str
     nb_pulses: int
@@ -10,19 +11,34 @@ class Pulse:
     ramp_down: float
     waiting: float
 
-    def __init__(self, pulse_type: str, nb_pulses: int, ramp_up: float, steady_state: float, ramp_down: float, waiting: float):
+    def __init__(
+        self,
+        pulse_type: str,
+        nb_pulses: int,
+        ramp_up: float,
+        steady_state: float,
+        ramp_down: float,
+        waiting: float,
+    ):
         self.pulse_type = pulse_type
         self.nb_pulses = nb_pulses
         self.ramp_up = ramp_up
         self.steady_state = steady_state
         self.ramp_down = ramp_down
         self.waiting = waiting
-    
+
     @property
     def total_duration(self) -> float:
-        all_zeros = self.ramp_up == 0 and self.steady_state == 0 and self.ramp_down == 0 and self.waiting == 0
+        all_zeros = (
+            self.ramp_up == 0
+            and self.steady_state == 0
+            and self.ramp_down == 0
+            and self.waiting == 0
+        )
         if self.pulse_type == "RISP" and all_zeros:
-            warnings.warn("RISP pulse has all zeros for ramp_up, steady_state, ramp_down, waiting. Using hardcoded values. Please check the values in the scenario file.")
+            warnings.warn(
+                "RISP pulse has all zeros for ramp_up, steady_state, ramp_down, waiting. Using hardcoded values. Please check the values in the scenario file."
+            )
             return 10 + 250 + 10 + 1530
         return self.ramp_up + self.steady_state + self.ramp_down + self.waiting
 
@@ -30,23 +46,29 @@ class Pulse:
     def duration_no_waiting(self) -> float:
         return self.total_duration - self.waiting
 
+
 class Scenario:
-    def __init__(self, pulses = None):
+    def __init__(self, pulses=None):
         self._pulses = pulses if pulses is not None else []
-    
+
     @property
     def pulses(self) -> List[Pulse]:
         return self._pulses
 
     def to_txt_file(self, filename: str):
-        df = pd.DataFrame([{
-            "pulse_type": pulse.pulse_type,
-            "nb_pulses": pulse.nb_pulses,
-            "ramp_up": pulse.ramp_up,
-            "steady_state": pulse.steady_state,
-            "ramp_down": pulse.ramp_down,
-            "waiting": pulse.waiting
-        } for pulse in self.pulses])
+        df = pd.DataFrame(
+            [
+                {
+                    "pulse_type": pulse.pulse_type,
+                    "nb_pulses": pulse.nb_pulses,
+                    "ramp_up": pulse.ramp_up,
+                    "steady_state": pulse.steady_state,
+                    "ramp_down": pulse.ramp_down,
+                    "waiting": pulse.waiting,
+                }
+                for pulse in self.pulses
+            ]
+        )
         df.to_csv(filename, index=False)
 
     @staticmethod
@@ -60,7 +82,9 @@ class Scenario:
                         continue
 
                     # assume this is the format
-                    pulse_type, nb_pulses, ramp_up, steady_state, ramp_down, waiting = line.split()
+                    pulse_type, nb_pulses, ramp_up, steady_state, ramp_down, waiting = (
+                        line.split()
+                    )
                     pulses.append(
                         Pulse(
                             pulse_type=pulse_type,
@@ -86,7 +110,7 @@ class Scenario:
         ]
         return Scenario(pulses)
 
-    def get_row(self, t:float) -> int:
+    def get_row(self, t: float) -> int:
         """Returns the row of the scenario file that corresponds to the time t.
 
         Args:
@@ -137,7 +161,7 @@ class Scenario:
             the maximum time of the scenario in seconds
         """
         return sum([pulse.nb_pulses * pulse.total_duration for pulse in self.pulses])
-    
+
     def get_time_start_current_pulse(self, t: float):
         """Returns the time (s) at which the current pulse started.
 
@@ -149,10 +173,15 @@ class Scenario:
         """
         current_pulse = self.get_pulse(t)
         pulse_index = self.pulses.index(current_pulse)
-        return sum([pulse.nb_pulses * pulse.total_duration for pulse in self.pulses[:pulse_index]])
+        return sum(
+            [
+                pulse.nb_pulses * pulse.total_duration
+                for pulse in self.pulses[:pulse_index]
+            ]
+        )
 
     # TODO this is the same as get_time_start_current_pulse, remove
-    def get_time_till_row(self, row:int) -> float:
+    def get_time_till_row(self, row: int) -> float:
         """Returns the time (s) until the row in the scenario file.
 
         Args:
@@ -161,10 +190,12 @@ class Scenario:
         Returns:
             the time until the row in the scenario file
         """
-        return sum([pulse.nb_pulses * pulse.total_duration for pulse in self.pulses[:row]])
+        return sum(
+            [pulse.nb_pulses * pulse.total_duration for pulse in self.pulses[:row]]
+        )
 
     # TODO remove
-    def get_pulse_duration_no_waiting(self, row:int) -> float:
+    def get_pulse_duration_no_waiting(self, row: int) -> float:
         """Returns the total duration (without the waiting time) of a pulse in seconds for a given row in the file.
 
         Args:
@@ -176,7 +207,7 @@ class Scenario:
         return self.pulses[row].duration_no_waiting
 
     # TODO remove
-    def get_pulse_duration(self, row:int) -> float:
+    def get_pulse_duration(self, row: int) -> float:
         """Returns the total duration of a pulse in seconds for a given row in the file.
 
         Args:
