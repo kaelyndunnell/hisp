@@ -21,6 +21,10 @@ class Pulse:
     def total_duration(self) -> float:
         return self.ramp_up + self.steady_state + self.ramp_down + self.waiting
 
+    @property
+    def duration_no_waiting(self) -> float:
+        return self.total_duration - self.waiting
+
 class Scenario:
     def __init__(self, pulses = None):
         self._pulses = pulses if pulses is not None else []
@@ -55,3 +59,104 @@ class Scenario:
             for _, row in df.iterrows()
         ]
         return Scenario(pulses)
+
+    def get_row(self, t:float) -> int:
+        """Returns the row of the scenario file that corresponds to the time t.
+
+        Args:
+            t: the time in seconds
+
+        Returns:
+            int: the row index of the scenario file corresponding to the time t
+        """
+        current_time = 0
+        for i, pulse in enumerate(self.pulses):
+            phase_duration = pulse.nb_pulses * pulse.total_duration
+            if t <= current_time + phase_duration:
+                return i
+            else:
+                current_time += phase_duration
+
+        raise ValueError(
+            f"Time t {t} is out of bounds of the scenario file. Maximum time is {self.get_maximum_time()}"
+        )
+
+    def get_pulse(self, t: float) -> Pulse:
+        """Returns the pulse at time t.
+
+        Args:
+            t: the time in seconds
+
+        Returns:
+            Pulse: the pulse at time t
+        """
+        row_idx = self.get_row(t)
+        return self.pulses[row_idx]
+
+    def get_pulse_type(self, t: float) -> str:
+        """Returns the pulse type as a string at time t.
+
+        Args:
+            t: time in seconds
+
+        Returns:
+            pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+        """
+        return self.get_pulse(t).pulse_type
+
+    def get_maximum_time(self) -> float:
+        """Returns the maximum time of the scenario in seconds.
+
+        Returns:
+            the maximum time of the scenario in seconds
+        """
+        return sum([pulse.nb_pulses * pulse.total_duration for pulse in self.pulses])
+    
+    def get_time_start_current_pulse(self, t: float):
+        """Returns the time (s) at which the current pulse started.
+
+        Args:
+            t: the time in seconds
+
+        Returns:
+            the time at which the current pulse started
+        """
+        current_pulse = self.get_pulse(t)
+        pulse_index = self.pulses.index(current_pulse)
+        return sum([pulse.nb_pulses * pulse.total_duration for pulse in self.pulses[:pulse_index]])
+
+    # TODO this is the same as get_time_start_current_pulse, remove
+    def get_time_till_row(self, row:int) -> float:
+        """Returns the time (s) until the row in the scenario file.
+
+        Args:
+            row: the row index in the scenario file
+
+        Returns:
+            the time until the row in the scenario file
+        """
+        return sum([pulse.nb_pulses * pulse.total_duration for pulse in self.pulses[:row]])
+
+    # TODO remove
+    def get_pulse_duration_no_waiting(self, row:int) -> float:
+        """Returns the total duration (without the waiting time) of a pulse in seconds for a given row in the file.
+
+        Args:
+            row: the row index in the scenario file
+
+        Returns:
+            the total duration of the pulse in seconds
+        """
+        return self.pulses[row].duration_no_waiting
+
+    # TODO remove
+    def get_pulse_duration(self, row:int) -> float:
+        """Returns the total duration of a pulse in seconds for a given row in the file.
+
+        Args:
+            row: the row index in the scenario file
+
+        Returns:
+            the total duration of the pulse in seconds
+        """
+        return self.pulses[row].total_duration
