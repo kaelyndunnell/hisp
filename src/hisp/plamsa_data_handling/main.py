@@ -17,6 +17,8 @@ class PlasmaDataHandling:
         self.path_to_ROSP_data = path_to_ROSP_data
         self.path_to_RISP_wall_data = path_to_RISP_wall_data
 
+        self._time_to_RISP_data = {}
+
     def get_particle_flux(
         self, pulse_type: str, nb_mb: int, t_rel: float, ion=True
     ) -> float:
@@ -83,17 +85,47 @@ class PlasmaDataHandling:
         # NOTE: what is the point of this test since it takes nb_mb as an argument?
         if div:
             if 1 <= t_rel <= 9:
-                data = np.loadtxt(f"{folder}/time0.dat", skiprows=1)
+                key = f"{folder}_1_9"
+                if key not in self._time_to_RISP_data.keys():
+                    self._time_to_RISP_data[key] = np.loadtxt(
+                        f"{folder}/time0.dat", skiprows=1
+                    )
+                data = self._time_to_RISP_data[key]
             elif 10 <= t_rel <= 98:
-                data = np.loadtxt(f"{folder}/time10.dat", skiprows=1)
+                key = f"{folder}_10_98"
+                if key not in self._time_to_RISP_data.keys():
+                    self._time_to_RISP_data[key] = np.loadtxt(
+                        f"{folder}/time10.dat", skiprows=1
+                    )
+                data = self._time_to_RISP_data[key]
             elif 100 <= t_rel <= 260:
-                data = np.loadtxt(f"{folder}/time{t_rel}.dat", skiprows=1)
+                key = f"{folder}_{t_rel}"
+                if key not in self._time_to_RISP_data.keys():
+                    self._time_to_RISP_data[key] = np.loadtxt(
+                        f"{folder}/time{t_rel}.dat", skiprows=1
+                    )
+                data = self._time_to_RISP_data[key]
             elif 261 <= t_rel <= 269:
-                data = np.loadtxt(f"{folder}/time270.dat", skiprows=1)
+                key = f"{folder}_261_269"
+                if key not in self._time_to_RISP_data.keys():
+                    self._time_to_RISP_data[key] = np.loadtxt(
+                        f"{folder}/time260.dat", skiprows=1
+                    )
+                data = self._time_to_RISP_data[key]
             else:  # NOTE: so if time is too large a MB transforms into a FW element???
-                data = np.loadtxt(self.path_to_RISP_wall_data, skiprows=1)
+                key = "wall_data"
+                if key not in self._time_to_RISP_data.keys():
+                    self._time_to_RISP_data[key] = np.loadtxt(
+                        self.path_to_RISP_wall_data, skiprows=1
+                    )
+                data = self._time_to_RISP_data[key]
         else:
-            data = np.loadtxt(self.path_to_RISP_wall_data, skiprows=1)
+            key = "wall_data"
+            if key not in self._time_to_RISP_data.keys():
+                self._time_to_RISP_data[key] = np.loadtxt(
+                    self.path_to_RISP_wall_data, skiprows=1
+                )
+            data = self._time_to_RISP_data[key]
 
         return data[nb_mb - offset_mb, :]
 
