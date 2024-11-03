@@ -26,15 +26,16 @@ PULSE_TYPE_TO_TRITIUM_FRACTION = {
 
 if __name__ == "__main__":
     my_scenario = Scenario.from_txt_file("scenario_test.txt", old_format=True)
+    data_folder = "data"
     plasma_data_handling = PlasmaDataHandling(
         pulse_type_to_data = {
-            "FP": np.loadtxt("Binned_Flux_Data.dat", skiprows=1),
-            "ICWC": np.loadtxt("ICWC_data.dat", skiprows=1),
-            "GDC": np.loadtxt("GDC_data.dat", skiprows=1),
+            "FP": np.loadtxt(data_folder + "/Binned_Flux_Data.dat", skiprows=1),
+            "ICWC": np.loadtxt(data_folder + "/ICWC_data.dat", skiprows=1),
+            "GDC": np.loadtxt(data_folder + "/GDC_data.dat", skiprows=1),
         },
-        path_to_ROSP_data="ROSP_data",
-        path_to_RISP_data="RISP_data",
-        path_to_RISP_wall_data="RISP_Wall_data.dat",
+        path_to_ROSP_data=data_folder + "/ROSP_data",
+        path_to_RISP_data=data_folder + "/RISP_data",
+        path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
     )
 
     nb_mb = 64
