@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from hisp import make_mb_model
 from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.festim_models import make_mb_model
-from hisp.scenario import Scenario
+from hisp.scenario import Scenario, Pulse
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
@@ -25,7 +25,34 @@ PULSE_TYPE_TO_TRITIUM_FRACTION = {
 }
 
 if __name__ == "__main__":
-    my_scenario = Scenario.from_txt_file("scenario_test.txt", old_format=True)
+    # my_scenario = Scenario.from_txt_file("scenario_test.txt", old_format=True)
+    fp = Pulse(
+        pulse_type="FP",
+        nb_pulses=1,
+        ramp_up=10,
+        steady_state=10,
+        ramp_down=10,
+        waiting=100,
+    )
+    icwc = Pulse(
+        pulse_type="ICWC",
+        nb_pulses=1,
+        ramp_up=10,
+        steady_state=10,
+        ramp_down=10,
+        waiting=100,
+    )
+    risp = Pulse(
+        pulse_type="RISP",
+        nb_pulses=1,
+        ramp_up=10,
+        steady_state=10,
+        ramp_down=10,
+        waiting=100,
+    )
+    my_scenario = Scenario(pulses=[fp, icwc, risp])
+
+
     data_folder = "data"
     plasma_data_handling = PlasmaDataHandling(
         pulse_type_to_data = {
