@@ -1,4 +1,4 @@
-from .helpers import PulsedSource
+from .helpers import PulsedSource, gaussian_distribution, periodic_step_function
 
 from .h_transport_class import CustomProblem
 
