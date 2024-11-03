@@ -136,7 +136,7 @@ class Scenario:
         current_time = 0
         for i, pulse in enumerate(self.pulses):
             phase_duration = pulse.nb_pulses * pulse.total_duration
-            if t <= current_time + phase_duration:
+            if t < current_time + phase_duration:
                 return i
             else:
                 current_time += phase_duration
