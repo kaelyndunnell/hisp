@@ -1,11 +1,9 @@
-# simple monoblock simulation in festim
 import numpy as np
 import matplotlib.pyplot as plt
 
 from dolfinx.fem.function import Constant
 from numpy.typing import NDArray
 
-from hisp import make_mb_model
 from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.festim_models import make_mb_model
 from hisp.scenario import Scenario, Pulse
@@ -78,16 +76,15 @@ if __name__ == "__main__":
         Returns:
             pulsed monoblock temperature in K
         """
-        resting_value = np.full_like(x[0], COOLANT_TEMP)
+        
         pulse = my_scenario.get_pulse(t)
-        pulse_type = pulse.pulse_type
         t_rel = t - my_scenario.get_time_start_current_pulse(t)
 
-        if pulse_type == "BAKE":
+        if pulse.pulse_type == "BAKE":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
-            heat_flux = plasma_data_handling.heat(pulse_type, nb_mb, t_rel)
+            heat_flux = plasma_data_handling.heat(pulse.pulse_type, nb_mb, t_rel)
             T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
             T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
             a = (T_rear - T_surface) / L
@@ -101,6 +98,7 @@ if __name__ == "__main__":
         if pulse_active:
             return flat_top_value
         else:
+            resting_value = np.full_like(x[0], COOLANT_TEMP)
             return resting_value
 
 
