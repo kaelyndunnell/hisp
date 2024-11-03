@@ -125,13 +125,13 @@ class Scenario:
         return Scenario(pulses)
 
     def get_row(self, t: float) -> int:
-        """Returns the row of the scenario file that corresponds to the time t.
+        """Returns the index of the pulse at time t.
 
         Args:
             t: the time in seconds
 
         Returns:
-            int: the row index of the scenario file corresponding to the time t
+            the index of the pulse at time t
         """
         current_time = 0
         for i, pulse in enumerate(self.pulses):
