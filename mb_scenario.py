@@ -79,9 +79,9 @@ if __name__ == "__main__":
             pulsed monoblock temperature in K
         """
         resting_value = np.full_like(x[0], COOLANT_TEMP)
-        pulse_row = my_scenario.get_row(float(t))
-        pulse_type = my_scenario.get_pulse_type(float(t))
-        t_rel = t - my_scenario.get_time_till_row(pulse_row)
+        pulse = my_scenario.get_pulse(t)
+        pulse_type = pulse.pulse_type
+        t_rel = t - my_scenario.get_time_start_current_pulse(t)
 
         if pulse_type == "BAKE":
             T_bake = 483.15  # K
@@ -94,17 +94,15 @@ if __name__ == "__main__":
             b = T_surface
             flat_top_value = a * x[0] + b
 
-        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
 
-        relative_time = t - time_start_current_pulse
-        return (
-            flat_top_value
-            if relative_time % total_time_pulse < total_time_on
-            and relative_time % total_time_pulse != 0.0
-            else resting_value
-        )
+        pulse_active = 0.0 < t_rel % total_time_pulse < total_time_on
+        if pulse_active:
+            return flat_top_value
+        else:
+            return resting_value
+
 
     def deuterium_ion_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
