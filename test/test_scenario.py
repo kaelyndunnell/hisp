@@ -148,7 +148,8 @@ pulse2 = Pulse(
 
 
 @pytest.mark.parametrize(
-    "t, expected_pulse", [(0, pulse1), (6000, pulse2), (1e5, None)]
+    "t, expected_pulse",
+    [(0, pulse1), (6000, pulse2), (1e5, None), (pulse1.total_duration, pulse2)],
 )
 def test_get_pulse(t, expected_pulse):
 
