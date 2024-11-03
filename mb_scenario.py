@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from dolfinx.fem.function import Constant
 from numpy.typing import NDArray
 
 from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.festim_models import make_mb_model
 from hisp.scenario import Scenario, Pulse
+from hisp.helpers import periodic_step_function
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
@@ -50,10 +50,9 @@ if __name__ == "__main__":
     )
     my_scenario = Scenario(pulses=[fp, icwc, risp])
 
-
     data_folder = "data"
     plasma_data_handling = PlasmaDataHandling(
-        pulse_type_to_data = {
+        pulse_type_to_data={
             "FP": np.loadtxt(data_folder + "/Binned_Flux_Data.dat", skiprows=1),
             "ICWC": np.loadtxt(data_folder + "/ICWC_data.dat", skiprows=1),
             "GDC": np.loadtxt(data_folder + "/GDC_data.dat", skiprows=1),
@@ -66,7 +65,7 @@ if __name__ == "__main__":
     nb_mb = 64
     L = 6e-3  # m
 
-    def T_function(x: NDArray, t: Constant) -> float:
+    def T_function(x: NDArray, t: float) -> float:
         """Monoblock temperature function.
 
         Args:
@@ -76,7 +75,7 @@ if __name__ == "__main__":
         Returns:
             pulsed monoblock temperature in K
         """
-        
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
         pulse = my_scenario.get_pulse(t)
         t_rel = t - my_scenario.get_time_start_current_pulse(t)
 
@@ -93,23 +92,22 @@ if __name__ == "__main__":
 
         total_time_on = pulse.duration_no_waiting
         total_time_pulse = pulse.total_duration
-
-        pulse_active = 0.0 < t_rel % total_time_pulse < total_time_on
-        if pulse_active:
-            return flat_top_value
-        else:
-            resting_value = np.full_like(x[0], COOLANT_TEMP)
-            return resting_value
-
+        return periodic_step_function(
+            t_rel,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=np.full_like(x[0], COOLANT_TEMP),
+        )
 
     def deuterium_ion_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse_type = my_scenario.get_pulse_type(t)
+        pulse = my_scenario.get_pulse(t)
+        pulse_type = pulse.pulse_type
 
-        pulse_row = my_scenario.get_row(t)
-        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
         relative_time = t - time_start_current_pulse
 
         ion_flux = plasma_data_handling.get_particle_flux(
@@ -118,21 +116,22 @@ if __name__ == "__main__":
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
-
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
-        if is_pulse_active:
-            return flat_top_value
-        else:
-            return resting_value
+        return periodic_step_function(
+            relative_time,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=resting_value,
+        )
 
     def tritium_ion_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse_type = my_scenario.get_pulse_type(t)
+        pulse = my_scenario.get_pulse(t)
+        pulse_type = pulse.pulse_type
 
-        pulse_row = my_scenario.get_row(t)
-        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
         relative_time = t - time_start_current_pulse
 
         ion_flux = plasma_data_handling.get_particle_flux(
@@ -143,21 +142,24 @@ if __name__ == "__main__":
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0.0
 
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
-        if is_pulse_active:
-            return flat_top_value
-        else:
-            return resting_value
+        return periodic_step_function(
+            relative_time,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=resting_value,
+        )
 
     def deuterium_atom_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse_type = my_scenario.get_pulse_type(t)
+        pulse = my_scenario.get_pulse(t)
+        pulse_type = pulse.pulse_type
 
-        pulse_row = my_scenario.get_row(t)
-        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
         relative_time = t - time_start_current_pulse
+    
         atom_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=False
         )
@@ -165,20 +167,22 @@ if __name__ == "__main__":
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0.0
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
-        if is_pulse_active:
-            return flat_top_value
-        else:
-            return resting_value
+        return periodic_step_function(
+            relative_time,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=resting_value,
+        )
 
     def tritium_atom_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse_type = my_scenario.get_pulse_type(t)
+        pulse = my_scenario.get_pulse(t)
+        pulse_type = pulse.pulse_type
 
-        pulse_row = my_scenario.get_row(t)
-        total_time_on = my_scenario.get_pulse_duration_no_waiting(pulse_row)
-        total_time_pulse = my_scenario.get_pulse_duration(pulse_row)
-        time_start_current_pulse = my_scenario.get_time_till_row(pulse_row)
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
         relative_time = t - time_start_current_pulse
 
         atom_flux = plasma_data_handling.get_particle_flux(
@@ -187,11 +191,13 @@ if __name__ == "__main__":
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0.0
-        is_pulse_active = 0.0 < relative_time % total_time_pulse < total_time_on
-        if is_pulse_active:
-            return flat_top_value
-        else:
-            return resting_value
+        return periodic_step_function(
+            relative_time,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=resting_value,
+        )
 
     my_model, quantities = make_mb_model(
         temperature=T_function,
@@ -199,7 +205,8 @@ if __name__ == "__main__":
         tritium_ion_flux=tritium_ion_flux,
         deuterium_atom_flux=deuterium_atom_flux,
         tritium_atom_flux=tritium_atom_flux,
-        final_time=my_scenario.get_maximum_time(),
+        # FIXME: -1s here to avoid last time step spike
+        final_time=my_scenario.get_maximum_time()-1,
         L=6e-3,
         folder=f"mb{nb_mb}_results",
     )
@@ -212,7 +219,7 @@ if __name__ == "__main__":
     ############# Results Plotting #############
 
     for name, quantity in quantities.items():
-        plt.plot(quantity.t, quantity.data, label=name)
+        plt.plot(quantity.t, quantity.data, label=name, marker="o")
 
     plt.xlabel("Time (s)")
     plt.ylabel("Total quantity (atoms/m2)")
