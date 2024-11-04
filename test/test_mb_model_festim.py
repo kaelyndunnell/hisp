@@ -1,4 +1,4 @@
-from hisp.festim_models.mb_model import make_mb_model
+from hisp.festim_models.mb_model import make_W_mb_model
 
 import festim as F
 
@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
 def test_mb_model(temp):
     """Builds a festim model, run it, and tests the output."""
-    (mb_model, quantities) = make_mb_model(
+    (mb_model, quantities) = make_W_mb_model(
         temperature=temp,
         deuterium_ion_flux=lambda _: 1e22,
         deuterium_atom_flux=lambda _: 1e22,

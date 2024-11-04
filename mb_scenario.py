@@ -32,22 +32,22 @@ if __name__ == "__main__":
         ramp_down=10,
         waiting=100,
     )
-    # icwc = Pulse(
-    #     pulse_type="ICWC",
-    #     nb_pulses=1,
-    #     ramp_up=10,
-    #     steady_state=10,
-    #     ramp_down=10,
-    #     waiting=100,
-    # )
-    # risp = Pulse(
-    #     pulse_type="RISP",
-    #     nb_pulses=1,
-    #     ramp_up=10,
-    #     steady_state=10,
-    #     ramp_down=10,
-    #     waiting=100,
-    # )
+    icwc = Pulse(
+        pulse_type="ICWC",
+        nb_pulses=1,
+        ramp_up=10,
+        steady_state=10,
+        ramp_down=10,
+        waiting=100,
+    )
+    risp = Pulse(
+        pulse_type="RISP",
+        nb_pulses=1,
+        ramp_up=10,
+        steady_state=10,
+        ramp_down=10,
+        waiting=100,
+    )
 
     bake = Pulse(
         pulse_type="BAKE",

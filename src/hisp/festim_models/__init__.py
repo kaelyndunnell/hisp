@@ -1,1 +1,1 @@
-from .mb_model import make_mb_model
+from .mb_model import make_W_mb_model
