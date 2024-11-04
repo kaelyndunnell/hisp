@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 
 from hisp.plamsa_data_handling import PlasmaDataHandling
-from hisp.festim_models import make_W_mb_model, make_B_mb_model
+from hisp.festim_models import make_W_mb_model, make_B_mb_model, make_DFW_mb_model
 from hisp.scenario import Scenario, Pulse
 from hisp.helpers import periodic_step_function
 
@@ -209,7 +209,7 @@ if __name__ == "__main__":
             value_off=resting_value,
         )
 
-    my_model, quantities = make_W_mb_model(
+    my_model, quantities = make_DFW_mb_model(
         temperature=T_function,
         deuterium_ion_flux=deuterium_ion_flux,
         tritium_ion_flux=tritium_ion_flux,
