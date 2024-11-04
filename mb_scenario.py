@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 
 from hisp.plamsa_data_handling import PlasmaDataHandling
-from hisp.festim_models import make_W_mb_model
+from hisp.festim_models import make_W_mb_model, make_B_mb_model
 from hisp.scenario import Scenario, Pulse
 from hisp.helpers import periodic_step_function
 

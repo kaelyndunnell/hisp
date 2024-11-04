@@ -118,10 +118,13 @@ def make_W_mb_model(
         trap3_T,
     ]
 
+    interstitial_distance = 1.117e-10 # m
+    interstitial_sites_per_atom = 6
+
     # hydrogen reactions - 1 per trap per species
     my_model.reactions = [
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.85,
@@ -130,7 +133,7 @@ def make_W_mb_model(
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.85,
@@ -139,7 +142,7 @@ def make_W_mb_model(
             product=trap1_T,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1,
@@ -148,7 +151,7 @@ def make_W_mb_model(
             product=trap2_D,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1,
@@ -157,7 +160,7 @@ def make_W_mb_model(
             product=trap2_T,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.5,
@@ -166,7 +169,7 @@ def make_W_mb_model(
             product=trap3_D,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * w_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.5,
@@ -383,62 +386,83 @@ def make_B_mb_model(
         trap4_T
     ]
 
-    # TODO: fix these reactions to reflect B mbs 
     # hydrogen reactions - 1 per trap per species
+    interstitial_distance = 8e-10 # m
+    interstitial_sites_per_atom = 1
+
+    # TODO: fix p_0 values
     my_model.reactions = [
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * b_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
-            E_p=0.85,
+            E_p=1.052,
             volume=b_subdomain,
             reactant=[mobile_D, empty_trap1],
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * b_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
-            E_p=0.85,
+            E_p=1.052,
             volume=b_subdomain,
             reactant=[mobile_T, empty_trap1],
             product=trap1_T,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * b_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
-            E_p=1,
+            E_p=1.199,
             volume=b_subdomain,
             reactant=[mobile_D, empty_trap2],
             product=trap2_D,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * b_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
-            E_p=1,
+            E_p=1.199,
             volume=b_subdomain,
             reactant=[mobile_T, empty_trap2],
             product=trap2_T,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * b_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
-            E_p=1.5,
+            E_p=1.389,
             volume=b_subdomain,
             reactant=[mobile_D, empty_trap3],
             product=trap3_D,
         ),
         F.Reaction(
-            k_0=D_0 / (1.1e-10**2 * 6 * b_density),
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
-            E_p=1.5,
+            E_p=1.389,
             volume=b_subdomain,
             reactant=[mobile_T, empty_trap3],
             product=trap3_T,
+        ),
+        F.Reaction(
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            E_k=E_D,
+            p_0=1e13,
+            E_p=1.589,
+            volume=b_subdomain,
+            reactant=[mobile_D, empty_trap4],
+            product=trap4_D,
+        ),
+        F.Reaction(
+            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            E_k=E_D,
+            p_0=1e13,
+            E_p=1.589,
+            volume=b_subdomain,
+            reactant=[mobile_T, empty_trap4],
+            product=trap4_T,
         ),
     ]
 
@@ -476,41 +500,11 @@ def make_B_mb_model(
     ]
 
     ############# Boundary Conditions #############
-    # TODO update B boundary conditions 
-    surface_reaction_dd = F.SurfaceReactionBC(
-        reactant=[mobile_D, mobile_D],
-        gas_pressure=0,
-        k_r0=7.94e-17,
-        E_kr=-2,
-        k_d0=0,
-        E_kd=0,
-        subdomain=inlet,
-    )
-
-    surface_reaction_tt = F.SurfaceReactionBC(
-        reactant=[mobile_T, mobile_T],
-        gas_pressure=0,
-        k_r0=7.94e-17,
-        E_kr=-2,
-        k_d0=0,
-        E_kd=0,
-        subdomain=inlet,
-    )
-
-    surface_reaction_dt = F.SurfaceReactionBC(
-        reactant=[mobile_D, mobile_T],
-        gas_pressure=0,
-        k_r0=7.94e-17,
-        E_kr=-2,
-        k_d0=0,
-        E_kd=0,
-        subdomain=inlet,
-    )
-
     my_model.boundary_conditions = [
-        surface_reaction_dd,
-        surface_reaction_dt,
-        surface_reaction_tt,
+        F.FixedConcentrationBC(subdomain=inlet, value=0.0, species="D"),
+        F.FixedConcentrationBC(subdomain=inlet, value=0.0, species="T"),
+        F.ParticleFluxBC(subdomain=outlet, value=0.0, species="D"),
+        F.ParticleFluxBC(subdomain=outlet, value=0.0, species="T"),
     ]
 
     ############# Exports #############
