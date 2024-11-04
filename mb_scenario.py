@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 
 from hisp.plamsa_data_handling import PlasmaDataHandling
-from hisp.festim_models import make_mb_model
+from hisp.festim_models import make_W_mb_model
 from hisp.scenario import Scenario, Pulse
 from hisp.helpers import periodic_step_function
 
@@ -32,23 +32,33 @@ if __name__ == "__main__":
         ramp_down=10,
         waiting=100,
     )
-    icwc = Pulse(
-        pulse_type="ICWC",
+    # icwc = Pulse(
+    #     pulse_type="ICWC",
+    #     nb_pulses=1,
+    #     ramp_up=10,
+    #     steady_state=10,
+    #     ramp_down=10,
+    #     waiting=100,
+    # )
+    # risp = Pulse(
+    #     pulse_type="RISP",
+    #     nb_pulses=1,
+    #     ramp_up=10,
+    #     steady_state=10,
+    #     ramp_down=10,
+    #     waiting=100,
+    # )
+
+    bake = Pulse(
+        pulse_type="BAKE",
         nb_pulses=1,
         ramp_up=10,
         steady_state=10,
         ramp_down=10,
         waiting=100,
     )
-    risp = Pulse(
-        pulse_type="RISP",
-        nb_pulses=1,
-        ramp_up=10,
-        steady_state=10,
-        ramp_down=10,
-        waiting=100,
-    )
-    my_scenario = Scenario(pulses=[fp, icwc, risp])
+
+    my_scenario = Scenario(pulses=[fp, bake])
 
     data_folder = "data"
     plasma_data_handling = PlasmaDataHandling(
@@ -199,7 +209,7 @@ if __name__ == "__main__":
             value_off=resting_value,
         )
 
-    my_model, quantities = make_mb_model(
+    my_model, quantities = make_W_mb_model(
         temperature=T_function,
         deuterium_ion_flux=deuterium_ion_flux,
         tritium_ion_flux=tritium_ion_flux,
