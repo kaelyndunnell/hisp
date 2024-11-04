@@ -91,6 +91,10 @@ class Scenario:
                     if line.startswith("#"):
                         continue
 
+                    # skip empty lines
+                    if not line.strip():
+                        continue
+
                     # assume this is the format
                     pulse_type, nb_pulses, ramp_up, steady_state, ramp_down, waiting = (
                         line.split()
@@ -121,24 +125,24 @@ class Scenario:
         return Scenario(pulses)
 
     def get_row(self, t: float) -> int:
-        """Returns the row of the scenario file that corresponds to the time t.
+        """Returns the index of the pulse at time t.
 
         Args:
             t: the time in seconds
 
         Returns:
-            int: the row index of the scenario file corresponding to the time t
+            the index of the pulse at time t
         """
         current_time = 0
         for i, pulse in enumerate(self.pulses):
             phase_duration = pulse.nb_pulses * pulse.total_duration
-            if t <= current_time + phase_duration:
+            if t < current_time + phase_duration:
                 return i
             else:
                 current_time += phase_duration
 
         raise ValueError(
-            f"Time t {t} is out of bounds of the scenario file. Maximum time is {self.get_maximum_time()}"
+            f"Time t {t} is out of bounds of the scenario file. Valid times are t < {self.get_maximum_time()}"
         )
 
     def get_pulse(self, t: float) -> Pulse:

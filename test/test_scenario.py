@@ -148,7 +148,8 @@ pulse2 = Pulse(
 
 
 @pytest.mark.parametrize(
-    "t, expected_pulse", [(0, pulse1), (6000, pulse2), (1e5, None)]
+    "t, expected_pulse",
+    [(0, pulse1), (6000, pulse2), (1e5, None), (pulse1.nb_pulses * pulse1.total_duration, pulse2)],
 )
 def test_get_pulse(t, expected_pulse):
 
@@ -159,6 +160,7 @@ def test_get_pulse(t, expected_pulse):
             my_scenario.get_pulse(t=t)
     else:
         pulse = my_scenario.get_pulse(t=t)
+        print(pulse.pulse_type)
         assert pulse == expected_pulse
 
 
@@ -201,7 +203,7 @@ def test_get_time_till_row(row, expected_time):
 def test_reading_a_file():
     my_scenario = Scenario([pulse1, pulse2])
 
-    times = np.linspace(0, my_scenario.get_maximum_time(), 1000)
+    times = np.linspace(0, my_scenario.get_maximum_time(), 1000, endpoint=False)
     pulse_types = []
     for t in times:
         pulse_type = my_scenario.get_pulse_type(t)
