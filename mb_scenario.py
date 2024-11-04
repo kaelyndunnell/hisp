@@ -49,15 +49,6 @@ if __name__ == "__main__":
         waiting=100,
     )
 
-    bake = Pulse(
-        pulse_type="BAKE",
-        nb_pulses=1,
-        ramp_up=10,
-        steady_state=10,
-        ramp_down=10,
-        waiting=100,
-    )
-
     my_scenario = Scenario(pulses=[fp, bake])
 
     data_folder = "data"
@@ -209,7 +200,7 @@ if __name__ == "__main__":
             value_off=resting_value,
         )
 
-    my_model, quantities = make_DFW_mb_model(
+    my_model, quantities = make_W_mb_model(
         temperature=T_function,
         deuterium_ion_flux=deuterium_ion_flux,
         tritium_ion_flux=tritium_ion_flux,

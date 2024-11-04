@@ -270,9 +270,9 @@ def make_W_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e-15,
-        rtol=1e-15,
-        max_iterations=1000,
+        atol=1e10,
+        rtol=1e-05,
+        max_iterations=1000000,
         final_time=final_time,
     )
 
