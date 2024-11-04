@@ -4,6 +4,7 @@ from hisp.helpers import PulsedSource, gaussian_distribution
 import numpy as np
 import festim as F
 import h_transport_materials as htm
+import ufl
 
 from typing import Callable, Tuple, Dict
 
@@ -98,9 +99,10 @@ def make_mb_model(
         name="empty_trap2",
     )
 
-    # density_func =
-    empty_trap3 = F.ImplicitSpecies(  # not implicit, but can simplify trap creation model to small damanged zone in first 10nm
-        n=6.338e27,  # 1e-1 at.fr.
+    # TODO: make trap space dependent (existing in only first 10nm)
+    # density_func = lambda x: ufl.conditional(ufl.gt(x[0],10), 6.338e27, 0.0) #  small damanged zone in first 10nm, 1e-1 at.fr.
+    empty_trap3 = F.ImplicitSpecies( 
+        n=6.338e27,  
         others=[trap3_T, trap3_D],
         name="empty_trap3",
     )
