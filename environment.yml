@@ -10,5 +10,5 @@ dependencies:
   - pint # need to install pint with conda to avoid conflicts (HTM)
   - pip
   - pip:
-      - git+https://github.com/remdelaportemathurin/FESTIM@ad3b10b1a0c736ea3cd1e77835ef70de82208a10
+      - git+https://github.com/festim-dev/FESTIM@9203ac7fe1a5039545df1ff287d5497252b13e48
       - h_transport_materials~=0.16
