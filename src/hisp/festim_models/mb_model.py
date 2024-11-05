@@ -57,7 +57,7 @@ def make_W_mb_model(
     w_diffusivity = (
         htm.diffusivities.filter(material="tungsten")
         .filter(isotope="h")
-        .filter(author="frauenfelder")
+        .filter(author="holzner")
     )
     w_diffusivity = w_diffusivity[0]
     D_0 = w_diffusivity.pre_exp.magnitude
@@ -251,16 +251,16 @@ def make_W_mb_model(
 
     ############# Exports #############
 
-    my_model.exports = [
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
-    ]
+    # my_model.exports = [
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+    # ]
 
     quantities = {}
     for species in my_model.species:
@@ -270,7 +270,7 @@ def make_W_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e10,
+        atol=1e15,
         rtol=1e-05,
         max_iterations=1000000,
         final_time=final_time,
