@@ -12,6 +12,7 @@ from typing import Callable, Tuple, Dict
 implantation_range = 3e-9  # m
 width = 1e-9  # m
 
+
 def make_W_mb_model(
     temperature: Callable | float | int,
     deuterium_ion_flux: Callable,
@@ -101,8 +102,8 @@ def make_W_mb_model(
 
     # TODO: make trap space dependent (existing in only first 10nm)
     # density_func = lambda x: ufl.conditional(ufl.gt(x[0],10), 6.338e27, 0.0) #  small damanged zone in first 10nm, 1e-1 at.fr.
-    empty_trap3 = F.ImplicitSpecies( 
-        n=6.338e27,  
+    empty_trap3 = F.ImplicitSpecies(
+        n=6.338e27,
         others=[trap3_T, trap3_D],
         name="empty_trap3",
     )
@@ -118,7 +119,7 @@ def make_W_mb_model(
         trap3_T,
     ]
 
-    interstitial_distance = 1.117e-10 # m
+    interstitial_distance = 1.117e-10  # m
     interstitial_sites_per_atom = 6
 
     # hydrogen reactions - 1 per trap per species
@@ -280,6 +281,7 @@ def make_W_mb_model(
 
     return my_model, quantities
 
+
 def make_B_mb_model(
     temperature: Callable | float | int,
     deuterium_ion_flux: Callable,
@@ -319,9 +321,9 @@ def make_B_mb_model(
     my_model.mesh = F.Mesh1D(vertices)
 
     # B material parameters
-    b_density = 1.34e29   # atoms/m3
-    D_0 = 1.07e-6 # m^2/s
-    E_D = 0.3 #eV
+    b_density = 1.34e29  # atoms/m3
+    D_0 = 1.07e-6  # m^2/s
+    E_D = 0.3  # eV
     boron = F.Material(
         D_0=D_0,
         E_D=E_D,
@@ -350,25 +352,25 @@ def make_B_mb_model(
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
-        n=6.867e-1*b_density,  
+        n=6.867e-1 * b_density,
         others=[trap1_T, trap1_D],
         name="empty_trap1",
     )
 
     empty_trap2 = F.ImplicitSpecies(  # implicit trap 2
-        n=5.214e-1*b_density,
+        n=5.214e-1 * b_density,
         others=[trap2_T, trap2_D],
         name="empty_trap2",
     )
 
-    empty_trap3 = F.ImplicitSpecies( 
-        n=2.466e-1*b_density,  
+    empty_trap3 = F.ImplicitSpecies(
+        n=2.466e-1 * b_density,
         others=[trap3_T, trap3_D],
         name="empty_trap3",
     )
 
     empty_trap4 = F.ImplicitSpecies(
-        n=1.280e-1*b_density,
+        n=1.280e-1 * b_density,
         others=[trap4_T, trap4_D],
         name="empty_trap4",
     )
@@ -383,11 +385,11 @@ def make_B_mb_model(
         trap3_D,
         trap3_T,
         trap4_D,
-        trap4_T
+        trap4_T,
     ]
 
     # hydrogen reactions - 1 per trap per species
-    interstitial_distance = 8e-10 # m
+    interstitial_distance = 8e-10  # m
     interstitial_sites_per_atom = 1
 
     # TODO: fix p_0 values
@@ -540,6 +542,7 @@ def make_B_mb_model(
 
     return my_model, quantities
 
+
 def make_DFW_mb_model(
     temperature: Callable | float | int,
     deuterium_ion_flux: Callable,
@@ -581,9 +584,9 @@ def make_DFW_mb_model(
     my_model.mesh = F.Mesh1D(vertices)
 
     # DFW material parameters
-    dfw_density = 8.45e28   # atoms/m3
-    D_0 = 1.45e-6 # m^2/s
-    E_D = 0.59 #eV
+    dfw_density = 8.45e28  # atoms/m3
+    D_0 = 1.45e-6  # m^2/s
+    E_D = 0.59  # eV
     dfw = F.Material(
         D_0=D_0,
         E_D=E_D,
@@ -606,7 +609,7 @@ def make_DFW_mb_model(
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
-        n=8e-2*dfw_density,  
+        n=8e-2 * dfw_density,
         others=[trap1_T, trap1_D],
         name="empty_trap1",
     )
@@ -625,7 +628,8 @@ def make_DFW_mb_model(
     # TODO: fix p_0 values
     my_model.reactions = [
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * dfw_density),
+            k_0=D_0
+            / (interstitial_distance * interstitial_sites_per_atom * dfw_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.7,
@@ -634,7 +638,8 @@ def make_DFW_mb_model(
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * dfw_density),
+            k_0=D_0
+            / (interstitial_distance * interstitial_sites_per_atom * dfw_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.7,
@@ -713,7 +718,7 @@ def make_DFW_mb_model(
         surface_reaction_dt,
         surface_reaction_tt,
     ]
-    
+
     ############# Exports #############
 
     my_model.exports = [

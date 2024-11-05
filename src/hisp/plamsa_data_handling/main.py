@@ -4,8 +4,9 @@ from numpy.typing import NDArray
 from typing import Dict
 
 # TODO: make this generic
-sub_2_bins = [14,15,17,18]
-sub_3_bins = list(range(1,14))+[16]
+sub_2_bins = [14, 15, 17, 18]
+sub_3_bins = list(range(1, 14)) + [16]
+
 
 class PlasmaDataHandling:
     def __init__(
