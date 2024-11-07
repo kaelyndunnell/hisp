@@ -1,0 +1,10 @@
+name: hisp-docs
+channels:
+  - conda-forge
+dependencies:
+  - fenics-dolfinx
+  - sphinx
+  - numpy
+  - pip>=20.1
+  - pip:
+      - sphinx_book_theme==1.1.2
