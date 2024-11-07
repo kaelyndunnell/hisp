@@ -1,4 +1,6 @@
 [![CI](https://github.com/kaelyndunnell/hisp/actions/workflows/ci.yml/badge.svg)](https://github.com/kaelyndunnell/hisp/actions/workflows/ci.yml)
+[![docs](https://readthedocs.org/projects/hisp/badge/?version=latest)](https://hisp.readthedocs.io/en/latest/)
+
 # HISP
 
 Hydrogen Inventory Simulations for PFCs (HISP) is a series of code that uses FESTIM to simulate deuterium and tritium inventories in a fusion tokamak first wall and divertor PFCs. 
