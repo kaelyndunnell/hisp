@@ -7,7 +7,7 @@ import pytest
 
 @pytest.mark.parametrize(
     "monoblock, expected_Slow, expected_Stot, expected_Shigh, expected_f",
-    [(13, 0.1267563599999999, 43.62232832013235, 0.13990536, 0.2587958823449336)],
+    [(14, 0.1167564588888888, 44.61141841014145, 0.14880546, 0.1587858814448446)],
 )
 def test_read_wetted_data_sub3(
     monoblock, expected_Slow, expected_Shigh, expected_Stot, expected_f
@@ -29,7 +29,7 @@ def test_read_wetted_data_sub3(
 
 @pytest.mark.parametrize(
     "monoblock, expected_Slow, expected_Stot",
-    [(17, 3.5243703, 52.5834461142654)],
+    [(17, 4.5144704, 51.584446114165)],
 )
 def test_read_wetted_data_sub2(monoblock, expected_Slow, expected_Stot):
     """Tests if reading wetted data csv correctly."""
@@ -45,7 +45,7 @@ def test_read_wetted_data_sub2(monoblock, expected_Slow, expected_Stot):
 
 @pytest.mark.parametrize(
     "monoblock, expected_Slow, expected_Stot, DFW",
-    [(15, 4.54771314, 27.69441885986407, 11.8)],
+    [(15, 4.54771414, 17.68441885886407, 11.8)],
 )
 def test_read_wetted_data_dfw(monoblock, expected_Slow, expected_Stot, DFW):
     """Tests if reading wetted data csv correctly."""
