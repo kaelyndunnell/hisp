@@ -7,6 +7,7 @@ from hisp.plamsa_data_handling.main import (
     PlasmaDataHandling,
     read_wetted_data,
     compute_wetted_frac,
+    find_length
 )
 from hisp.festim_models import make_W_mb_model, make_B_mb_model, make_DFW_mb_model
 
@@ -14,17 +15,9 @@ from hisp.festim_models import make_W_mb_model, make_B_mb_model, make_DFW_mb_mod
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Scenario, Pulse
 from fw_sub_bins import (
-    sub_2_bins,
     sub_3_bins,
     dfw,
     fw_bins,
-    w_6mm,
-    w_10mm,
-    w_12mm,
-    b_1um,
-    b_100nm,
-    b_5um,
-    ss_5mm,
 )
 import pandas as pd
 
@@ -230,74 +223,8 @@ if __name__ == "__main__":
             value_off=resting_value,
         )
 
-    def find_length(nb_mb, section=None):
-        if nb_mb in fw_bins:
-            if section == "high_wetted":
-                if nb_mb in w_6mm:
-                    length = 6e-3  # m
-
-                elif nb_mb in w_10mm:
-                    length = 10e-3
-
-                elif nb_mb in w_12mm:
-                    length = 12e-3
-
-                material = "W"
-
-            elif section == "low_wetted":
-                if nb_mb in w_6mm:
-                    length = 6e-3  # m
-                    material = "W"
-
-                elif nb_mb in w_10mm:
-                    length = 10e-3
-                    material = "W"
-
-                elif nb_mb in w_12mm:
-                    length = 12e-3
-                    material = "W"
-
-                elif nb_mb in b_100nm:
-                    length = 1e-9
-                    material = "B"
-
-            else:
-                if nb_mb in w_6mm:
-                    length = 6e-3  # m
-                    material = "W"
-
-                elif nb_mb in w_10mm:
-                    length = 10e-3
-                    material = "W"
-
-                elif nb_mb in w_12mm:
-                    length = 12e-3
-                    material = "W"
-
-                elif nb_mb in b_1um:
-                    length = 1e-6
-                    material = "B"
-
-                elif nb_mb in ss_5mm:
-                    length = 5e-3
-                    material = "SS"
-
-        else:
-            if nb_mb in w_6mm:
-                length = 6e-3  # m
-                material = "W"
-
-            elif nb_mb in b_1um:
-                length = 1e-6
-                material = "B"
-
-            elif nb_mb in b_5um:
-                length = 5e-6
-                material = "B"
-
-        return length, material
-
-    ############# RUN ENTIRE SIMU #############
+    ############# RUN FW BIN SIMUS #############
+    # TODO: adjust to run monoblocks in parallel
     for nb_mb in fw_bins:
         wetted_data = read_wetted_data("Wetted_Frac_Bin_Data.csv", nb_mb=nb_mb)
 
@@ -309,6 +236,7 @@ if __name__ == "__main__":
         section = "low_wetted"
         length, material = find_length(nb_mb, section)
         fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, low_wet=True)
+        print(nb_mb, material, section, length)
 
         if material == "W":
             my_model, quantities = make_W_mb_model(
@@ -342,8 +270,9 @@ if __name__ == "__main__":
             my_model.progress_bar.close()
 
         section = "shadowed"
-        length, material = find_length(block, section)
+        length, material = find_length(nb_mb, section)
         fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed=True)
+        print(nb_mb, material, section, length)
 
         if material == "W":
             my_model, quantities = make_W_mb_model(
@@ -376,10 +305,11 @@ if __name__ == "__main__":
             my_model.run()
             my_model.progress_bar.close()
 
-        if block in sub_3_bins:
+        if nb_mb in sub_3_bins:
             section = "high_wetted"
-            length, material = find_length(block, section)
+            length, material = find_length(nb_mb, section)
             fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, high_wet=True)
+            print(nb_mb, material, section, length)
 
             my_model, quantities = make_W_mb_model(
                 temperature=T_function,
@@ -396,10 +326,11 @@ if __name__ == "__main__":
             my_model.run()
             my_model.progress_bar.close()
 
-        if block in dfw:
-            section = "shadowed"
-            length, material = find_length(block, section)
-            fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed == True)
+        if nb_mb in dfw:
+            section = "dfw"
+            length, material = find_length(nb_mb, section)
+            fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed = True)
+            print(nb_mb, material, section, length)
 
             my_model, quantities = make_DFW_mb_model(
                 temperature=T_function,
@@ -416,8 +347,10 @@ if __name__ == "__main__":
             my_model.run()
             my_model.progress_bar.close()
 
+    ############# RUN DIV BIN SIMUS #############
     for nb_mb in list(range(19, 65)):
         length, material = find_length(nb_mb)
+        print(nb_mb, material, length)
 
         if material == "W":
             my_model, quantities = make_W_mb_model(
@@ -429,7 +362,7 @@ if __name__ == "__main__":
                 # FIXME: -1s here to avoid last time step spike
                 final_time=my_scenario.get_maximum_time() - 1,
                 L=length,
-                folder=f"mb{nb_mb}_{section}_results",
+                folder=f"mb{nb_mb}_results",
             )
             my_model.initialise()
             my_model.run()
@@ -445,13 +378,15 @@ if __name__ == "__main__":
                 # FIXME: -1s here to avoid last time step spike
                 final_time=my_scenario.get_maximum_time() - 1,
                 L=length,
-                folder=f"mb{nb_mb}_{section}_results",
+                folder=f"mb{nb_mb}_results",
             )
             my_model.initialise()
             my_model.run()
             my_model.progress_bar.close()
 
     ############# Results Plotting #############
+    # TODO: add capability to add all inventories together and plot at the end
+    # TODO: add a graph that computes grams 
 
     for name, quantity in quantities.items():
         plt.plot(quantity.t, quantity.data, label=name, marker="o")
