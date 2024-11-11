@@ -49,7 +49,7 @@ if __name__ == "__main__":
         waiting=100,
     )
 
-    my_scenario = Scenario(pulses=[fp, bake])
+    my_scenario = Scenario(pulses=[fp])
 
     data_folder = "data"
     plasma_data_handling = PlasmaDataHandling(
@@ -84,7 +84,7 @@ if __name__ == "__main__":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
-            heat_flux = plasma_data_handling.heat(pulse.pulse_type, nb_mb, t_rel)
+            heat_flux, heat_ion = plasma_data_handling.heat(pulse.pulse_type, nb_mb, t_rel)
             T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
             T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
             a = (T_rear - T_surface) / L
