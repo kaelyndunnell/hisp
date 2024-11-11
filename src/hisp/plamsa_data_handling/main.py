@@ -5,6 +5,7 @@ import pandas as pd
 from typing import Dict
 from fw_sub_bins import sub_2_bins, sub_3_bins, fw_bins
 
+
 def read_wetted_data(filename, nb_mb):
     """Reads wetted/shadowed data from csv file for first wall.
 
@@ -12,34 +13,38 @@ def read_wetted_data(filename, nb_mb):
         filename (str): filename of csv file with wetted FW data
         monoblock (int): monoblock number
 
-    Returns: 
+    Returns:
         Slow/Shigh, Stot, f, DFW for nb
-    
+
     """
 
-    data = pd.read_csv(filename,skiprows=1, names=range(5))
+    data = pd.read_csv(filename, skiprows=1, names=range(5))
     data = data.to_numpy()
-    return data[nb_mb-1]
+    return data[nb_mb - 1]
 
-def compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, low_wet=False, high_wet=False, shadowed=False):
-        if nb_mb in sub_3_bins:
-            if low_wet:
-                frac = f*Stot/Slow
-            elif high_wet:
-                frac = (1-f)*Stot/Shigh
-            elif shadowed:
-                frac = 0.0
 
-        elif nb_mb in sub_2_bins:
-            if low_wet:
-                frac = Stot/Slow
-            elif shadowed:
-                frac = 0.0
+def compute_wetted_frac(
+    nb_mb, Slow, Stot, Shigh, f, low_wet=False, high_wet=False, shadowed=False
+):
+    if nb_mb in sub_3_bins:
+        if low_wet:
+            frac = f * Stot / Slow
+        elif high_wet:
+            frac = (1 - f) * Stot / Shigh
+        elif shadowed:
+            frac = 0.0
 
-        else: # div blocks
-            frac = 1
+    elif nb_mb in sub_2_bins:
+        if low_wet:
+            frac = Stot / Slow
+        elif shadowed:
+            frac = 0.0
 
-        return frac
+    else:  # div blocks
+        frac = 1
+
+    return frac
+
 
 class PlasmaDataHandling:
     def __init__(
@@ -190,7 +195,7 @@ class PlasmaDataHandling:
 
         if pulse_type == "FP":
             heat_val = data[:, -2][nb_mb - 1]
-            heat_ion = data[:,-1][nb_mb - 1]
+            heat_ion = data[:, -1][nb_mb - 1]
         elif pulse_type == "RISP":
             if nb_mb in fw_bins:
                 heat_val = data[-2]
