@@ -32,10 +32,10 @@ jobs:
         run: |
           pytest test/ --cov hisp --cov-report xml --cov-report term
 
-      - name: Run first example
+      - name: Run simple example
         shell: bash -l {0}
         run: python mb_scenario.py
 
-      - name: Run second example
+      - name: Run complex example
         shell: bash -l {0}
         run: python all_bin_scenario.py
