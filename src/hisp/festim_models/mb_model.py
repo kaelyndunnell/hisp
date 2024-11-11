@@ -21,7 +21,7 @@ def make_W_mb_model(
     tritium_atom_flux: Callable,
     final_time: float,
     folder: str,
-    L: float = 6e-3,
+    L: float,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the W MB scenario.
 
@@ -252,16 +252,16 @@ def make_W_mb_model(
 
     ############# Exports #############
 
-    # my_model.exports = [
-    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
-    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
-    # ]
+    my_model.exports = [
+        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
+        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
+        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+    ]
 
     quantities = {}
     for species in my_model.species:
@@ -271,8 +271,8 @@ def make_W_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e15,
-        rtol=1e-05,
+        atol=1e-10,
+        rtol=1e-10,
         max_iterations=1000000,
         final_time=final_time,
     )
@@ -290,7 +290,7 @@ def make_B_mb_model(
     tritium_atom_flux: Callable,
     final_time: float,
     folder: str,
-    L: float = 1e-6,
+    L: float,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the B MB scenario.
 
@@ -315,7 +315,7 @@ def make_B_mb_model(
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
             np.linspace(0, 30e-9, num=200),
-            np.linspace(30e-6, L, num=200),
+            np.linspace(30e-9, L, num=200),
         ]
     )
     my_model.mesh = F.Mesh1D(vertices)
@@ -551,7 +551,7 @@ def make_DFW_mb_model(
     tritium_atom_flux: Callable,
     final_time: float,
     folder: str,
-    L: float = 5e-3,
+    L: float,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the DFW MB scenario.
 
