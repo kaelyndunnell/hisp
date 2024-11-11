@@ -1,4 +1,8 @@
-from hisp.festim_models.mb_model import make_W_mb_model, make_B_mb_model, make_DFW_mb_model
+from hisp.festim_models.mb_model import (
+    make_W_mb_model,
+    make_B_mb_model,
+    make_DFW_mb_model,
+)
 
 import festim as F
 
@@ -51,6 +55,7 @@ def test_mb_model(temp):
         assert isinstance(key, str)
         assert isinstance(value, F.TotalVolume)
         assert len(value.data) > 0
+
 
 @pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
 def test_mb_model(temp):
