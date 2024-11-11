@@ -3,13 +3,31 @@ import matplotlib.pyplot as plt
 
 from numpy.typing import NDArray
 
-from hisp.plamsa_data_handling.main import PlasmaDataHandling, read_wetted_data, compute_wetted_frac
+from hisp.plamsa_data_handling.main import (
+    PlasmaDataHandling,
+    read_wetted_data,
+    compute_wetted_frac,
+)
 from hisp.festim_models import make_W_mb_model, make_B_mb_model, make_DFW_mb_model
+
 # from ITER_scenario import my_scenario
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Scenario, Pulse
-from fw_sub_bins import sub_2_bins, sub_3_bins, dfw, fw_bins
+from fw_sub_bins import (
+    sub_2_bins,
+    sub_3_bins,
+    dfw,
+    fw_bins,
+    w_6mm,
+    w_10mm,
+    w_12mm,
+    b_1um,
+    b_100nm,
+    b_5um,
+    ss_5mm,
+)
 import pandas as pd
+
 # import dolfinx
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
@@ -53,7 +71,7 @@ if __name__ == "__main__":
         waiting=100,
     )
 
-    my_scenario = Scenario(pulses=[fp, icwc, risp])
+    my_scenario = Scenario(pulses=[fp])
 
     data_folder = "data"
     plasma_data_handling = PlasmaDataHandling(
@@ -67,20 +85,7 @@ if __name__ == "__main__":
         path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
     )
 
-    nb_mb = 9
-    L = 6e-3  # m
-
-    if nb_mb in fw_bins:
-        wetted_data = read_wetted_data('Wetted_Frac_Bin_Data.csv', nb_mb=nb_mb)
-
-        Slow = wetted_data[0]
-        Stot = wetted_data[1]
-        Shigh = wetted_data[2]
-        f = wetted_data[3]
-
-        fw_frac = compute_wetted_frac(nb_mb,Slow, Stot, Shigh, f)
-
-    def T_function(x: NDArray, t: float, frac=0) -> float: # default shadowed
+    def T_function(x: NDArray, t: float, frac=0) -> float:  # default shadowed
         """Monoblock temperature function.
 
         Args:
@@ -98,13 +103,15 @@ if __name__ == "__main__":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
-            heat_total, heat_ion = plasma_data_handling.heat(pulse.pulse_type, nb_mb, t_rel)
+            heat_total, heat_ion = plasma_data_handling.heat(
+                pulse.pulse_type, nb_mb, t_rel
+            )
             if nb_mb in fw_bins:
                 frac = fw_frac
-            heat_flux = heat_total - heat_ion + heat_ion*frac
+            heat_flux = heat_total - heat_ion + heat_ion * frac
             T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
             T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
-            a = (T_rear - T_surface) / L
+            a = (T_rear - T_surface) / length
             b = T_surface
             flat_top_value = a * x[0] + b
 
@@ -134,7 +141,6 @@ if __name__ == "__main__":
         ion_flux = frac * plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=True
         )
-        print(ion_flux)
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
@@ -184,7 +190,7 @@ if __name__ == "__main__":
         total_time_pulse = pulse.total_duration
         time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
         relative_time = t - time_start_current_pulse
-    
+
         atom_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=False
         )
@@ -224,22 +230,226 @@ if __name__ == "__main__":
             value_off=resting_value,
         )
 
-    my_model, quantities = make_W_mb_model(
-        temperature=T_function,
-        deuterium_ion_flux=deuterium_ion_flux,
-        tritium_ion_flux=tritium_ion_flux,
-        deuterium_atom_flux=deuterium_atom_flux,
-        tritium_atom_flux=tritium_atom_flux,
-        # FIXME: -1s here to avoid last time step spike
-        final_time=my_scenario.get_maximum_time()-1,
-        L=6e-3,
-        folder=f"mb{nb_mb}_results",
-    )
-    ############# Run Simu #############
+    def find_length(nb_mb, section=None):
+        if nb_mb in fw_bins:
+            if section == "high_wetted":
+                if nb_mb in w_6mm:
+                    length = 6e-3  # m
 
-    my_model.initialise()
-    my_model.run()
-    my_model.progress_bar.close()
+                elif nb_mb in w_10mm:
+                    length = 10e-3
+
+                elif nb_mb in w_12mm:
+                    length = 12e-3
+
+                material = "W"
+
+            elif section == "low_wetted":
+                if nb_mb in w_6mm:
+                    length = 6e-3  # m
+                    material = "W"
+
+                elif nb_mb in w_10mm:
+                    length = 10e-3
+                    material = "W"
+
+                elif nb_mb in w_12mm:
+                    length = 12e-3
+                    material = "W"
+
+                elif nb_mb in b_100nm:
+                    length = 1e-9
+                    material = "B"
+
+            else:
+                if nb_mb in w_6mm:
+                    length = 6e-3  # m
+                    material = "W"
+
+                elif nb_mb in w_10mm:
+                    length = 10e-3
+                    material = "W"
+
+                elif nb_mb in w_12mm:
+                    length = 12e-3
+                    material = "W"
+
+                elif nb_mb in b_1um:
+                    length = 1e-6
+                    material = "B"
+
+                elif nb_mb in ss_5mm:
+                    length = 5e-3
+                    material = "SS"
+
+        else:
+            if nb_mb in w_6mm:
+                length = 6e-3  # m
+                material = "W"
+
+            elif nb_mb in b_1um:
+                length = 1e-6
+                material = "B"
+
+            elif nb_mb in b_5um:
+                length = 5e-6
+                material = "B"
+
+        return length, material
+
+    ############# RUN ENTIRE SIMU #############
+    for nb_mb in fw_bins:
+        wetted_data = read_wetted_data("Wetted_Frac_Bin_Data.csv", nb_mb=nb_mb)
+
+        Slow = wetted_data[0]
+        Stot = wetted_data[1]
+        Shigh = wetted_data[2]
+        f = wetted_data[3]
+
+        section = "low_wetted"
+        length, material = find_length(nb_mb, section)
+        fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, low_wet=True)
+
+        if material == "W":
+            my_model, quantities = make_W_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
+        elif material == "B":
+            my_model, quantities = make_B_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
+
+        section = "shadowed"
+        length, material = find_length(block, section)
+        fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed=True)
+
+        if material == "W":
+            my_model, quantities = make_W_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
+        elif material == "B":
+            my_model, quantities = make_B_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
+
+        if block in sub_3_bins:
+            section = "high_wetted"
+            length, material = find_length(block, section)
+            fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, high_wet=True)
+
+            my_model, quantities = make_W_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
+
+        if block in dfw:
+            section = "shadowed"
+            length, material = find_length(block, section)
+            fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed == True)
+
+            my_model, quantities = make_DFW_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
+
+    for nb_mb in list(range(19, 65)):
+        length, material = find_length(nb_mb)
+
+        if material == "W":
+            my_model, quantities = make_W_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
+
+        elif material == "B":
+            my_model, quantities = make_B_mb_model(
+                temperature=T_function,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=length,
+                folder=f"mb{nb_mb}_{section}_results",
+            )
+            my_model.initialise()
+            my_model.run()
+            my_model.progress_bar.close()
 
     ############# Results Plotting #############
 
