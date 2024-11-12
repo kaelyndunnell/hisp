@@ -18,6 +18,7 @@ def test_mb_model(temp):
         deuterium_atom_flux=lambda _: 1e22,
         tritium_ion_flux=lambda _: 1e22,
         tritium_atom_flux=lambda _: 1e22,
+        L=6e-3,
         final_time=50,
         folder=".",
     )
@@ -43,6 +44,7 @@ def test_mb_model(temp):
         tritium_ion_flux=lambda _: 1e22,
         tritium_atom_flux=lambda _: 1e22,
         final_time=50,
+        L=6e-3,
         folder=".",
     )
 
@@ -67,6 +69,7 @@ def test_mb_model(temp):
         tritium_ion_flux=lambda _: 1e22,
         tritium_atom_flux=lambda _: 1e22,
         final_time=50,
+        L=6e-3,
         folder=".",
     )
 
