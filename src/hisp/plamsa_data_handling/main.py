@@ -21,62 +21,6 @@ from fw_sub_bins import (
 )
 
 
-def read_wetted_data(filename, nb_mb):
-    """Reads wetted/shadowed data from csv file for first wall.
-
-    Args:
-        filename (str): filename of csv file with wetted FW data
-        monoblock (int): monoblock number
-
-    Returns:
-        Slow/Shigh, Stot, f, DFW for nb
-
-    """
-
-    data = pd.read_csv(filename, skiprows=1, names=range(5))
-    data = data.to_numpy()
-    return data[nb_mb - 1]
-
-
-def compute_wetted_frac(
-    nb_mb, Slow, Stot, Shigh, f, low_wet=False, high_wet=False, shadowed=False
-):
-    """Computes fraction of wetted-ness for first wall sub-bins.
-
-    Args:
-        nb_mb (int): monoblock number
-        Slow (float): surface area of low wetted area.
-        Stot (float): total surface area of bin.
-        Shigh (float): surface area of high wetted area.
-        f (float): fraction of heat values in low wetted area from SMITER csv files.
-        low_wet (Boolean): True if solving for low wetted bin.
-        high_wet (Boolean): True if solving for high wetted bin.
-        shadowed (Boolean): True if solving for shadowed bin.
-
-    Returns:
-        frac: fraction of wetted-ness for sub-bin.
-
-    """
-    if nb_mb in sub_3_bins:
-        if low_wet:
-            frac = f * Stot / Slow
-        elif high_wet:
-            frac = (1 - f) * Stot / Shigh
-        elif shadowed:
-            frac = 0.0
-
-    elif nb_mb in sub_2_bins:
-        if low_wet:
-            frac = Stot / Slow
-        elif shadowed:
-            frac = 0.0
-
-    else:  # div blocks
-        frac = 1
-
-    return frac
-
-
 class PlasmaDataHandling:
     def __init__(
         self,

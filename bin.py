@@ -1,4 +1,5 @@
 from typing import List
+import pandas as pd
 
 from fw_sub_bins import (
     sub_2_bins,
@@ -91,6 +92,60 @@ class Bin:
         sub_bins = list(range(1,sub_bin+1))
         self._sub_bins = sub_bins
     
+    def read_wetted_data(self, index: int, filename):
+        """Reads wetted/shadowed data from csv file for first wall.
+
+        Args:
+            filename (str): filename of csv file with wetted FW data
+            index (int): bin number
+
+        Returns:
+            Slow/Shigh, Stot, f, DFW for bin
+
+        """
+
+        data = pd.read_csv(filename, skiprows=1, names=range(5))
+        data = data.to_numpy()
+        return data[self.index - 1]
+
+    def compute_wetted_frac(
+    self, index: int, Slow: float, Stot: float, Shigh: float, f: float, low_wetted: bool, high_wetted: bool, shadowed: bool,
+):
+        """Computes fraction of wetted-ness for first wall sub-bins.
+
+        Args:
+            index (int): bin number
+            Slow (float): surface area of low wetted area.
+            Stot (float): total surface area of bin.
+            Shigh (float): surface area of high wetted area.
+            f (float): fraction of heat values in low wetted area from SMITER csv files.
+            low_wet (Boolean): True if solving for low wetted bin.
+            high_wet (Boolean): True if solving for high wetted bin.
+            shadowed (Boolean): True if solving for shadowed bin.
+
+        Returns:
+            frac: fraction of wetted-ness for sub-bin.
+
+        """
+        if self.index in sub_3_bins:
+            if low_wetted:
+                frac = f * Stot / Slow
+            elif high_wetted:
+                frac = (1 - f) * Stot / Shigh
+            elif shadowed:
+                frac = 0.0
+
+        elif self.index in sub_2_bins:
+            if low_wetted:
+                frac = Stot / Slow
+            elif shadowed:
+                frac = 0.0
+
+        else:  # div blocks
+            frac = 1
+
+        return frac
+
     # TODO: add tests for find_length
     def find_length(self, index:int, shadowed: bool, low_wetted: bool, high_wetted: bool, dfw: bool):
         """Finds length and material of given bin.
