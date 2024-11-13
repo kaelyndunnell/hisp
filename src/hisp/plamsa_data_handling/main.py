@@ -3,22 +3,6 @@ from numpy.typing import NDArray
 import pandas as pd
 
 from typing import Dict
-from iter_bins import (
-    fw_bins_with_2_subbins,
-    sub_3_bins,
-    fw_bins,
-    high_w_6mm,
-    low_w_6mm,
-    shadow_w_6mm,
-    w_10mm,
-    high_w_12mm,
-    low_w_12mm,
-    shadow_w_12mm,
-    b_1um,
-    b_100nm,
-    b_5um,
-    ss_5mm,
-)
 
 
 class PlasmaDataHandling:
@@ -183,3 +167,32 @@ class PlasmaDataHandling:
             heat_ion = 0.0
 
         return heat_val, heat_ion
+
+    def get_heat(self, bin: SubBin | DivBin, pulse_type: str, t_rel: float):
+        if isinstance(bin, SubBin):
+            bin_index = bin.parent_bin_index
+        elif isinstance(bin, DivBin):
+            bin_index = bin.index
+
+        if pulse_type == "RISP":
+            data = self.RISP_data(bin_index, t_rel=t_rel)
+        elif pulse_type in self.pulse_type_to_data.keys():
+            data = self.pulse_type_to_data[pulse_type]
+        else:
+            raise ValueError(f"Invalid pulse type {pulse_type}")
+
+        if pulse_type == "FP":
+            heat_val = data[:, -2][bin_index]
+            heat_ion = data[:, -1][bin_index]
+        elif pulse_type == "RISP":
+            if isinstance(bin, SubBin):
+                heat_val = data[-2]
+                heat_ion = data[-1]
+            else:
+                heat_val = data[-1]
+                heat_ion = 0.0
+        else:
+            heat_val = data[:, -1][bin_index]
+            heat_ion = 0.0
+
+        return heat_val
