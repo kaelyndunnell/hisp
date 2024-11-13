@@ -91,6 +91,13 @@ class Bin:
 
         sub_bins = list(range(1,sub_bin+1))
         self._sub_bins = sub_bins
+
+    @property
+    def sub_bins(self):
+        return self._sub_bins
+    
+    # def build_sub_bin(self): 
+
     
     def read_wetted_data(self, index: int, filename):
         """Reads wetted/shadowed data from csv file for first wall.
@@ -147,15 +154,11 @@ class Bin:
         return frac
 
     # TODO: add tests for find_length
-    def find_length(self, index:int, shadowed: bool, low_wetted: bool, high_wetted: bool, dfw: bool):
+    def find_length(self, sub_bin:int = None):
         """Finds length and material of given bin.
 
         Args:
-            index (int): bin number
-            shadowed (bool): True if sub_bin is shadowed
-            low_wetted (bool): True if sub_bin is low_wetted
-            high_wetted (bool): True if sub_bin is high_wetted
-            dfw (bool): True if sub_bin is dfw
+            sub_bin (int): sub_bin number. Defaults to None.
 
         Returns:
             length (float): length of given bin or sub bin.
@@ -163,17 +166,8 @@ class Bin:
 
         """
 
-        if self.shadowed: 
-            section = 'shadowed'
-        if self.low_wetted: 
-            section = 'low_wetted'
-        if self.high_wetted:
-            section = 'high_wetted'
-        if self.dfw:
-            section = 'dfw'
-
         if self.index in fw_bins:
-            if section == "high_wetted":
+            if self.high_wetted:
                 if self.index in high_w_6mm:
                     self.sub_bin.length = 6e-3  # m
 
@@ -185,7 +179,7 @@ class Bin:
 
                 self.sub_bin.material = "W"
 
-            elif section == "low_wetted":
+            elif self.low_wetted:
                 if self.index in low_w_6mm:
                     self.sub_bin.length = 6e-3  # m
                     self.sub_bin.material = "W"
@@ -202,7 +196,7 @@ class Bin:
                     self.sub_bin.length = 100e-9
                     self.sub_bin.material = "B"
 
-            elif section == "dfw": 
+            elif self.dfw: 
                 self.sub_bin.length = 5e-3
                 self.sub_bin.material = "SS"
 
