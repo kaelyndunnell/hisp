@@ -21,34 +21,34 @@ from fw_sub_bins import (
 
 # TODO: make this an optional class that requires specification from the user? 
 
-class sub_bin: 
-    sub: int
-    length: float
-    material: str
-    shadowed: bool
-    low_wetted: bool
-    high_wetted: bool
-    dfw: bool
+# class sub_bin: 
+#     sub: int
+#     length: float
+#     material: str
+#     shadowed: bool
+#     low_wetted: bool
+#     high_wetted: bool
+#     dfw: bool
 
-    def __init__(
-        self,
-        index: int,
-        sub_bins: list,
-        length: float,
-        material: str,
-        shadowed: bool, 
-        low_wetted: bool, 
-        high_wetted: bool,
-        dfw: bool,
-    ):
-        self.index = index
-        self.sub_bins = sub_bins
-        self.length = length
-        self.material = material
-        self.shadowed = shadowed
-        self.low_wetted = low_wetted
-        self.high_wetted = high_wetted
-        self.dfw = dfw
+#     def __init__(
+#         self,
+#         index: int,
+#         sub_bins: list,
+#         length: float,
+#         material: str,
+#         shadowed: bool, 
+#         low_wetted: bool, 
+#         high_wetted: bool,
+#         dfw: bool,
+#     ):
+#         self.index = index
+#         self.sub_bins = sub_bins
+#         self.length = length
+#         self.material = material
+#         self.shadowed = shadowed
+#         self.low_wetted = low_wetted
+#         self.high_wetted = high_wetted
+#         self.dfw = dfw
 
     
 
