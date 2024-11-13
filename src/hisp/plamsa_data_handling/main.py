@@ -3,8 +3,8 @@ from numpy.typing import NDArray
 import pandas as pd
 
 from typing import Dict
-from fw_sub_bins import (
-    sub_2_bins,
+from iter_bins import (
+    fw_bins_with_2_subbins,
     sub_3_bins,
     fw_bins,
     high_w_6mm,

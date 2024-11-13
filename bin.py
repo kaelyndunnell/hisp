@@ -1,252 +1,134 @@
 from typing import List
 import pandas as pd
 
-from fw_sub_bins import (
-    sub_2_bins,
-    sub_3_bins,
-    fw_bins,
-    high_w_6mm,
-    low_w_6mm,
-    shadow_w_6mm,
-    w_10mm,
-    high_w_12mm,
-    low_w_12mm,
-    shadow_w_12mm,
-    b_1um,
-    b_100nm,
-    b_5um,
-)
 
-# TODO: make this an optional class that requires specification from the user? 
-
-# class sub_bin: 
-#     sub: int
-#     length: float
-#     material: str
-#     shadowed: bool
-#     low_wetted: bool
-#     high_wetted: bool
-#     dfw: bool
-
-#     def __init__(
-#         self,
-#         index: int,
-#         sub_bins: list,
-#         length: float,
-#         material: str,
-#         shadowed: bool, 
-#         low_wetted: bool, 
-#         high_wetted: bool,
-#         dfw: bool,
-#     ):
-#         self.index = index
-#         self.sub_bins = sub_bins
-#         self.length = length
-#         self.material = material
-#         self.shadowed = shadowed
-#         self.low_wetted = low_wetted
-#         self.high_wetted = high_wetted
-#         self.dfw = dfw
-
-    
-
-class Bin:
-    index: int
-    sub_bins: list
-    length: float
+class SubBin:
+    thickness: float
     material: str
-    shadowed: bool
-    low_wetted: bool
-    high_wetted: bool
+    mode: str
     dfw: bool
 
     def __init__(
         self,
-        index: int,
-        sub_bin: int,
-        length: float,
-        material: str,
-        shadowed: bool, 
-        low_wetted: bool, 
-        high_wetted: bool,
-        dfw: bool,
+        mode: str,
+        thickness: float = None,
+        material: str = None,
     ):
-        self.index = index
-        self.sub_bins = sub_bin
-        self.length = length
+        self.thickness = thickness
         self.material = material
-        self.shadowed = shadowed
-        self.low_wetted = low_wetted
-        self.high_wetted = high_wetted
-        self.dfw = dfw
-
-    def __init__(self, sub_bin: int): 
-        """Initializes a sub_bins object containing several sub bins.
-
-        Args:
-            sub_bins (List, optional): The number of sub_bins in a given bin. 
-        """
-
-        sub_bins = list(range(1,sub_bin+1))
-        self._sub_bins = sub_bins
+        self.mode = mode
+        self.dfw = False
 
     @property
-    def sub_bins(self):
-        return self._sub_bins
-    
-    # def build_sub_bin(self): 
+    def shadowed(self) -> bool:
+        return self.mode == "shadowed" or self.dfw
 
-    
-    def read_wetted_data(self, index: int, filename):
-        """Reads wetted/shadowed data from csv file for first wall.
+    def compute_wetted_frac(self) -> float:
+        pass
 
-        Args:
-            filename (str): filename of csv file with wetted FW data
-            index (int): bin number
 
-        Returns:
-            Slow/Shigh, Stot, f, DFW for bin
+class FWBin:
+    index: int
+    sub_bins: List[SubBin]
 
-        """
+    def __init__(self, sub_bins: List[SubBin] = None):
+        self.sub_bins = sub_bins or []
+        self.index = None
 
+    @property
+    def shadowed_subbin(self) -> SubBin:
+        for subbin in self.sub_bins:
+            if subbin.shadowed:
+                return subbin
+
+        raise ValueError(f"No shadowed subbin found in bin {self.index}")
+
+    def read_wetted_data(self, filename: str):
+        return
         data = pd.read_csv(filename, skiprows=1, names=range(5))
         data = data.to_numpy()
         return data[self.index - 1]
 
-    def compute_wetted_frac(
-    self, index: int, Slow: float, Stot: float, Shigh: float, f: float, low_wetted: bool, high_wetted: bool, shadowed: bool,
-):
-        """Computes fraction of wetted-ness for first wall sub-bins.
+    def add_dfw_bin(self, **kwargs):
+        dfw_bin = SubBin(mode="shadowed", **kwargs)
+        dfw_bin.dfw = True  # TODO do we need this?
+        self.sub_bins.append(dfw_bin)
 
-        Args:
-            index (int): bin number
-            Slow (float): surface area of low wetted area.
-            Stot (float): total surface area of bin.
-            Shigh (float): surface area of high wetted area.
-            f (float): fraction of heat values in low wetted area from SMITER csv files.
-            low_wet (Boolean): True if solving for low wetted bin.
-            high_wet (Boolean): True if solving for high wetted bin.
-            shadowed (Boolean): True if solving for shadowed bin.
 
-        Returns:
-            wetted_frac: fraction of wetted-ness for sub-bin.
+class FWBin3Subs(FWBin):
+    def __init__(self):
+        subbins = [
+            SubBin(mode="shadowed"),
+            SubBin(mode="low_wetted"),
+            SubBin(mode="high_wetted"),
+        ]
+        super().__init__(subbins)
 
-        """
-        if self.index in sub_3_bins:
-            if low_wetted:
-                wetted_frac = f * Stot / Slow
-            elif high_wetted:
-                wetted_frac = (1 - f) * Stot / Shigh
-            elif shadowed:
-                wetted_frac = 0.0
+    @property
+    def low_wetted_subbin(self) -> SubBin:
+        return self.sub_bins[1]
 
-        elif self.index in sub_2_bins:
-            if low_wetted:
-                wetted_frac = Stot / Slow
-            elif shadowed:
-                wetted_frac = 0.0
+    @property
+    def high_wetted_subbin(self) -> SubBin:
+        return self.sub_bins[2]
 
-        else:  # div blocks
-            wetted_frac = 1
 
-        return wetted_frac
+class FWBin2Subs(FWBin):
+    def __init__(self):
+        subbins = [
+            SubBin(mode="shadowed"),
+            SubBin(mode="wetted"),
+        ]
+        super().__init__(subbins)
 
-    # TODO: add tests for find_length
-    def find_length(self, sub_bin:int = None):
-        """Finds length and material of given bin.
+    @property
+    def wetted_subbin(self) -> SubBin:
+        return self.sub_bins[1]
 
-        Args:
-            sub_bin (int): sub_bin number. Defaults to None.
 
-        Returns:
-            length (float): length of given bin or sub bin.
-            material (str): material of given bin or sub bin.
+class DivBin:
+    index: int
+    thickness: float
+    material: str
+    mode = "wetted"
 
-        """
+    def __init__(self):
+        self.index = None
+        self.thickness = None
+        self.material = None
 
-        if self.index in fw_bins:
-            if self.high_wetted:
-                if self.index in high_w_6mm:
-                    self.sub_bin.length = 6e-3  # m
-
-                elif self.index in w_10mm:
-                    self.sub_bin.length = 10e-3
-
-                elif self.index in high_w_12mm:
-                    self.sub_bin.length = 12e-3
-
-                self.sub_bin.material = "W"
-
-            elif self.low_wetted:
-                if self.index in low_w_6mm:
-                    self.sub_bin.length = 6e-3  # m
-                    self.sub_bin.material = "W"
-
-                elif self.index in w_10mm:
-                    self.sub_bin.length = 10e-3
-                    self.sub_bin.material = "W"
-
-                elif self.index in low_w_12mm:
-                    self.sub_bin.length = 12e-3
-                    self.sub_bin.material = "W"
-
-                elif self.index in b_100nm:
-                    self.sub_bin.length = 100e-9
-                    self.sub_bin.material = "B"
-
-            elif self.dfw: 
-                self.sub_bin.length = 5e-3
-                self.sub_bin.material = "SS"
-
-            else:
-                if self.index in shadow_w_6mm:
-                    self.sub_bin.length = 6e-3  # m
-                    self.sub_bin.material = "W"
-
-                elif self.index in w_10mm:
-                    self.sub_bin.length = 10e-3
-                    self.sub_bin.material = "W"
-
-                elif self.index in shadow_w_12mm:
-                    self.sub_bin.length = 12e-3
-                    self.sub_bin.material = "W"
-
-                elif self.index in b_1um:
-                    self.sub_bin.length = 1e-6
-                    self.sub_bin.material = "B"
-
-            return self.sub_bin.length, self.sub_bin.material
-
-        else:
-            if self.index in high_w_6mm:
-                self.length = 6e-3  # m
-                self.material = "W"
-
-            elif self.index in b_1um:
-                self.length = 1e-6
-                self.material = "B"
-
-            elif self.index in b_5um:
-                self.length = 5e-6
-                self.material = "B"
-
-            return self.length, self.material
-
-    
 
 class BinCollection:
-    def __init__(self, bins: List[Bin] = None):
+    def __init__(self, bins: List[FWBin | DivBin] = None):
         """Initializes a BinCollection object containing several bins.
 
         Args:
             bins: The list of bins in the collection. Each bin is a Bin object.
         """
-        self._bins = bins if bins is not None else []
+        self.bins = bins if bins is not None else []
 
-    @property
-    def bins(self) -> List[Bin]:
-        return self._bins
+    def get_bin(self, index: int) -> FWBin | DivBin:
+        for bin in self.bins:
+            if bin.index == index:
+                return bin
+        raise ValueError(f"No bin found with index {index}")
+
 
 class Reactor:
     first_wall: BinCollection
     divertor: BinCollection
+
+    def __init__(
+        self, first_wall: BinCollection = None, divertor: BinCollection = None
+    ):
+        self.first_wall = first_wall
+        self.divertor = divertor
+        all_bins = first_wall.bins + divertor.bins
+        for i, bin in enumerate(all_bins):
+            bin.index = i
+
+    def get_bin(self, index: int) -> FWBin | DivBin:
+        for bin in self.first_wall.bins + self.divertor.bins:
+            if bin.index == index:
+                return bin
+        raise ValueError(f"No bin found with index {index}")

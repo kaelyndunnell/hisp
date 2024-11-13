@@ -1,5 +1,5 @@
 from hisp.plamsa_data_handling.main import read_wetted_data, compute_wetted_frac
-from fw_sub_bins import sub_2_bins, sub_3_bins, fw_bins
+from iter_bins import fw_bins_with_2_subbins, sub_3_bins, fw_bins
 
 import festim as F
 import numpy as np
@@ -31,7 +31,7 @@ def test_read_wetted_data_sub3(
 
 @pytest.mark.parametrize(
     "monoblock, expected_Slow, expected_Stot",
-    [(17, 4.5144701888888887,51.5844461141654)],
+    [(17, 4.5144701888888887, 51.5844461141654)],
 )
 def test_read_wetted_data_sub2(monoblock, expected_Slow, expected_Stot):
     """Tests if reading wetted data csv correctly for sub2 bins."""
@@ -62,7 +62,11 @@ def test_read_wetted_data_dfw(monoblock, expected_Slow, expected_Stot, DFW):
     assert expected_Stot == Stot
     assert DFW == dfw
 
-@pytest.mark.parametrize("nb_mb, Slow, Stot, Shigh, f", [(2,0.1467486,16.111714586068415,4.40418178,0.011414484855668546)])
+
+@pytest.mark.parametrize(
+    "nb_mb, Slow, Stot, Shigh, f",
+    [(2, 0.1467486, 16.111714586068415, 4.40418178, 0.011414484855668546)],
+)
 def test_compute_wetted_frac_sub3(nb_mb, Slow, Stot, Shigh, f):
     """Tests that compute_wetted_frac works correctly for sub3 bin."""
 
@@ -81,7 +85,11 @@ def test_compute_wetted_frac_sub3(nb_mb, Slow, Stot, Shigh, f):
     frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed=True)
     assert expected_frac == frac
 
-@pytest.mark.parametrize("nb_mb, Slow, Stot, Shigh, f", [(18,8.44870841,54.484114084704106, np.nan, np.nan)])
+
+@pytest.mark.parametrize(
+    "nb_mb, Slow, Stot, Shigh, f",
+    [(18, 8.44870841, 54.484114084704106, np.nan, np.nan)],
+)
 def test_compute_wetted_frac_sub2(nb_mb, Slow, Stot, Shigh, f):
     """Tests that compute_wetted_frac works correctly for sub2 bin."""
 
@@ -94,7 +102,3 @@ def test_compute_wetted_frac_sub2(nb_mb, Slow, Stot, Shigh, f):
     expected_frac = 0.0
     frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed=True)
     assert expected_frac == frac
-
-
-    
-

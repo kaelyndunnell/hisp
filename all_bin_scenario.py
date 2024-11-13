@@ -7,14 +7,14 @@ from hisp.plamsa_data_handling.main import (
     PlasmaDataHandling,
     read_wetted_data,
     compute_wetted_frac,
-    find_length
+    find_length,
 )
 from hisp.festim_models import make_W_mb_model, make_B_mb_model, make_DFW_mb_model
 
 # from ITER_scenario import my_scenario
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Scenario, Pulse
-from fw_sub_bins import (
+from iter_bins import (
     sub_3_bins,
     dfw,
     fw_bins,
@@ -329,7 +329,7 @@ if __name__ == "__main__":
         if nb_mb in dfw:
             section = "dfw"
             length, material = find_length(nb_mb, section)
-            fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed = True)
+            fw_frac = compute_wetted_frac(nb_mb, Slow, Stot, Shigh, f, shadowed=True)
             print(nb_mb, material, section, length)
 
             my_model, quantities = make_DFW_mb_model(
@@ -386,7 +386,7 @@ if __name__ == "__main__":
 
     ############# Results Plotting #############
     # TODO: add capability to add all inventories together and plot at the end
-    # TODO: add a graph that computes grams 
+    # TODO: add a graph that computes grams
 
     for name, quantity in quantities.items():
         plt.plot(quantity.t, quantity.data, label=name, marker="o")
