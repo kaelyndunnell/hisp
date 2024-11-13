@@ -15,8 +15,6 @@ from fw_sub_bins import (
     b_1um,
     b_100nm,
     b_5um,
-    ss_5mm,
-    dfw
 )
 
 # TODO: make this an optional class that requires specification from the user? 
@@ -131,27 +129,27 @@ class Bin:
             shadowed (Boolean): True if solving for shadowed bin.
 
         Returns:
-            frac: fraction of wetted-ness for sub-bin.
+            wetted_frac: fraction of wetted-ness for sub-bin.
 
         """
         if self.index in sub_3_bins:
             if low_wetted:
-                frac = f * Stot / Slow
+                wetted_frac = f * Stot / Slow
             elif high_wetted:
-                frac = (1 - f) * Stot / Shigh
+                wetted_frac = (1 - f) * Stot / Shigh
             elif shadowed:
-                frac = 0.0
+                wetted_frac = 0.0
 
         elif self.index in sub_2_bins:
             if low_wetted:
-                frac = Stot / Slow
+                wetted_frac = Stot / Slow
             elif shadowed:
-                frac = 0.0
+                wetted_frac = 0.0
 
         else:  # div blocks
-            frac = 1
+            wetted_frac = 1
 
-        return frac
+        return wetted_frac
 
     # TODO: add tests for find_length
     def find_length(self, sub_bin:int = None):
