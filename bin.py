@@ -8,6 +8,10 @@ class SubBin:
     mode: str
     dfw: bool
     parent_bin_index: int
+    low_wetted_area: float
+    high_wetted_area: float
+    total_area: float
+    f: float  # <---- document this!
 
     def __init__(
         self,
@@ -20,13 +24,27 @@ class SubBin:
         self.mode = mode
         self.dfw = False
         self.parent_bin_index = None
+        self.low_wetted_area = None
+        self.high_wetted_area = None
+        self.total_area = None
+        self.f = None
 
     @property
     def shadowed(self) -> bool:
         return self.mode == "shadowed" or self.dfw
 
-    def compute_wetted_frac(self) -> float:
-        pass
+    @property
+    def wetted_frac(self):
+        if self.shadowed:
+            return 0.0
+        elif self.mode == "wetted":
+            return self.total_area / self.low_wetted_area
+
+        elif self.mode == "low_wetted":
+            return self.f * self.total_area / self.low_wetted_area
+
+        elif self.mode == "high_wetted":
+            return (1 - self.f) * self.total_area / self.high_wetted_area
 
 
 class FWBin:
@@ -44,12 +62,6 @@ class FWBin:
                 return subbin
 
         raise ValueError(f"No shadowed subbin found in bin {self.index}")
-
-    def read_wetted_data(self, filename: str):
-        return
-        data = pd.read_csv(filename, skiprows=1, names=range(5))
-        data = data.to_numpy()
-        return data[self.index - 1]
 
     def add_dfw_bin(self, **kwargs):
         dfw_bin = SubBin(mode="shadowed", **kwargs)
@@ -138,3 +150,13 @@ class Reactor:
             if bin.index == index:
                 return bin
         raise ValueError(f"No bin found with index {index}")
+
+    def read_wetted_data(self, filename: str):
+        data = pd.read_csv(filename)
+
+        for fw_bin in self.first_wall.bins:
+            for subbin in fw_bin.sub_bins:
+                subbin.low_wetted_area = data.iloc[fw_bin.index]["Slow"]
+                subbin.high_wetted_area = data.iloc[fw_bin.index]["Shigh"]
+                subbin.total_area = data.iloc[fw_bin.index]["Stot"]
+                subbin.f = data.iloc[fw_bin.index]["f"]

@@ -126,3 +126,18 @@ for bin in Div_bins.bins:
     assert bin.thickness is not None, f"bin {bin.index} thickness {bin.thickness}"
     assert bin.material is not None, f"bin {bin.index} material {bin.material}"
     assert bin.mode is not None, f"bin {bin.index} mode {bin.mode}"
+
+# read wetted data
+
+filename = "Wetted_Frac_Bin_Data.csv"
+my_reactor.read_wetted_data(filename)
+
+
+# test
+for bin in FW_bins.bins:
+    for subbin_index, subbin in enumerate(bin.sub_bins):
+        assert (
+            subbin.wetted_frac is not None
+        ), f"bin {bin.index} subbin {subbin_index} wetted fraction {subbin.wetted_frac}"
+        assert subbin.f is not None
+        assert subbin.low_wetted_area is not None
