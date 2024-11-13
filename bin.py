@@ -7,6 +7,7 @@ class SubBin:
     material: str
     mode: str
     dfw: bool
+    parent_bin_index: int
 
     def __init__(
         self,
@@ -18,6 +19,7 @@ class SubBin:
         self.material = material
         self.mode = mode
         self.dfw = False
+        self.parent_bin_index = None
 
     @property
     def shadowed(self) -> bool:
@@ -126,6 +128,10 @@ class Reactor:
         all_bins = first_wall.bins + divertor.bins
         for i, bin in enumerate(all_bins):
             bin.index = i
+
+        for i, bin in enumerate(first_wall.bins):
+            for subbin in bin.sub_bins:
+                subbin.parent_bin_index = i
 
     def get_bin(self, index: int) -> FWBin | DivBin:
         for bin in self.first_wall.bins + self.divertor.bins:
