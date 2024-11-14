@@ -169,7 +169,7 @@ if __name__ == "__main__":
         total_time_pulse = pulse.total_duration
         time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
         relative_time = t - time_start_current_pulse
-    
+
         atom_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, nb_mb=nb_mb, t_rel=relative_time, ion=False
         )
@@ -216,10 +216,34 @@ if __name__ == "__main__":
         deuterium_atom_flux=deuterium_atom_flux,
         tritium_atom_flux=tritium_atom_flux,
         # FIXME: -1s here to avoid last time step spike
-        final_time=my_scenario.get_maximum_time()-1,
+        final_time=my_scenario.get_maximum_time() - 1,
         L=6e-3,
         folder=f"mb{nb_mb}_results",
     )
+
+    # add milestones for stepsize and adaptivity
+    milestones = [pulse.total_duration for pulse in my_scenario.pulses]
+    milestones += [pulse.duration_no_waiting for pulse in my_scenario.pulses]
+    milestones.append(my_model.settings.final_time)
+    milestones = sorted(np.unique(milestones))
+    my_model.settings.stepsize.milestones = milestones
+    my_model.settings.stepsize.growth_factor = 1.2
+    my_model.settings.stepsize.cutback_factor = 0.9
+    my_model.settings.stepsize.target_nb_iterations = 4
+
+    def max_stepsize(t: float) -> float:
+        pulse = my_scenario.get_pulse(t)
+        relative_time = t - my_scenario.get_time_start_current_pulse(t)
+        return periodic_step_function(
+            relative_time,
+            period_on=pulse.duration_no_waiting,
+            period_total=pulse.total_duration,
+            value=pulse.duration_no_waiting / 10,
+            value_off=None,
+        )
+
+    my_model.settings.stepsize.max_stepsize = max_stepsize
+
     ############# Run Simu #############
 
     my_model.initialise()
