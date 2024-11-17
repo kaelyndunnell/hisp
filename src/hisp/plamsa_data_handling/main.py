@@ -65,30 +65,32 @@ class PlasmaDataHandling:
 
         return flux * flux_frac
 
-    def RISP_data(self, bin_index: int, t_rel: float | int) -> NDArray:
+    def RISP_data(self, bin: SubBin | DivBin, t_rel: float | int) -> NDArray:
         """Returns the correct RISP data file for indicated bin
 
         Args:
-            bin: Subbin parent index or Divbin index
+            bin: Subbin or Divbin object
             t_rel: t_rel as an integer(in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
         Returns:
             data: data from correct file as a numpy array
         """
-        inner_swept_bins = list(range(45, 64))
-        outer_swept_bins = list(range(18, 33))
-
-        if bin_index in inner_swept_bins:
-            folder = self.path_to_RISP_data
-            div = True
-            offset_mb = 45
-        elif bin_index in outer_swept_bins:
-            folder = self.path_to_ROSP_data
-            div = True
-            offset_mb = 18
-        else:
+        if isinstance(bin, SubBin):
+            bin_index = bin.parent_bin_index
             div = False
+        elif isinstance(bin, DivBin):
+            bin_index = bin.index
+            div = True
+
+        if div: 
+            if bin.inner_bin:
+                folder = self.path_to_RISP_data
+                offset_mb = 45
+            elif bin.outer_bin:
+                folder = self.path_to_ROSP_data
+                offset_mb = 18
+        else:
             offset_mb = 0
 
         t_rel = int(t_rel)

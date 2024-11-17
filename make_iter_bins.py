@@ -21,6 +21,7 @@ FW_bins = BinCollection(fw_bins)
 
 div_bins = [DivBin() for _ in range(18, total_nb_bins)]
 Div_bins = BinCollection(div_bins)
+print(Div_bins)
 
 my_reactor = Reactor(first_wall=FW_bins, divertor=Div_bins)
 
@@ -88,6 +89,7 @@ for bin_index in [18, 19, 20, 21, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]:
     div_bin = Div_bins.get_bin(bin_index)
     div_bin.thickness = 1e-6
     div_bin.material = "B"
+    div_bin.set_inner_and_outer_bins()
 
 for bin_index in [
     22,
@@ -115,11 +117,13 @@ for bin_index in [
     div_bin = Div_bins.get_bin(bin_index)
     div_bin.thickness = 6e-3
     div_bin.material = "W"
+    div_bin.set_inner_and_outer_bins()
 
 for bin_index in [42, 43, 44, 45, 57, 58, 59, 60, 61, 62, 63]:
     div_bin = Div_bins.get_bin(bin_index)
     div_bin.thickness = 5e-6
     div_bin.material = "B"
+    div_bin.set_inner_and_outer_bins()
 
 for bin in Div_bins.bins:
     # print(bin.index, bin.thickness, bin.material, bin.mode)

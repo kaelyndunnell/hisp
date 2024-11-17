@@ -105,11 +105,30 @@ class DivBin:
     thickness: float
     material: str
     mode = "wetted"
+    inner_bin = bool
+    outer_bin = bool
 
     def __init__(self):
         self.index = None
         self.thickness = None
         self.material = None
+        self.inner_bin = False
+        self.outer_bin = False
+
+    def set_inner_and_outer_bins(self) -> bool: 
+        """Flags if a DivBin is an inner target or outer target bin.
+
+        Returns:
+            inner_bin: True if inner bin
+            outer_bin: True if outer bin
+        """
+        inner_swept_bins = list(range(45, 64))
+        outer_swept_bins = list(range(18,33))
+
+        if self.index in inner_swept_bins:
+            self.inner_bin = True
+        elif self.index in outer_swept_bins:
+            self.outer_bin = True
 
 
 class BinCollection:
