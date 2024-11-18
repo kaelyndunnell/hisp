@@ -14,14 +14,13 @@ for index in [13, 14, 16, 17]:
 
 dfw_indices = [9, 13, 14]
 for index in dfw_indices:
-    fw_bins[index].add_dfw_bin(material="ss", thickness=5e-3)
+    fw_bins[index].add_dfw_bin(material="SS", thickness=5e-3)
 
 
 FW_bins = BinCollection(fw_bins)
 
 div_bins = [DivBin() for _ in range(18, total_nb_bins)]
 Div_bins = BinCollection(div_bins)
-print(Div_bins)
 
 my_reactor = Reactor(first_wall=FW_bins, divertor=Div_bins)
 

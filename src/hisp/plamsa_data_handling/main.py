@@ -41,6 +41,7 @@ class PlasmaDataHandling:
             wetted_frac = bin.wetted_frac
         elif isinstance(bin, DivBin):
             bin_index = bin.index
+            wetted_frac = 1
 
         if ion:
             FP_index = 2
@@ -83,7 +84,7 @@ class PlasmaDataHandling:
             bin_index = bin.index
             div = True
 
-        if div: 
+        if div:
             if bin.inner_bin:
                 folder = self.path_to_RISP_data
                 offset_mb = 45
@@ -141,12 +142,12 @@ class PlasmaDataHandling:
 
         return data[bin_index - offset_mb, :]
 
-    def get_heat(self, bin: SubBin | DivBin, pulse_type: str, t_rel: float):
+    def get_heat(self, pulse_type: str, bin: SubBin | DivBin, t_rel: float):
         """Returns the surface heat flux (W/m2) for a given pulse type
 
         Args:
             pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
-            bin: SubBin or DivBin 
+            bin: SubBin or DivBin
             t_rel: t_rel as an integer (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
@@ -172,19 +173,17 @@ class PlasmaDataHandling:
             heat_total = data[:, -2][bin_index]
             heat_ion = data[:, -1][bin_index]
             if isinstance(bin, SubBin):
-                heat_total = data[-2]
-                heat_ion = data[-1]
-                heat_val = heat_total - heat_ion(1 - bin.wetted_frac)
-            else: 
+                heat_val = heat_total - heat_ion*(1 - bin.wetted_frac)
+            else:
                 heat_val = heat_total
         elif pulse_type == "RISP":
             if isinstance(bin, SubBin):
                 heat_total = data[-2]
                 heat_ion = data[-1]
-                heat_val = heat_total - heat_ion(1 - bin.wetted_frac)
+                heat_val = heat_total - heat_ion*(1 - bin.wetted_frac)
             else:
                 heat_val = data[-1]
-        else: # currently no heat for other pulse types
+        else:  # currently no heat for other pulse types
             heat_val = data[:, -1][bin_index]
 
         return heat_val
