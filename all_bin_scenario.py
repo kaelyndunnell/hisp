@@ -69,8 +69,8 @@ if __name__ == "__main__":
         path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
     )
 
-    ############# CREATE EMPTY OBJECT TO STORE ALL DATA #############
-    global_data = []
+    ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
+    global_data = {}
 
     def T_function_W(x: NDArray, t: float) -> float:  
         """W Monoblock temperature function.
@@ -291,9 +291,10 @@ if __name__ == "__main__":
             my_model.initialise()
             my_model.run()
             my_model.progress_bar.close()
+            global_data.update(quantities)
 
     ############# RUN DIV BIN SIMUS #############
-    for nb_bin in range(total_fw_bins, total_nb_bins+1):
+    for nb_bin in range(total_fw_bins,total_nb_bins+1):
         sub_bin = Div_bins.get_bin(nb_bin)
 
         if sub_bin.material == "W":
@@ -321,33 +322,56 @@ if __name__ == "__main__":
             folder=f"mb{nb_bin+1}_results",
         )
 
+        # def func(t):
+        #     pulse = my_scenario.get_pulse(t)
+        #     if pulse.pulse_type == "RISP":
+        #         return 1
+        #     else:
+        #         t_relative = t - pulse.start
+        #         if t_relative % pulse.get_duration() < pulse.get_duration_no_waiting():
+        #             return pulse.get_duration()/30
+        #         else:  # in waiting
+        #             None
+
+        # my_model.dt.max_stepsize = func
+        # my_model.dt.growth_factor = 1.1
+
+        # milestones = []
+
+        # for pulse in my_scenario.pulses:
+        #     t_start = pulse.start
+        #     milestones.append(t_start)
+        #     milestones.append(t_start + pulse.get_duration_no_waiting())
+
+        # my_model.dt.milestones = milestones
+
         my_model.initialise()
         my_model.run()
         my_model.progress_bar.close()
+        global_data.update(quantities)
 
     ############# Results Plotting #############
-    # TODO: add capability to add all inventories together and plot at the end
     # TODO: add a graph that computes grams
 
-    # for name, quantity in quantities.items():
-    #     plt.plot(quantity.t, quantity.data, label=name, marker="o")
+    for name, quantity in global_data.items():
+        plt.plot(quantity.t, quantity.data, label=name, marker="o")
 
-    # plt.xlabel("Time (s)")
-    # plt.ylabel("Total quantity (atoms/m2)")
-    # plt.legend()
-    # plt.yscale("log")
+    plt.xlabel("Time (s)")
+    plt.ylabel("Total quantity (atoms/m2)")
+    plt.legend()
+    plt.yscale("log")
 
-    # plt.show()
+    plt.show()
 
-    # fig, ax = plt.subplots()
+    fig, ax = plt.subplots()
 
-    # ax.stackplot(
-    #     quantity.t,
-    #     [quantity.data for quantity in quantities.values()],
-    #     labels=quantities.keys(),
-    # )
+    ax.stackplot(
+        quantity.t,
+        [quantity.data for quantity in global_data.values()],
+        labels=global_data.keys(),
+    )
 
-    # plt.xlabel("Time (s)")
-    # plt.ylabel("Total quantity (atoms/m2)")
-    # plt.legend()
-    # plt.show()
+    plt.xlabel("Time (s)")
+    plt.ylabel("Total quantity (atoms/m2)")
+    plt.legend()
+    plt.show()
