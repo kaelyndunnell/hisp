@@ -245,6 +245,17 @@ if __name__ == "__main__":
             value_off=resting_value,
         )
 
+    def time_step(t):
+        pulse = my_scenario.get_pulse(t)
+        if pulse.pulse_type == "RISP":
+            return 1
+        else:
+            t_relative = t - my_scenario.get_time_start_current_pulse(t)
+            if t_relative % pulse.total_duration < pulse.duration_no_waiting:
+                return pulse.total_duration/30
+            else:  # in waiting
+                None
+
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
     for nb_bin in range(total_fw_bins):
@@ -322,26 +333,15 @@ if __name__ == "__main__":
             folder=f"mb{nb_bin+1}_results",
         )
 
-        # def func(t):
-        #     pulse = my_scenario.get_pulse(t)
-        #     if pulse.pulse_type == "RISP":
-        #         return 1
-        #     else:
-        #         t_relative = t - pulse.start
-        #         if t_relative % pulse.get_duration() < pulse.get_duration_no_waiting():
-        #             return pulse.get_duration()/30
-        #         else:  # in waiting
-        #             None
-
-        # my_model.dt.max_stepsize = func
+        # my_model.dt.max_stepsize = time_step
         # my_model.dt.growth_factor = 1.1
 
         # milestones = []
 
         # for pulse in my_scenario.pulses:
-        #     t_start = pulse.start
+        #     t_start = my_scenario.get_time_start_current_pulse
         #     milestones.append(t_start)
-        #     milestones.append(t_start + pulse.get_duration_no_waiting())
+        #     milestones.append(t_start + pulse.duration_no_waiting)
 
         # my_model.dt.milestones = milestones
 
