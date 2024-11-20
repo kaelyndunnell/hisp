@@ -245,16 +245,17 @@ if __name__ == "__main__":
             value_off=resting_value,
         )
 
-    def time_step(t):
-        pulse = my_scenario.get_pulse(t)
-        if pulse.pulse_type == "RISP":
-            return 1
-        else:
-            t_relative = t - my_scenario.get_time_start_current_pulse(t)
-            if t_relative % pulse.total_duration < pulse.duration_no_waiting:
-                return pulse.total_duration/30
-            else:  # in waiting
-                None
+    def max_stepsize(t: float) -> float:
+            pulse = my_scenario.get_pulse(t)
+            relative_time = t - my_scenario.get_time_start_current_pulse(t)
+            return periodic_step_function(
+                relative_time,
+                period_on=pulse.duration_no_waiting,
+                period_total=pulse.total_duration,
+                value=pulse.duration_no_waiting / 10,
+                value_off=None,
+            )
+
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
@@ -299,6 +300,18 @@ if __name__ == "__main__":
                     folder=f"mb{nb_bin+1}_dfw_results",
                 )
 
+            # add milestones for stepsize and adaptivity
+            milestones = [pulse.total_duration for pulse in my_scenario.pulses]
+            milestones += [pulse.duration_no_waiting for pulse in my_scenario.pulses]
+            milestones.append(my_model.settings.final_time)
+            milestones = sorted(np.unique(milestones))
+            my_model.settings.stepsize.milestones = milestones
+            my_model.settings.stepsize.growth_factor = 1.2
+            my_model.settings.stepsize.cutback_factor = 0.9
+            my_model.settings.stepsize.target_nb_iterations = 4
+            
+            my_model.settings.stepsize.max_stepsize = max_stepsize
+
             my_model.initialise()
             my_model.run()
             my_model.progress_bar.close()
@@ -333,17 +346,17 @@ if __name__ == "__main__":
             folder=f"mb{nb_bin+1}_results",
         )
 
-        # my_model.dt.max_stepsize = time_step
-        # my_model.dt.growth_factor = 1.1
-
-        # milestones = []
-
-        # for pulse in my_scenario.pulses:
-        #     t_start = my_scenario.get_time_start_current_pulse
-        #     milestones.append(t_start)
-        #     milestones.append(t_start + pulse.duration_no_waiting)
-
-        # my_model.dt.milestones = milestones
+        # add milestones for stepsize and adaptivity
+        milestones = [pulse.total_duration for pulse in my_scenario.pulses]
+        milestones += [pulse.duration_no_waiting for pulse in my_scenario.pulses]
+        milestones.append(my_model.settings.final_time)
+        milestones = sorted(np.unique(milestones))
+        my_model.settings.stepsize.milestones = milestones
+        my_model.settings.stepsize.growth_factor = 1.2
+        my_model.settings.stepsize.cutback_factor = 0.9
+        my_model.settings.stepsize.target_nb_iterations = 4
+        
+        my_model.settings.stepsize.max_stepsize = max_stepsize
 
         my_model.initialise()
         my_model.run()
