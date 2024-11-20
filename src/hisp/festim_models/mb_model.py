@@ -252,16 +252,16 @@ def make_W_mb_model(
 
     ############# Exports #############
 
-    my_model.exports = [
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
-    ]
+    # my_model.exports = [
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+    # ]
 
     quantities = {}
     for species in my_model.species:
@@ -511,18 +511,18 @@ def make_B_mb_model(
 
     ############# Exports #############
 
-    my_model.exports = [
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d4.bp", field=trap4_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t4.bp", field=trap4_T),
-    ]
+    # my_model.exports = [
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d4.bp", field=trap4_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t4.bp", field=trap4_T),
+    # ]
 
     quantities = {}
     for species in my_model.species:
@@ -721,12 +721,12 @@ def make_DFW_mb_model(
 
     ############# Exports #############
 
-    my_model.exports = [
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-    ]
+    # my_model.exports = [
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+    #     F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+    #     F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+    # ]
 
     quantities = {}
     for species in my_model.species:
