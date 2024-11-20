@@ -72,7 +72,7 @@ if __name__ == "__main__":
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
 
-    def T_function_W(x: NDArray, t: float) -> float:  
+    def T_function_W(x: NDArray, t: float) -> float:
         """W Monoblock temperature function.
 
         Args:
@@ -90,9 +90,7 @@ if __name__ == "__main__":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
-            heat_flux = plasma_data_handling.get_heat(
-                pulse.pulse_type, sub_bin, t_rel
-            )
+            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
             T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
             T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
             a = (T_rear - T_surface) / sub_bin.thickness
@@ -108,8 +106,8 @@ if __name__ == "__main__":
             value=flat_top_value,
             value_off=np.full_like(x[0], COOLANT_TEMP),
         )
-    
-    def T_function_B(x: NDArray, t: float) -> float:  
+
+    def T_function_B(x: NDArray, t: float) -> float:
         """W Monoblock temperature function.
 
         Args:
@@ -127,10 +125,10 @@ if __name__ == "__main__":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
-            heat_flux = plasma_data_handling.get_heat(
-                pulse.pulse_type, sub_bin, t_rel
-            )
-            T_surface = 5e-4 * heat_flux + COOLANT_TEMP # T_surf and T_rear are the same b/c B layers are so thin
+            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
+            T_surface = (
+                5e-4 * heat_flux + COOLANT_TEMP
+            )  # T_surf and T_rear are the same b/c B layers are so thin
             T_rear = 5e-4 * heat_flux + COOLANT_TEMP
             a = (T_rear - T_surface) / sub_bin.thickness
             b = T_surface
@@ -246,16 +244,15 @@ if __name__ == "__main__":
         )
 
     def max_stepsize(t: float) -> float:
-            pulse = my_scenario.get_pulse(t)
-            relative_time = t - my_scenario.get_time_start_current_pulse(t)
-            return periodic_step_function(
-                relative_time,
-                period_on=pulse.duration_no_waiting,
-                period_total=pulse.total_duration,
-                value=pulse.duration_no_waiting / 10,
-                value_off=None,
-            )
-
+        pulse = my_scenario.get_pulse(t)
+        relative_time = t - my_scenario.get_time_start_current_pulse(t)
+        return periodic_step_function(
+            relative_time,
+            period_on=pulse.duration_no_waiting,
+            period_total=pulse.total_duration,
+            value=pulse.duration_no_waiting / 10,
+            value_off=None,
+        )
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
@@ -264,32 +261,32 @@ if __name__ == "__main__":
         for sub_bin in fw_bin.sub_bins:
             if sub_bin.material == "W":
                 my_model, quantities = make_W_mb_model(
-                temperature=T_function_W,
-                deuterium_ion_flux=deuterium_ion_flux,
-                tritium_ion_flux=tritium_ion_flux,
-                deuterium_atom_flux=deuterium_atom_flux,
-                tritium_atom_flux=tritium_atom_flux,
-                # FIXME: -1s here to avoid last time step spike
-                final_time=my_scenario.get_maximum_time() - 1,
-                L=sub_bin.thickness,
-                folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
-            )
+                    temperature=T_function_W,
+                    deuterium_ion_flux=deuterium_ion_flux,
+                    tritium_ion_flux=tritium_ion_flux,
+                    deuterium_atom_flux=deuterium_atom_flux,
+                    tritium_atom_flux=tritium_atom_flux,
+                    # FIXME: -1s here to avoid last time step spike
+                    final_time=my_scenario.get_maximum_time() - 1,
+                    L=sub_bin.thickness,
+                    folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
+                )
             elif sub_bin.material == "B":
                 my_model, quantities = make_B_mb_model(
-                temperature=T_function_B,
-                deuterium_ion_flux=deuterium_ion_flux,
-                tritium_ion_flux=tritium_ion_flux,
-                deuterium_atom_flux=deuterium_atom_flux,
-                tritium_atom_flux=tritium_atom_flux,
-                # FIXME: -1s here to avoid last time step spike
-                final_time=my_scenario.get_maximum_time() - 1,
-                L=sub_bin.thickness,
-                folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
-            )
-            
+                    temperature=T_function_B,
+                    deuterium_ion_flux=deuterium_ion_flux,
+                    tritium_ion_flux=tritium_ion_flux,
+                    deuterium_atom_flux=deuterium_atom_flux,
+                    tritium_atom_flux=tritium_atom_flux,
+                    # FIXME: -1s here to avoid last time step spike
+                    final_time=my_scenario.get_maximum_time() - 1,
+                    L=sub_bin.thickness,
+                    folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
+                )
+
             elif sub_bin.material == "SS":
                 my_model, quantities = make_DFW_mb_model(
-                    temperature=T_function_W, #TODO: update for DFW function
+                    temperature=T_function_W,  # TODO: update for DFW function
                     deuterium_ion_flux=deuterium_ion_flux,
                     tritium_ion_flux=tritium_ion_flux,
                     deuterium_atom_flux=deuterium_atom_flux,
@@ -309,7 +306,7 @@ if __name__ == "__main__":
             my_model.settings.stepsize.growth_factor = 1.2
             my_model.settings.stepsize.cutback_factor = 0.9
             my_model.settings.stepsize.target_nb_iterations = 4
-            
+
             my_model.settings.stepsize.max_stepsize = max_stepsize
 
             my_model.initialise()
@@ -318,11 +315,11 @@ if __name__ == "__main__":
             global_data.update(quantities)
 
     ############# RUN DIV BIN SIMUS #############
-    for nb_bin in range(total_fw_bins,total_nb_bins+1):
+    for nb_bin in range(total_fw_bins, total_nb_bins + 1):
         sub_bin = Div_bins.get_bin(nb_bin)
 
         if sub_bin.material == "W":
-                my_model, quantities = make_W_mb_model(
+            my_model, quantities = make_W_mb_model(
                 temperature=T_function_W,
                 deuterium_ion_flux=deuterium_ion_flux,
                 tritium_ion_flux=tritium_ion_flux,
@@ -335,16 +332,16 @@ if __name__ == "__main__":
             )
         elif sub_bin.material == "B":
             my_model, quantities = make_B_mb_model(
-            temperature=T_function_B,
-            deuterium_ion_flux=deuterium_ion_flux,
-            tritium_ion_flux=tritium_ion_flux,
-            deuterium_atom_flux=deuterium_atom_flux,
-            tritium_atom_flux=tritium_atom_flux,
-            # FIXME: -1s here to avoid last time step spike
-            final_time=my_scenario.get_maximum_time() - 1,
-            L=sub_bin.thickness,
-            folder=f"mb{nb_bin+1}_results",
-        )
+                temperature=T_function_B,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=sub_bin.thickness,
+                folder=f"mb{nb_bin+1}_results",
+            )
 
         # add milestones for stepsize and adaptivity
         milestones = [pulse.total_duration for pulse in my_scenario.pulses]
@@ -355,7 +352,7 @@ if __name__ == "__main__":
         my_model.settings.stepsize.growth_factor = 1.2
         my_model.settings.stepsize.cutback_factor = 0.9
         my_model.settings.stepsize.target_nb_iterations = 4
-        
+
         my_model.settings.stepsize.max_stepsize = max_stepsize
 
         my_model.initialise()

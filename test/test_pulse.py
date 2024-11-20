@@ -2,6 +2,7 @@ from hisp import Pulse
 
 import pytest
 
+
 def test_pulse_initialization():
     pulse = Pulse(
         pulse_type="FP",
@@ -45,6 +46,7 @@ def test_pulse_total_duration_with_zeros():
 
     assert pulse.total_duration == 1800.0
 
+
 def test_pulse_total_duration_no_waiting_with_zeros():
     pulse = Pulse(
         pulse_type="RISP",
@@ -56,6 +58,7 @@ def test_pulse_total_duration_no_waiting_with_zeros():
     )
 
     assert pulse.duration_no_waiting == 270.0
+
 
 def test_pulse_risp_with_zeros_raises_warning():
     with pytest.warns(UserWarning):
@@ -72,6 +75,7 @@ def test_pulse_risp_with_zeros_raises_warning():
     assert pulse.steady_state != 0.0
     assert pulse.ramp_down != 0.0
     assert pulse.waiting != 0.0
+
 
 def test_pulse_duration_no_waiting():
     pulse = Pulse(

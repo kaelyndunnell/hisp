@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 
 # @pytest.mark.parametrize("pulse_type, bin, t_rel")
-# def test_get_particle_flux(pulse_type, bin, t_rel): 
+# def test_get_particle_flux(pulse_type, bin, t_rel):
 #     """Tests that particle flux is correctly returned
 #     for sub-bins.
 #     """""
@@ -19,9 +19,9 @@ import pytest
 #     low_wet_frac = FW_bins.get_bin(8).low_wetted_subbin.wetted_frac
 #     high_wet_frac = FW_bins.get_bin(8).high_wetted_subbin.wetted_frac
 
-    # expected_shadowed = 
-    # expected_low_wet = 
-    # expected_high_wet = 
+# expected_shadowed =
+# expected_low_wet =
+# expected_high_wet =
 
 
 # @pytest.mark.parametrize(

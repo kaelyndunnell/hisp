@@ -173,14 +173,14 @@ class PlasmaDataHandling:
             heat_total = data[:, -2][bin_index]
             heat_ion = data[:, -1][bin_index]
             if isinstance(bin, SubBin):
-                heat_val = heat_total - heat_ion*(1 - bin.wetted_frac)
+                heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
             else:
                 heat_val = heat_total
         elif pulse_type == "RISP":
             if isinstance(bin, SubBin):
                 heat_total = data[-2]
                 heat_ion = data[-1]
-                heat_val = heat_total - heat_ion*(1 - bin.wetted_frac)
+                heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
             else:
                 heat_val = data[-1]
         else:  # currently no heat for other pulse types
