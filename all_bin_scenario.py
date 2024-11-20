@@ -7,10 +7,8 @@ from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.festim_models import make_W_mb_model, make_B_mb_model, make_DFW_mb_model
 from make_iter_bins import FW_bins, Div_bins, total_fw_bins, total_nb_bins
 
-# from ITER_scenario import my_scenario
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Scenario, Pulse
-import pandas as pd
 
 # import dolfinx
 
@@ -32,22 +30,6 @@ if __name__ == "__main__":
 
     fp = Pulse(
         pulse_type="FP",
-        nb_pulses=1,
-        ramp_up=10,
-        steady_state=10,
-        ramp_down=10,
-        waiting=100,
-    )
-    icwc = Pulse(
-        pulse_type="ICWC",
-        nb_pulses=1,
-        ramp_up=10,
-        steady_state=10,
-        ramp_down=10,
-        waiting=100,
-    )
-    risp = Pulse(
-        pulse_type="RISP",
         nb_pulses=1,
         ramp_up=10,
         steady_state=10,
@@ -155,7 +137,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         ion_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
+            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=True
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
@@ -179,7 +161,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         ion_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
+            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=True
         )
 
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
@@ -205,7 +187,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         atom_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
+            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=False
         )
 
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
@@ -230,7 +212,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         atom_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
+            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=False
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
@@ -256,7 +238,7 @@ if __name__ == "__main__":
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
-    for nb_bin in range(total_fw_bins):
+    for nb_bin in range(3):
         fw_bin = FW_bins.get_bin(nb_bin)
         for sub_bin in fw_bin.sub_bins:
             if sub_bin.material == "W":
@@ -315,7 +297,7 @@ if __name__ == "__main__":
             global_data.update(quantities)
 
     ############# RUN DIV BIN SIMUS #############
-    for nb_bin in range(total_fw_bins, total_nb_bins + 1):
+    for nb_bin in range(total_fw_bins, 22):
         sub_bin = Div_bins.get_bin(nb_bin)
 
         if sub_bin.material == "W":

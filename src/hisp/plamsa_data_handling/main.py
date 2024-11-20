@@ -22,7 +22,7 @@ class PlasmaDataHandling:
         self._time_to_RISP_data = {}
 
     def get_particle_flux(
-        self, pulse_type: str, bin: SubBin | DivBin, t_rel: float, ion=True
+        self, pulse_type: str, nb_bin: SubBin | DivBin, t_rel: float, ion=True
     ) -> float:
         """Returns the particle flux for a given pulse type
 
@@ -36,11 +36,11 @@ class PlasmaDataHandling:
         Returns:
             float: particle flux in part/m2/s
         """
-        if isinstance(bin, SubBin):
-            bin_index = bin.parent_bin_index
-            wetted_frac = bin.wetted_frac
-        elif isinstance(bin, DivBin):
-            bin_index = bin.index
+        if isinstance(nb_bin, SubBin):
+            bin_index = nb_bin.parent_bin_index
+            wetted_frac = nb_bin.wetted_frac
+        elif isinstance(nb_bin, DivBin):
+            bin_index = nb_bin.index
             wetted_frac = 1
 
         if ion:
@@ -58,7 +58,7 @@ class PlasmaDataHandling:
             assert isinstance(
                 t_rel, float
             ), f"t_rel should be a float, not {type(t_rel)}"
-            flux = self.RISP_data(bin_index=bin_index, t_rel=t_rel)[other_index]
+            flux = self.RISP_data(bin=nb_bin, t_rel=t_rel)[other_index]
         elif pulse_type == "BAKE":
             flux = 0.0
         else:
@@ -77,6 +77,8 @@ class PlasmaDataHandling:
         Returns:
             data: data from correct file as a numpy array
         """
+        print(isinstance(bin, SubBin))
+        print(bin)
         if isinstance(bin, SubBin):
             bin_index = bin.parent_bin_index
             div = False
