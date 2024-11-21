@@ -77,8 +77,6 @@ class PlasmaDataHandling:
         Returns:
             data: data from correct file as a numpy array
         """
-        print(isinstance(bin, SubBin))
-        print(bin)
         if isinstance(bin, SubBin):
             bin_index = bin.parent_bin_index
             div = False
