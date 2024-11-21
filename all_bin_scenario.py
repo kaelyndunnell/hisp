@@ -108,13 +108,7 @@ if __name__ == "__main__":
             flat_top_value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            T_surface = (
-                5e-4 * heat_flux + COOLANT_TEMP
-            )  # T_surf and T_rear are the same b/c B layers are so thin
-            T_rear = 5e-4 * heat_flux + COOLANT_TEMP
-            a = (T_rear - T_surface) / sub_bin.thickness
-            b = T_surface
-            flat_top_value = a * x[0] + b
+            flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + COOLANT_TEMP)
 
         total_time_on = pulse.duration_no_waiting
         total_time_pulse = pulse.total_duration
