@@ -1,4 +1,4 @@
-from bin import FWBin3Subs, FWBin2Subs, DivBin, BinCollection, Reactor
+from hisp.bin import FWBin3Subs, FWBin2Subs, DivBin, BinCollection, Reactor
 
 total_nb_bins = 64
 total_fw_bins = 18

@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 import pandas as pd
-from bin import SubBin, DivBin, FWBin
+from hisp.bin import SubBin, DivBin, FWBin
 
 from typing import Dict
 
