@@ -1,4 +1,4 @@
-from bin import SubBin, FWBin, FWBin3Subs, BinCollection, DivBin
+from hisp.bin import SubBin, FWBin, FWBin3Subs, BinCollection, DivBin
 import numpy as np
 import pytest
 
