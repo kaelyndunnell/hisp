@@ -8,10 +8,10 @@ class SubBin:
     mode: str
     dfw: bool
     parent_bin_index: int
-    low_wetted_area: float # m^2
-    high_wetted_area: float # m^2
-    total_area: float # m^2
-    f: float  # fraction of heat values in low_wetted_area from SMITER 
+    low_wetted_area: float  # m^2
+    high_wetted_area: float  # m^2
+    total_area: float  # m^2
+    f: float  # fraction of heat values in low_wetted_area from SMITER
     # (f = H_low * low_wetted_area /(H_low * low_wetted_area + H_high * high_wetted_area))
 
     def __init__(
@@ -116,7 +116,7 @@ class DivBin:
         self.inner_bin = False
         self.outer_bin = False
 
-    def set_inner_and_outer_bins(self) -> bool: 
+    def set_inner_and_outer_bins(self) -> bool:
         """Flags if a DivBin is an inner target or outer target bin.
 
         Returns:
@@ -124,7 +124,7 @@ class DivBin:
             outer_bin: True if outer bin
         """
         inner_swept_bins = list(range(45, 64))
-        outer_swept_bins = list(range(18,33))
+        outer_swept_bins = list(range(18, 33))
 
         if self.index in inner_swept_bins:
             self.inner_bin = True

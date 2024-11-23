@@ -22,6 +22,7 @@ def make_W_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the W MB scenario.
 
@@ -251,17 +252,17 @@ def make_W_mb_model(
     ]
 
     ############# Exports #############
-
-    my_model.exports = [
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
-    ]
+    if exports:
+        my_model.exports = [
+            F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+            F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+        ]
 
     quantities = {}
     for species in my_model.species:
@@ -291,6 +292,7 @@ def make_B_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the B MB scenario.
 
@@ -393,7 +395,8 @@ def make_B_mb_model(
 
     my_model.reactions = [
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.052,
@@ -402,7 +405,8 @@ def make_B_mb_model(
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.052,
@@ -411,7 +415,8 @@ def make_B_mb_model(
             product=trap1_T,
         ),
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.199,
@@ -420,7 +425,8 @@ def make_B_mb_model(
             product=trap2_D,
         ),
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.199,
@@ -429,7 +435,8 @@ def make_B_mb_model(
             product=trap2_T,
         ),
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.389,
@@ -438,7 +445,8 @@ def make_B_mb_model(
             product=trap3_D,
         ),
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.389,
@@ -447,7 +455,8 @@ def make_B_mb_model(
             product=trap3_T,
         ),
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.589,
@@ -456,7 +465,8 @@ def make_B_mb_model(
             product=trap4_D,
         ),
         F.Reaction(
-            k_0=1e13/b_density,#D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            k_0=1e13
+            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.589,
@@ -508,19 +518,19 @@ def make_B_mb_model(
     ]
 
     ############# Exports #############
-
-    my_model.exports = [
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d4.bp", field=trap4_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t4.bp", field=trap4_T),
-    ]
+    if exports:
+        my_model.exports = [
+            F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+            F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d4.bp", field=trap4_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t4.bp", field=trap4_T),
+        ]
 
     quantities = {}
     for species in my_model.species:
@@ -550,6 +560,7 @@ def make_DFW_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the DFW MB scenario.
 
@@ -717,13 +728,13 @@ def make_DFW_mb_model(
     ]
 
     ############# Exports #############
-
-    my_model.exports = [
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
-        F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
-        F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
-    ]
+    if exports:
+        my_model.exports = [
+            F.VTXSpeciesExport(f"{folder}/mobile_concentration_t.bp", field=mobile_T),
+            F.VTXSpeciesExport(f"{folder}/mobile_concentration_d.bp", field=mobile_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d1.bp", field=trap1_D),
+            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
+        ]
 
     quantities = {}
     for species in my_model.species:
