@@ -395,7 +395,7 @@ def make_B_mb_model(
     my_model.reactions = [
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density,  
             E_k=E_D,
             p_0=1e13,
             E_p=1.052,
@@ -405,7 +405,7 @@ def make_B_mb_model(
         ),
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density,  
             E_k=E_D,
             p_0=1e13,
             E_p=1.052,
@@ -415,7 +415,7 @@ def make_B_mb_model(
         ),
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density,  
             E_k=E_D,
             p_0=1e13,
             E_p=1.199,
@@ -425,7 +425,7 @@ def make_B_mb_model(
         ),
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density,  
             E_k=E_D,
             p_0=1e13,
             E_p=1.199,
@@ -435,7 +435,7 @@ def make_B_mb_model(
         ),
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density,  
             E_k=E_D,
             p_0=1e13,
             E_p=1.389,
@@ -445,7 +445,7 @@ def make_B_mb_model(
         ),
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density, 
             E_k=E_D,
             p_0=1e13,
             E_p=1.389,
@@ -455,7 +455,7 @@ def make_B_mb_model(
         ),
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density,  
             E_k=E_D,
             p_0=1e13,
             E_p=1.589,
@@ -465,7 +465,7 @@ def make_B_mb_model(
         ),
         F.Reaction(
             k_0=1e13
-            / b_density,  # D_0 / (interstitial_distance * interstitial_sites_per_atom * b_density),
+            / b_density, 
             E_k=E_D,
             p_0=1e13,
             E_p=1.589,
@@ -591,21 +591,21 @@ def make_DFW_mb_model(
     my_model.mesh = F.Mesh1D(vertices)
 
     # DFW material parameters
-    dfw_density = 8.45e28  # atoms/m3
+    ss_density = 8.45e28  # atoms/m3
     D_0 = 1.45e-6  # m^2/s
     E_D = 0.59  # eV
-    dfw = F.Material(
+    ss= F.Material(
         D_0=D_0,
         E_D=E_D,
-        name="dfw",
+        name="ss",
     )
 
     # mb subdomains
-    dfw_subdomain = F.VolumeSubdomain1D(id=1, borders=[0, L], material=dfw)
+    ss_subdomain = F.VolumeSubdomain1D(id=1, borders=[0, L], material=ss)
     inlet = F.SurfaceSubdomain1D(id=1, x=0)
     outlet = F.SurfaceSubdomain1D(id=2, x=L)
 
-    my_model.subdomains = [dfw_subdomain, inlet, outlet]
+    my_model.subdomains = [ss_subdomain, inlet, outlet]
 
     # hydrogen species
     mobile_D = F.Species("D")
@@ -616,7 +616,7 @@ def make_DFW_mb_model(
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
-        n=8e-2 * dfw_density,
+        n=8e-2 * ss_density,
         others=[trap1_T, trap1_D],
         name="empty_trap1",
     )
@@ -635,21 +635,21 @@ def make_DFW_mb_model(
     my_model.reactions = [
         F.Reaction(
             k_0=D_0
-            / (interstitial_distance * interstitial_sites_per_atom * dfw_density),
+            / (interstitial_distance * interstitial_sites_per_atom * ss_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.7,
-            volume=dfw_subdomain,
+            volume=ss_subdomain,
             reactant=[mobile_D, empty_trap1],
             product=trap1_D,
         ),
         F.Reaction(
             k_0=D_0
-            / (interstitial_distance * interstitial_sites_per_atom * dfw_density),
+            / (interstitial_distance * interstitial_sites_per_atom * ss_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.7,
-            volume=dfw_subdomain,
+            volume=ss_subdomain,
             reactant=[mobile_T, empty_trap1],
             product=trap1_T,
         ),
@@ -666,25 +666,25 @@ def make_DFW_mb_model(
             flux=deuterium_ion_flux,
             distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_D,
-            volume=dfw_subdomain,
+            volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
             distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_T,
-            volume=dfw_subdomain,
+            volume=ss_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
             distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_D,
-            volume=dfw_subdomain,
+            volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
             distribution=lambda x: gaussian_distribution(x, implantation_range, width),
             species=mobile_T,
-            volume=dfw_subdomain,
+            volume=ss_subdomain,
         ),
     ]
 
@@ -736,7 +736,7 @@ def make_DFW_mb_model(
 
     quantities = {}
     for species in my_model.species:
-        quantity = F.TotalVolume(field=species, volume=dfw_subdomain)
+        quantity = F.TotalVolume(field=species, volume=ss_subdomain)
         my_model.exports.append(quantity)
         quantities[species.name] = quantity
 
