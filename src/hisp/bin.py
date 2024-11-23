@@ -8,10 +8,11 @@ class SubBin:
     mode: str
     dfw: bool
     parent_bin_index: int
-    low_wetted_area: float
-    high_wetted_area: float
-    total_area: float
-    f: float  # <---- document this!
+    low_wetted_area: float # m^2
+    high_wetted_area: float # m^2
+    total_area: float # m^2
+    f: float  # fraction of heat values in low_wetted_area from SMITER 
+    # (f = H_low * low_wetted_area /(H_low * low_wetted_area + H_high * high_wetted_area))
 
     def __init__(
         self,
