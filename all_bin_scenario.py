@@ -103,12 +103,13 @@ if __name__ == "__main__":
         pulse = my_scenario.get_pulse(t)
         t_rel = t - my_scenario.get_time_start_current_pulse(t)
 
+        T_rear_tungsten = 2.2e-5 * heat_flux + COOLANT_TEMP # boron layers based off of rear temp of W mbs 
         if pulse.pulse_type == "BAKE":
             T_bake = 483.15  # K
             flat_top_value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + COOLANT_TEMP)
+            flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + T_rear_tungsten)
 
         total_time_on = pulse.duration_no_waiting
         total_time_pulse = pulse.total_duration
