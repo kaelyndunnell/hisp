@@ -232,9 +232,9 @@ if __name__ == "__main__":
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
-    for nb_bin in range(3):
-        fw_bin = FW_bins.get_bin(nb_bin)
-        for sub_bin in fw_bin.sub_bins:
+    for fw_bin in range(3):
+        nb_bin = FW_bins.get_bin(fw_bin)
+        for sub_bin in nb_bin.sub_bins:
             if sub_bin.material == "W":
                 my_model, quantities = make_W_mb_model(
                     temperature=T_function_W,
@@ -291,8 +291,8 @@ if __name__ == "__main__":
             global_data.update(quantities)
 
     ############# RUN DIV BIN SIMUS #############
-    for nb_bin in range(total_fw_bins, 22):
-        sub_bin = Div_bins.get_bin(nb_bin)
+    for div_bin in range(total_fw_bins, 22):
+        sub_bin = Div_bins.get_bin(div_bin)
 
         if sub_bin.material == "W":
             my_model, quantities = make_W_mb_model(
