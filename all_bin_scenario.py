@@ -131,7 +131,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         ion_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=True
+            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = ion_flux * (1 - tritium_fraction)
@@ -155,7 +155,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         ion_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=True
+            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
         )
 
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
@@ -181,7 +181,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         atom_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=False
+            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
         )
 
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
@@ -206,7 +206,7 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         atom_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, nb_bin=sub_bin, t_rel=relative_time, ion=False
+            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
         )
         tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
         flat_top_value = atom_flux * tritium_fraction
