@@ -311,7 +311,6 @@ def make_B_mb_model(
 
     ############# Material Parameters #############
 
-    L = L  # m
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
             np.linspace(0, 30e-9, num=200),
