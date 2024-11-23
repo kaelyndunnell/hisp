@@ -230,13 +230,9 @@ if __name__ == "__main__":
             value_off=None,
         )
 
-    ############# RUN FW BIN SIMUS #############
-    # TODO: adjust to run monoblocks in parallel
-    for fw_bin in range(3):
-        nb_bin = FW_bins.get_bin(fw_bin)
-        for sub_bin in nb_bin.sub_bins:
-            if sub_bin.material == "W":
-                my_model, quantities = make_W_mb_model(
+    def which_model(nb_bin: int, material: str):
+        if material == "W":
+            my_model, quantities = make_W_mb_model(
                     temperature=T_function_W,
                     deuterium_ion_flux=deuterium_ion_flux,
                     tritium_ion_flux=tritium_ion_flux,
@@ -247,31 +243,40 @@ if __name__ == "__main__":
                     L=sub_bin.thickness,
                     folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
                 )
-            elif sub_bin.material == "B":
-                my_model, quantities = make_B_mb_model(
-                    temperature=T_function_B,
-                    deuterium_ion_flux=deuterium_ion_flux,
-                    tritium_ion_flux=tritium_ion_flux,
-                    deuterium_atom_flux=deuterium_atom_flux,
-                    tritium_atom_flux=tritium_atom_flux,
-                    # FIXME: -1s here to avoid last time step spike
-                    final_time=my_scenario.get_maximum_time() - 1,
-                    L=sub_bin.thickness,
-                    folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
-                )
+        elif material == "B":
+            my_model, quantities = make_B_mb_model(
+                temperature=T_function_B,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=sub_bin.thickness,
+                folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
+            )
 
-            elif sub_bin.material == "SS":
-                my_model, quantities = make_DFW_mb_model(
-                    temperature=T_function_W,  # TODO: update for DFW function
-                    deuterium_ion_flux=deuterium_ion_flux,
-                    tritium_ion_flux=tritium_ion_flux,
-                    deuterium_atom_flux=deuterium_atom_flux,
-                    tritium_atom_flux=tritium_atom_flux,
-                    # FIXME: -1s here to avoid last time step spike
-                    final_time=my_scenario.get_maximum_time() - 1,
-                    L=sub_bin.thickness,
-                    folder=f"mb{nb_bin+1}_dfw_results",
-                )
+        elif material == "SS":
+            my_model, quantities = make_DFW_mb_model(
+                temperature=T_function_W,  # TODO: update for DFW function
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=sub_bin.thickness,
+                folder=f"mb{nb_bin+1}_dfw_results",
+            )
+
+        return my_model, quantities
+
+    ############# RUN FW BIN SIMUS #############
+    # TODO: adjust to run monoblocks in parallel
+    for fw_bin in range(3):
+        nb_bin = FW_bins.get_bin(fw_bin)
+        for sub_bin in nb_bin.sub_bins:
+            my_model, quantities = which_model(fw_bin, sub_bin.material)
 
             # add milestones for stepsize and adaptivity
             milestones = [pulse.total_duration for pulse in my_scenario.pulses]
@@ -293,31 +298,7 @@ if __name__ == "__main__":
     ############# RUN DIV BIN SIMUS #############
     for div_bin in range(total_fw_bins, 22):
         sub_bin = Div_bins.get_bin(div_bin)
-
-        if sub_bin.material == "W":
-            my_model, quantities = make_W_mb_model(
-                temperature=T_function_W,
-                deuterium_ion_flux=deuterium_ion_flux,
-                tritium_ion_flux=tritium_ion_flux,
-                deuterium_atom_flux=deuterium_atom_flux,
-                tritium_atom_flux=tritium_atom_flux,
-                # FIXME: -1s here to avoid last time step spike
-                final_time=my_scenario.get_maximum_time() - 1,
-                L=sub_bin.thickness,
-                folder=f"mb{nb_bin+1}_results",
-            )
-        elif sub_bin.material == "B":
-            my_model, quantities = make_B_mb_model(
-                temperature=T_function_B,
-                deuterium_ion_flux=deuterium_ion_flux,
-                tritium_ion_flux=tritium_ion_flux,
-                deuterium_atom_flux=deuterium_atom_flux,
-                tritium_atom_flux=tritium_atom_flux,
-                # FIXME: -1s here to avoid last time step spike
-                final_time=my_scenario.get_maximum_time() - 1,
-                L=sub_bin.thickness,
-                folder=f"mb{nb_bin+1}_results",
-            )
+        my_model, quantities = which_model(div_bin, sub_bin.material)
 
         # add milestones for stepsize and adaptivity
         milestones = [pulse.total_duration for pulse in my_scenario.pulses]
