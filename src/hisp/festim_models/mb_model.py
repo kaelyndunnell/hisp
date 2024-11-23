@@ -43,7 +43,6 @@ def make_W_mb_model(
 
     ############# Material Parameters #############
 
-    L = 6e-3  # m
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
             np.linspace(0, 30e-9, num=200),
@@ -581,7 +580,6 @@ def make_DFW_mb_model(
 
     ############# Material Parameters #############
 
-    L = L  # m
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
             np.linspace(0, 30e-9, num=200),
