@@ -235,14 +235,14 @@ if __name__ == "__main__":
         }
 
         if material == "W":
-            common_args["folder"] = f"mb{nb_bin+1}_{sub_bin.mode}_results"
+            common_args["folder"] = f"mb{fw_bin.index+1}_{sub_bin.mode}_results"
             my_model, quantities = make_W_mb_model(**common_args)
         elif material == "B":
             common_args["temperature"] = T_function_B
-            common_args["folder"] = f"mb{nb_bin+1}_{sub_bin.mode}_results"
+            common_args["folder"] = f"mb{fw_bin.index+1}_{sub_bin.mode}_results"
             my_model, quantities = make_B_mb_model(**common_args)
         elif material == "SS":
-            common_args["folder"] = f"mb{nb_bin+1}_dfw_results"
+            common_args["folder"] = f"mb{fw_bin.index+1}_dfw_results"
             my_model, quantities = make_DFW_mb_model(**common_args)
 
         return my_model, quantities
