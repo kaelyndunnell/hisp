@@ -26,7 +26,7 @@ if __name__ == "__main__":
         steady_state=10,
         ramp_down=10,
         waiting=100,
-        tritium_fraction=0.5
+        tritium_fraction=0.5,
     )
 
     my_scenario = Scenario(pulses=[fp])
@@ -42,7 +42,6 @@ if __name__ == "__main__":
         path_to_RISP_data=data_folder + "/RISP_data",
         path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
     )
-
 
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
@@ -101,7 +100,9 @@ if __name__ == "__main__":
             flat_top_value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            T_rear_tungsten = 2.2e-5 * heat_flux + COOLANT_TEMP # boron layers based off of rear temp of W mbs 
+            T_rear_tungsten = (
+                2.2e-5 * heat_flux + COOLANT_TEMP
+            )  # boron layers based off of rear temp of W mbs
             flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + T_rear_tungsten)
 
         total_time_on = pulse.duration_no_waiting
@@ -233,11 +234,14 @@ if __name__ == "__main__":
         relative_time = t - time_start_current_pulse
 
         incident_energy = plasma_data_handling.get_incident_energy(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time,
+            pulse_type=pulse_type,
+            bin=sub_bin,
+            t_rel=relative_time,
         )
-        implantation_range = 1.9e-10*incident_energy**0.59 # m
+        # TODO add reference pls
+        implantation_range = 1.9e-10 * incident_energy**0.59  # m
         return implantation_range
-    
+
     def atom_implantation_range(t: float) -> float:
         # assert isinstance(t, float), f"t should be a float, not {type(t)}"
         pulse = my_scenario.get_pulse(t)
@@ -249,26 +253,26 @@ if __name__ == "__main__":
         incident_energy = plasma_data_handling.get_incident_energy(
             pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
         )
-        implantation_range = 1.9e-10*incident_energy**0.59 # m
+        # TODO add reference pls
+        implantation_range = 1.9e-10 * incident_energy**0.59  # m
         return implantation_range
 
-
     def which_model(nb_bin: int, material: str):
-        
+
         if material == "W":
             my_model, quantities = make_W_mb_model(
-                    temperature=T_function_W,
-                    deuterium_ion_flux=deuterium_ion_flux,
-                    tritium_ion_flux=tritium_ion_flux,
-                    deuterium_atom_flux=deuterium_atom_flux,
-                    tritium_atom_flux=tritium_atom_flux,
-                    # FIXME: -1s here to avoid last time step spike
-                    final_time=my_scenario.get_maximum_time() - 1,
-                    L=sub_bin.thickness,
-                    ion_implantation_range=ion_implantation_range,
-                    atom_implantation_range=atom_implantation_range,
-                    folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
-                )
+                temperature=T_function_W,
+                deuterium_ion_flux=deuterium_ion_flux,
+                tritium_ion_flux=tritium_ion_flux,
+                deuterium_atom_flux=deuterium_atom_flux,
+                tritium_atom_flux=tritium_atom_flux,
+                # FIXME: -1s here to avoid last time step spike
+                final_time=my_scenario.get_maximum_time() - 1,
+                L=sub_bin.thickness,
+                ion_implantation_range=ion_implantation_range,
+                atom_implantation_range=atom_implantation_range,
+                folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
+            )
         elif material == "B":
             my_model, quantities = make_B_mb_model(
                 temperature=T_function_B,

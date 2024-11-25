@@ -9,7 +9,7 @@ import ufl
 from typing import Callable, Tuple, Dict
 
 # TODO this is hard coded and show depend on incident energy?
-width = 1e-9  # m
+width = lambda t: 1e-9  # m   FIXME
 
 
 def make_W_mb_model(
@@ -190,25 +190,39 @@ def make_W_mb_model(
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
+            # distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
+            mean=ion_implantation_range,
+            width=width,
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
+            # distribution=lambda x: gaussian_distribution(
+            #     x, ion_implantation_range, width
+            # ),
+            mean=ion_implantation_range,
+            width=width,
             species=mobile_T,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
+            # distribution=lambda x: gaussian_distribution(
+            #     x, atom_implantation_range, width
+            # ),
+            mean=ion_implantation_range,
+            width=width,
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
+            # distribution=lambda x: gaussian_distribution(
+            #     x, atom_implantation_range, width
+            # ),
+            mean=ion_implantation_range,
+            width=width,
             species=mobile_T,
             volume=w_subdomain,
         ),
@@ -397,8 +411,7 @@ def make_B_mb_model(
 
     my_model.reactions = [
         F.Reaction(
-            k_0=1e13
-            / b_density,  
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.052,
@@ -407,8 +420,7 @@ def make_B_mb_model(
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=1e13
-            / b_density,  
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.052,
@@ -417,8 +429,7 @@ def make_B_mb_model(
             product=trap1_T,
         ),
         F.Reaction(
-            k_0=1e13
-            / b_density,  
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.199,
@@ -427,8 +438,7 @@ def make_B_mb_model(
             product=trap2_D,
         ),
         F.Reaction(
-            k_0=1e13
-            / b_density,  
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.199,
@@ -437,8 +447,7 @@ def make_B_mb_model(
             product=trap2_T,
         ),
         F.Reaction(
-            k_0=1e13
-            / b_density,  
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.389,
@@ -447,8 +456,7 @@ def make_B_mb_model(
             product=trap3_D,
         ),
         F.Reaction(
-            k_0=1e13
-            / b_density, 
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.389,
@@ -457,8 +465,7 @@ def make_B_mb_model(
             product=trap3_T,
         ),
         F.Reaction(
-            k_0=1e13
-            / b_density,  
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.589,
@@ -467,8 +474,7 @@ def make_B_mb_model(
             product=trap4_D,
         ),
         F.Reaction(
-            k_0=1e13
-            / b_density, 
+            k_0=1e13 / b_density,
             E_k=E_D,
             p_0=1e13,
             E_p=1.589,
@@ -484,28 +490,37 @@ def make_B_mb_model(
 
     ############# Flux Parameters #############
 
+    # FIXME
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
+            distribution=lambda x: gaussian_distribution(
+                x, ion_implantation_range, width
+            ),
             species=mobile_D,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
+            distribution=lambda x: gaussian_distribution(
+                x, ion_implantation_range, width
+            ),
             species=mobile_T,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
+            distribution=lambda x: gaussian_distribution(
+                x, atom_implantation_range, width
+            ),
             species=mobile_D,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
+            distribution=lambda x: gaussian_distribution(
+                x, atom_implantation_range, width
+            ),
             species=mobile_T,
             volume=b_subdomain,
         ),
@@ -599,7 +614,7 @@ def make_DFW_mb_model(
     ss_density = 8.45e28  # atoms/m3
     D_0 = 1.45e-6  # m^2/s
     E_D = 0.59  # eV
-    ss= F.Material(
+    ss = F.Material(
         D_0=D_0,
         E_D=E_D,
         name="ss",
@@ -666,28 +681,37 @@ def make_DFW_mb_model(
 
     ############# Flux Parameters #############
 
+    # FIXME
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, lambda t: ion_implantation_range(t), width),
+            distribution=lambda x: gaussian_distribution(
+                x, ion_implantation_range, width
+            ),
             species=mobile_D,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, lambda t: ion_implantation_range(t), width),
+            distribution=lambda x: gaussian_distribution(
+                x, lambda t: ion_implantation_range(t), width
+            ),
             species=mobile_T,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, lambda t: atom_implantation_range(t), width),
+            distribution=lambda x: gaussian_distribution(
+                x, lambda t: atom_implantation_range(t), width
+            ),
             species=mobile_D,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, lambda t: atom_implantation_range(t), width),
+            distribution=lambda x: gaussian_distribution(
+                x, lambda t: atom_implantation_range(t), width
+            ),
             species=mobile_T,
             volume=ss_subdomain,
         ),
