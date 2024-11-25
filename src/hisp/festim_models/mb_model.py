@@ -823,3 +823,60 @@ def make_temperature_function(
         )
 
     return T_function
+
+
+def make_particle_flux_function(
+    scenario: Scenario,
+    plasma_data_handling: PlasmaDataHandling,
+    bin: hisp.bin.SubBin | hisp.bin.DivBin,
+    ion: bool,
+    tritium: bool,
+) -> Callable[[float], float]:
+    """Returns a function that calculates the particle flux based on time.
+
+    Args:
+        scenario: the Scenario object containing the pulses
+        plasma_data_handling: the object containing the plasma data
+        bin: the bin/subbin to get the temperature function for
+        ion: whether to get the ion flux
+        tritium: whether to get the tritium flux
+
+    Returns:
+        a callable of t returning the **incident** particle flux in m^-2 s^-1
+    """
+
+    def particle_flux_function(t: float) -> float:
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+
+        # get the pulse and time relative to the start of the pulse
+        pulse = scenario.get_pulse(t)
+        relative_time = t - scenario.get_time_start_current_pulse(t)
+
+        # get the incident particle flux
+        incident_hydrogen_particle_flux = plasma_data_handling.get_particle_flux(
+            pulse_type=pulse.pulse_type,
+            bin=bin,
+            t_rel=relative_time,
+            ion=ion,
+        )
+
+        # if tritium is requested, multiply by tritium fraction
+        tritium_fraction = pulse.tritium_fraction
+        if tritium:
+            flat_top_value = incident_hydrogen_particle_flux * tritium_fraction
+        else:
+            flat_top_value = incident_hydrogen_particle_flux * (1 - tritium_fraction)
+
+        # add in the step function for the pulse
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        resting_value = 0.0
+        return periodic_step_function(
+            relative_time,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=resting_value,
+        )
+
+    return particle_flux_function

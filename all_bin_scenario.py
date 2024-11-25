@@ -9,6 +9,7 @@ from hisp.festim_models import (
     make_B_mb_model,
     make_DFW_mb_model,
     make_temperature_function,
+    make_particle_flux_function,
 )
 from make_iter_bins import FW_bins, Div_bins, total_fw_bins, total_nb_bins
 
@@ -52,105 +53,6 @@ if __name__ == "__main__":
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
 
-    def deuterium_ion_flux(t: float) -> float:
-        assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse = my_scenario.get_pulse(t)
-        pulse_type = pulse.pulse_type
-
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
-        relative_time = t - time_start_current_pulse
-
-        ion_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
-        )
-        tritium_fraction = pulse.tritium_fraction
-        flat_top_value = ion_flux * (1 - tritium_fraction)
-        resting_value = 0
-        return periodic_step_function(
-            relative_time,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=resting_value,
-        )
-
-    def tritium_ion_flux(t: float) -> float:
-        assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse = my_scenario.get_pulse(t)
-        pulse_type = pulse.pulse_type
-
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
-        relative_time = t - time_start_current_pulse
-
-        ion_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
-        )
-
-        tritium_fraction = pulse.tritium_fraction
-        flat_top_value = ion_flux * tritium_fraction
-        resting_value = 0.0
-
-        return periodic_step_function(
-            relative_time,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=resting_value,
-        )
-
-    def deuterium_atom_flux(t: float) -> float:
-        assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse = my_scenario.get_pulse(t)
-        pulse_type = pulse.pulse_type
-
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
-        relative_time = t - time_start_current_pulse
-
-        atom_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
-        )
-
-        tritium_fraction = pulse.tritium_fraction
-        flat_top_value = atom_flux * (1 - tritium_fraction)
-        resting_value = 0.0
-        return periodic_step_function(
-            relative_time,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=resting_value,
-        )
-
-    def tritium_atom_flux(t: float) -> float:
-        assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse = my_scenario.get_pulse(t)
-        pulse_type = pulse.pulse_type
-
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
-        relative_time = t - time_start_current_pulse
-
-        atom_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
-        )
-        tritium_fraction = pulse.tritium_fraction
-        flat_top_value = atom_flux * tritium_fraction
-        resting_value = 0.0
-        return periodic_step_function(
-            relative_time,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=resting_value,
-        )
-
     def max_stepsize(t: float) -> float:
         pulse = my_scenario.get_pulse(t)
         relative_time = t - my_scenario.get_time_start_current_pulse(t)
@@ -177,8 +79,36 @@ if __name__ == "__main__":
             bin=subbin,
             coolant_temp=COOLANT_TEMP,
         )
+        d_ion_incident_flux = make_particle_flux_function(
+            scenario=my_scenario,
+            plasma_data_handling=plasma_data_handling,
+            bin=subbin,
+            ion=True,
+            tritium=False,
+        )
+        tritium_ion_flux = make_particle_flux_function(
+            scenario=my_scenario,
+            plasma_data_handling=plasma_data_handling,
+            bin=subbin,
+            ion=True,
+            tritium=True,
+        )
+        deuterium_atom_flux = make_particle_flux_function(
+            scenario=my_scenario,
+            plasma_data_handling=plasma_data_handling,
+            bin=subbin,
+            ion=False,
+            tritium=False,
+        )
+        tritium_atom_flux = make_particle_flux_function(
+            scenario=my_scenario,
+            plasma_data_handling=plasma_data_handling,
+            bin=subbin,
+            ion=False,
+            tritium=True,
+        )
         common_args = {
-            "deuterium_ion_flux": deuterium_ion_flux,
+            "deuterium_ion_flux": d_ion_incident_flux,
             "tritium_ion_flux": tritium_ion_flux,
             "deuterium_atom_flux": deuterium_atom_flux,
             "tritium_atom_flux": tritium_atom_flux,
