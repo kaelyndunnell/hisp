@@ -27,7 +27,7 @@ class Pulse:
         self.steady_state = steady_state
         self.ramp_down = ramp_down
         self.waiting = waiting
-        self.tritium_fraction = 0.0
+        self.tritium_fraction = tritium_fraction
 
     @property
     def total_duration(self) -> float:
