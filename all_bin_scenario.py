@@ -249,10 +249,8 @@ if __name__ == "__main__":
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
-    # for fw_bin in FW_bins.bins:
-    for fw_bin in range(3): # only running 3 fw_bins to demonstrate capability 
-        nb_bin = FW_bins.get_bin(fw_bin)
-        for sub_bin in nb_bin.sub_bins:
+    for fw_bin in FW_bins.bins[:3]: # only running 3 fw_bins to demonstrate capability
+        for sub_bin in fw_bin.sub_bins:
             my_model, quantities = which_model(fw_bin, sub_bin.material)
 
             # add milestones for stepsize and adaptivity
