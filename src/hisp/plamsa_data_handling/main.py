@@ -38,19 +38,21 @@ class PlasmaDataHandling:
         """
         if isinstance(bin, SubBin):
             bin_index = bin.parent_bin_index
-            wetted_frac = bin.wetted_frac # frac of wettedness for subbin
+            wetted_frac = bin.wetted_frac  # frac of wettedness for subbin
         elif isinstance(bin, DivBin):
             bin_index = bin.index
-            wetted_frac = 1 # all div bins are wetted, so get full flux
+            wetted_frac = 1  # all div bins are wetted, so get full flux
 
         if ion:
             FP_index = 2
             other_index = 0
-            flux_frac = wetted_frac # for an ion flux, apply the wetted frac for this bin
+            flux_frac = (
+                wetted_frac  # for an ion flux, apply the wetted frac for this bin
+            )
         if not ion:
             FP_index = 3
             other_index = 1
-            flux_frac = 1 # there is no wettedness for atom fluxes -- every subbin / bin gets all the atom flux
+            flux_frac = 1  # there is no wettedness for atom fluxes -- every subbin / bin gets all the atom flux
 
         if pulse_type == "FP":
             flux = self.pulse_type_to_data[pulse_type][:, FP_index][bin_index]
