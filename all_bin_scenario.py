@@ -272,9 +272,8 @@ if __name__ == "__main__":
 
     ############# RUN DIV BIN SIMUS #############
     # for div_bin in Div_bins.bins: 
-    for div_bin in range(total_fw_bins, 22): # only running 4 div bins to demonstrate capability 
-        sub_bin = Div_bins.get_bin(div_bin)
-        my_model, quantities = which_model(div_bin, sub_bin.material)
+    for div_bin in Div_bins.bins[:4]: # only running 4 div bins to demonstrate capability 
+        my_model, quantities = which_model(div_bin, div_bin.material)
 
         # add milestones for stepsize and adaptivity
         milestones = [pulse.total_duration for pulse in my_scenario.pulses]
