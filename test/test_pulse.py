@@ -11,6 +11,7 @@ def test_pulse_initialization():
         steady_state=0.2,
         ramp_down=0.3,
         waiting=0.4,
+        tritium_fraction=0.5,
     )
 
     assert pulse.pulse_type == "FP"
@@ -29,6 +30,7 @@ def test_pulse_total_duration():
         steady_state=0.2,
         ramp_down=0.3,
         waiting=0.4,
+        tritium_fraction=0.5,
     )
 
     assert pulse.total_duration == 1.0
@@ -42,6 +44,7 @@ def test_pulse_total_duration_with_zeros():
         steady_state=0.0,
         ramp_down=0.0,
         waiting=0.0,
+        tritium_fraction=0.0,
     )
 
     assert pulse.total_duration == 1800.0
@@ -55,6 +58,7 @@ def test_pulse_total_duration_no_waiting_with_zeros():
         steady_state=0.0,
         ramp_down=0.0,
         waiting=0.0,
+        tritium_fraction=0.0,
     )
 
     assert pulse.duration_no_waiting == 270.0
@@ -69,6 +73,7 @@ def test_pulse_risp_with_zeros_raises_warning():
             steady_state=0.0,
             ramp_down=0.0,
             waiting=0.0,
+            tritium_fraction=0.0,
         )
         pulse.total_duration
     assert pulse.ramp_up != 0.0
@@ -85,6 +90,7 @@ def test_pulse_duration_no_waiting():
         steady_state=0.2,
         ramp_down=0.3,
         waiting=0.4,
+        tritium_fraction=0.5,
     )
 
     assert pulse.duration_no_waiting == 0.6
