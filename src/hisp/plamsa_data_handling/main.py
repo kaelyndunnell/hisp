@@ -31,7 +31,7 @@ class PlasmaDataHandling:
             bin: SubBin or DivBin
             t_rel: t_rel as an integer (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
-            ion (bool, optional): _description_. Defaults to True.
+            ion (bool, optional): if for ions or not. Defaults to True.
 
         Returns:
             float: particle flux in part/m2/s
@@ -65,6 +65,46 @@ class PlasmaDataHandling:
             flux = self.pulse_type_to_data[pulse_type][:, other_index][bin_index]
 
         return flux * flux_frac
+    
+    def get_incident_energy(self, pulse_type: str, bin: SubBin | DivBin, t_rel: float, ion=True
+    ) -> float:
+        """Returns the incident energy of flux beam for a given bin for a given pulse type
+
+        Args:
+            pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+            bin: SubBin or DivBin
+            t_rel: t_rel as an integer (in seconds).
+                t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
+            ion (bool, optional): if for ions or not. Defaults to True.
+
+        Returns:
+            float: incident energy in eV
+        """
+        if isinstance(bin, SubBin):
+            bin_index = bin.parent_bin_index
+        elif isinstance(bin, DivBin):
+            bin_index = bin.index
+
+        if ion:
+            FP_index = 4
+            other_index = 2
+        if not ion:
+            FP_index = 5
+            other_index = 3
+
+        if pulse_type == "FP":
+            incident_energy = self.pulse_type_to_data[pulse_type][:, FP_index][bin_index]
+        elif pulse_type == "RISP":
+            assert isinstance(
+                t_rel, float
+            ), f"t_rel should be a float, not {type(t_rel)}"
+            incident_energy = self.RISP_data(bin=bin, t_rel=t_rel)[other_index]
+        elif pulse_type == "BAKE":
+            incident_energy = 0.0
+        else:
+            incident_energy = self.pulse_type_to_data[pulse_type][:, other_index][bin_index]
+
+        return incident_energy
 
     def RISP_data(self, bin: SubBin | DivBin, t_rel: float | int) -> NDArray:
         """Returns the correct RISP data file for indicated bin

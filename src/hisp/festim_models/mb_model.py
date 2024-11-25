@@ -9,7 +9,6 @@ import ufl
 from typing import Callable, Tuple, Dict
 
 # TODO this is hard coded and show depend on incident energy?
-implantation_range = 3e-9  # m
 width = 1e-9  # m
 
 
@@ -22,6 +21,8 @@ def make_W_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    ion_implantation_range: Callable,
+    atom_implantation_range: Callable,
     exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the W MB scenario.
@@ -189,25 +190,25 @@ def make_W_mb_model(
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
             species=mobile_T,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
             species=mobile_T,
             volume=w_subdomain,
         ),
@@ -291,6 +292,8 @@ def make_B_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    ion_implantation_range: float,
+    atom_implantation_range: float,
     exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the B MB scenario.
@@ -484,25 +487,25 @@ def make_B_mb_model(
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
             species=mobile_D,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
             species=mobile_T,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
             species=mobile_D,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, atom_implantation_range, width),
             species=mobile_T,
             volume=b_subdomain,
         ),
@@ -559,6 +562,8 @@ def make_DFW_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    ion_implantation_range: float,
+    atom_implantation_range: float,
     exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the DFW MB scenario.
@@ -664,25 +669,25 @@ def make_DFW_mb_model(
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, lambda t: ion_implantation_range(t), width),
             species=mobile_D,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, lambda t: ion_implantation_range(t), width),
             species=mobile_T,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, lambda t: atom_implantation_range(t), width),
             species=mobile_D,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(x, implantation_range, width),
+            distribution=lambda x: gaussian_distribution(x, lambda t: atom_implantation_range(t), width),
             species=mobile_T,
             volume=ss_subdomain,
         ),

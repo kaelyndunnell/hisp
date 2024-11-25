@@ -43,6 +43,7 @@ if __name__ == "__main__":
         path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
     )
 
+
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
 
@@ -223,7 +224,37 @@ if __name__ == "__main__":
             value_off=None,
         )
 
+    def ion_implantation_range(t: float) -> float:
+        # assert isinstance(t, float), f"t should be a float, not {type(t)}"
+        pulse = my_scenario.get_pulse(t)
+        pulse_type = pulse.pulse_type
+
+        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
+        relative_time = t - time_start_current_pulse
+
+        incident_energy = plasma_data_handling.get_incident_energy(
+            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time,
+        )
+        implantation_range = 1.9e-10*incident_energy**0.59 # m
+        return implantation_range
+    
+    def atom_implantation_range(t: float) -> float:
+        # assert isinstance(t, float), f"t should be a float, not {type(t)}"
+        pulse = my_scenario.get_pulse(t)
+        pulse_type = pulse.pulse_type
+
+        time_start_current_pulse = my_scenario.get_time_start_current_pulse(t)
+        relative_time = t - time_start_current_pulse
+
+        incident_energy = plasma_data_handling.get_incident_energy(
+            pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
+        )
+        implantation_range = 1.9e-10*incident_energy**0.59 # m
+        return implantation_range
+
+
     def which_model(nb_bin: int, material: str):
+        
         if material == "W":
             my_model, quantities = make_W_mb_model(
                     temperature=T_function_W,
@@ -234,6 +265,8 @@ if __name__ == "__main__":
                     # FIXME: -1s here to avoid last time step spike
                     final_time=my_scenario.get_maximum_time() - 1,
                     L=sub_bin.thickness,
+                    ion_implantation_range=ion_implantation_range,
+                    atom_implantation_range=atom_implantation_range,
                     folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
                 )
         elif material == "B":
@@ -246,6 +279,8 @@ if __name__ == "__main__":
                 # FIXME: -1s here to avoid last time step spike
                 final_time=my_scenario.get_maximum_time() - 1,
                 L=sub_bin.thickness,
+                ion_implantation_range=ion_implantation_range,
+                atom_implantation_range=atom_implantation_range,
                 folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
             )
 
@@ -259,6 +294,8 @@ if __name__ == "__main__":
                 # FIXME: -1s here to avoid last time step spike
                 final_time=my_scenario.get_maximum_time() - 1,
                 L=sub_bin.thickness,
+                ion_implantation_range=ion_implantation_range,
+                atom_implantation_range=atom_implantation_range,
                 folder=f"mb{nb_bin+1}_dfw_results",
             )
 
