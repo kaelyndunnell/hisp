@@ -16,6 +16,7 @@ def test_scenario():
             steady_state=0.2,
             ramp_down=0.3,
             waiting=0.4,
+            tritium_fraction=0.5,
         )
     )
 
@@ -51,6 +52,7 @@ def test_scenario_several_pulses():
             steady_state=0.2,
             ramp_down=0.3,
             waiting=0.4,
+            tritium_fraction=0.5,
         )
     )
 
@@ -62,6 +64,7 @@ def test_scenario_several_pulses():
             steady_state=0.6,
             ramp_down=0.7,
             waiting=0.8,
+            tritium_fraction=0.0,
         )
     )
 
@@ -109,6 +112,7 @@ def test_maximum_time():
         steady_state=455,
         ramp_down=650,
         waiting=1000,
+        tritium_fraction=0.5,
     )
     pulse2 = Pulse(
         pulse_type="ICWC",
@@ -117,6 +121,7 @@ def test_maximum_time():
         steady_state=36,
         ramp_down=180,
         waiting=1000,
+        tritium_fraction=0.0,
     )
     my_scenario = Scenario([pulse1, pulse2])
 
@@ -136,6 +141,7 @@ pulse1 = Pulse(
     steady_state=455,
     ramp_down=650,
     waiting=1000,
+    tritium_fraction=0.5,
 )
 pulse2 = Pulse(
     pulse_type="ICWC",
@@ -144,12 +150,18 @@ pulse2 = Pulse(
     steady_state=36,
     ramp_down=180,
     waiting=1000,
+    tritium_fraction=0.0,
 )
 
 
 @pytest.mark.parametrize(
     "t, expected_pulse",
-    [(0, pulse1), (6000, pulse2), (1e5, None), (pulse1.nb_pulses * pulse1.total_duration, pulse2)],
+    [
+        (0, pulse1),
+        (6000, pulse2),
+        (1e5, None),
+        (pulse1.nb_pulses * pulse1.total_duration, pulse2),
+    ],
 )
 def test_get_pulse(t, expected_pulse):
 

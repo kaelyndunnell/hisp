@@ -19,6 +19,7 @@ class Pulse:
         steady_state: float,
         ramp_down: float,
         waiting: float,
+        tritium_fraction: float,  # tritium fraction = T/D
     ):
         self.pulse_type = pulse_type
         self.nb_pulses = nb_pulses
@@ -26,6 +27,7 @@ class Pulse:
         self.steady_state = steady_state
         self.ramp_down = ramp_down
         self.waiting = waiting
+        self.tritium_fraction = tritium_fraction
 
     @property
     def total_duration(self) -> float:
@@ -75,6 +77,7 @@ class Scenario:
                     "steady_state": pulse.steady_state,
                     "ramp_down": pulse.ramp_down,
                     "waiting": pulse.waiting,
+                    "tritium_fraction": pulse.tritium_fraction,
                 }
                 for pulse in self.pulses
             ]
@@ -119,6 +122,7 @@ class Scenario:
                 steady_state=float(row["steady_state"]),
                 ramp_down=float(row["ramp_down"]),
                 waiting=float(row["waiting"]),
+                tritium_fraction=float(row["tritium_fraction"]),
             )
             for _, row in df.iterrows()
         ]
