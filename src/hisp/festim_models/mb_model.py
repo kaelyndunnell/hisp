@@ -1,5 +1,8 @@
 from hisp.h_transport_class import CustomProblem
-from hisp.helpers import PulsedSource, gaussian_distribution
+from hisp.helpers import PulsedSource, gaussian_distribution, periodic_step_function
+from hisp.scenario import Scenario
+from hisp.plamsa_data_handling import PlasmaDataHandling
+import hisp.bin
 
 import numpy as np
 import festim as F
@@ -7,6 +10,7 @@ import h_transport_materials as htm
 import ufl
 
 from typing import Callable, Tuple, Dict
+from numpy.typing import NDArray
 
 # TODO this is hard coded and show depend on incident energy?
 implantation_range = 3e-9  # m
@@ -749,3 +753,73 @@ def make_DFW_mb_model(
     my_model.settings.stepsize = F.Stepsize(initial_value=1)
 
     return my_model, quantities
+
+
+def T_function_W_pure(x, heat_flux, coolant_temp, thickness):
+    T_surface = 1.1e-4 * heat_flux + coolant_temp
+    T_rear = 2.2e-5 * heat_flux + coolant_temp
+    a = (T_rear - T_surface) / thickness
+    b = T_surface
+    return a * x + b
+
+
+def T_function_B_pure(heat_flux, coolant_temp):
+    T_rear_tungsten = (
+        2.2e-5 * heat_flux + coolant_temp
+    )  # boron layers based off of rear temp of W mbs
+    return 5e-4 * heat_flux + T_rear_tungsten
+
+
+def make_temperature_function(
+    scenario: Scenario,
+    plasma_data_handling: PlasmaDataHandling,
+    bin: hisp.bin.SubBin | hisp.bin.DivBin,
+    coolant_temp: float,
+) -> Callable[[NDArray, float], NDArray]:
+    """Returns a function that calculates the temperature of the bin based on time and position.
+
+    Args:
+        scenario: the Scenario object containing the pulses
+        plasma_data_handling: the object containing the plasma data
+        bin: the bin/subbin to get the temperature function for
+        coolant_temp: the coolant temperature in K
+
+    Returns:
+        a callable of x, t returning the temperature in K
+    """
+
+    def T_function(x: NDArray, t: float) -> NDArray:
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+
+        # get the pulse and time relative to the start of the pulse
+        pulse = scenario.get_pulse(t)
+        t_rel = t - scenario.get_time_start_current_pulse(t)
+
+        # calculate the flat top value
+        if pulse.pulse_type == "BAKE":
+            T_bake = 483.15  # K
+            flat_top_value = np.full_like(x[0], T_bake)
+        else:
+            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, bin, t_rel)
+            if bin.material == "W":
+                flat_top_value = T_function_W_pure(
+                    x[0], heat_flux, coolant_temp, bin.thickness
+                )
+            elif bin.material == "B":
+                T_value = T_function_B_pure(heat_flux, coolant_temp)
+                flat_top_value = np.full_like(x[0], T_value)
+            else:
+                raise ValueError(f"Unsupported material: {bin.material}")
+
+        # add in the step function for the pulse
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        return periodic_step_function(
+            t_rel,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=np.full_like(x[0], coolant_temp),
+        )
+
+    return T_function

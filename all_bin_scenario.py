@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 from numpy.typing import NDArray
 
 from hisp.plamsa_data_handling import PlasmaDataHandling
-from hisp.festim_models import make_W_mb_model, make_B_mb_model, make_DFW_mb_model
+from hisp.festim_models import (
+    make_W_mb_model,
+    make_B_mb_model,
+    make_DFW_mb_model,
+    make_temperature_function,
+)
 from make_iter_bins import FW_bins, Div_bins, total_fw_bins, total_nb_bins
 
 from hisp.helpers import periodic_step_function
@@ -46,75 +51,6 @@ if __name__ == "__main__":
 
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
-
-    def T_function_W(x: NDArray, t: float) -> float:
-        """W Monoblock temperature function.
-
-        Args:
-            x: position along monoblock
-            t: time in seconds
-
-        Returns:
-            pulsed W monoblock temperature in K
-        """
-        assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse = my_scenario.get_pulse(t)
-        t_rel = t - my_scenario.get_time_start_current_pulse(t)
-
-        if pulse.pulse_type == "BAKE":
-            T_bake = 483.15  # K
-            flat_top_value = np.full_like(x[0], T_bake)
-        else:
-            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
-            T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
-            a = (T_rear - T_surface) / sub_bin.thickness
-            b = T_surface
-            flat_top_value = a * x[0] + b
-
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        return periodic_step_function(
-            t_rel,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=np.full_like(x[0], COOLANT_TEMP),
-        )
-
-    def T_function_B(x: NDArray, t: float) -> float:
-        """W Monoblock temperature function.
-
-        Args:
-            x: position along monoblock
-            t: time in seconds
-
-        Returns:
-            pulsed W monoblock temperature in K
-        """
-        assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse = my_scenario.get_pulse(t)
-        t_rel = t - my_scenario.get_time_start_current_pulse(t)
-
-        if pulse.pulse_type == "BAKE":
-            T_bake = 483.15  # K
-            flat_top_value = np.full_like(x[0], T_bake)
-        else:
-            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            T_rear_tungsten = (
-                2.2e-5 * heat_flux + COOLANT_TEMP
-            )  # boron layers based off of rear temp of W mbs
-            flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + T_rear_tungsten)
-
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        return periodic_step_function(
-            t_rel,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=np.full_like(x[0], COOLANT_TEMP),
-        )
 
     def deuterium_ion_flux(t: float) -> float:
         assert isinstance(t, float), f"t should be a float, not {type(t)}"
@@ -235,12 +171,19 @@ if __name__ == "__main__":
         Returns:
             festim.HTransportModel, dict: The model and the quantities to plot
         """
+        temperature_fuction = make_temperature_function(
+            scenario=my_scenario,
+            plasma_data_handling=plasma_data_handling,
+            bin=subbin,
+            coolant_temp=COOLANT_TEMP,
+        )
         common_args = {
             "deuterium_ion_flux": deuterium_ion_flux,
             "tritium_ion_flux": tritium_ion_flux,
             "deuterium_atom_flux": deuterium_atom_flux,
             "tritium_atom_flux": tritium_atom_flux,
             "final_time": my_scenario.get_maximum_time() - 1,
+            "temperature": temperature_fuction,
             "L": subbin.thickness,
         }
 
@@ -252,19 +195,16 @@ if __name__ == "__main__":
         if subbin.material == "W":
             return make_W_mb_model(
                 **common_args,
-                temperature=T_function_W,
                 folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
             )
         elif subbin.material == "B":
             return make_B_mb_model(
                 **common_args,
-                temperature=T_function_B,
                 folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
             )
         elif subbin.material == "SS":
             return make_DFW_mb_model(
                 **common_args,
-                temperature=T_function_W,  # TODO Change temperature to SS
                 folder=f"mb{parent_bin_index+1}_dfw_results",
             )
 
