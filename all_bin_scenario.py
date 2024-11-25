@@ -9,6 +9,7 @@ from make_iter_bins import FW_bins, Div_bins, total_fw_bins, total_nb_bins
 
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Scenario, Pulse
+from hisp.bin import SubBin, DivBin
 
 # import dolfinx
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
         steady_state=10,
         ramp_down=10,
         waiting=100,
-        tritium_fraction=0.5
+        tritium_fraction=0.5,
     )
 
     my_scenario = Scenario(pulses=[fp])
@@ -100,7 +101,9 @@ if __name__ == "__main__":
             flat_top_value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            T_rear_tungsten = 2.2e-5 * heat_flux + COOLANT_TEMP # boron layers based off of rear temp of W mbs 
+            T_rear_tungsten = (
+                2.2e-5 * heat_flux + COOLANT_TEMP
+            )  # boron layers based off of rear temp of W mbs
             flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + T_rear_tungsten)
 
         total_time_on = pulse.duration_no_waiting
@@ -223,35 +226,45 @@ if __name__ == "__main__":
             value_off=None,
         )
 
-    def which_model(nb_bin: int, material: str):
+    def which_model(subbin: SubBin | DivBin):
         common_args = {
-            "temperature": T_function_W,
             "deuterium_ion_flux": deuterium_ion_flux,
             "tritium_ion_flux": tritium_ion_flux,
             "deuterium_atom_flux": deuterium_atom_flux,
             "tritium_atom_flux": tritium_atom_flux,
             "final_time": my_scenario.get_maximum_time() - 1,
-            "L": sub_bin.thickness,
+            "L": subbin.thickness,
         }
 
-        if material == "W":
-            common_args["folder"] = f"mb{fw_bin.index+1}_{sub_bin.mode}_results"
-            my_model, quantities = make_W_mb_model(**common_args)
-        elif material == "B":
-            common_args["temperature"] = T_function_B
-            common_args["folder"] = f"mb{fw_bin.index+1}_{sub_bin.mode}_results"
-            my_model, quantities = make_B_mb_model(**common_args)
-        elif material == "SS":
-            common_args["folder"] = f"mb{fw_bin.index+1}_dfw_results"
-            my_model, quantities = make_DFW_mb_model(**common_args)
+        if isinstance(subbin, DivBin):
+            parent_bin_index = subbin.index
+        elif isinstance(subbin, SubBin):
+            parent_bin_index = subbin.parent_bin_index
 
-        return my_model, quantities
+        if subbin.material == "W":
+            return make_W_mb_model(
+                **common_args,
+                temperature=T_function_W,
+                folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+            )
+        elif subbin.material == "B":
+            return make_B_mb_model(
+                **common_args,
+                temperature=T_function_B,
+                folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+            )
+        elif subbin.material == "SS":
+            return make_DFW_mb_model(
+                **common_args,
+                temperature=T_function_W,  # TODO Change temperature to SS
+                folder=f"mb{parent_bin_index+1}_dfw_results",
+            )
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
-    for fw_bin in FW_bins.bins[:3]: # only running 3 fw_bins to demonstrate capability
+    for fw_bin in FW_bins.bins[:3]:  # only running 3 fw_bins to demonstrate capability
         for sub_bin in fw_bin.sub_bins:
-            my_model, quantities = which_model(fw_bin, sub_bin.material)
+            my_model, quantities = which_model(sub_bin)
 
             # add milestones for stepsize and adaptivity
             milestones = [pulse.total_duration for pulse in my_scenario.pulses]
@@ -271,9 +284,11 @@ if __name__ == "__main__":
             global_data.update(quantities)
 
     ############# RUN DIV BIN SIMUS #############
-    # for div_bin in Div_bins.bins: 
-    for div_bin in Div_bins.bins[:4]: # only running 4 div bins to demonstrate capability 
-        my_model, quantities = which_model(div_bin, div_bin.material)
+    # for div_bin in Div_bins.bins:
+    for div_bin in Div_bins.bins[
+        :4
+    ]:  # only running 4 div bins to demonstrate capability
+        my_model, quantities = which_model(div_bin)
 
         # add milestones for stepsize and adaptivity
         milestones = [pulse.total_duration for pulse in my_scenario.pulses]
