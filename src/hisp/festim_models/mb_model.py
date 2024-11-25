@@ -320,7 +320,7 @@ def make_B_mb_model(
     )
     my_model.mesh = F.Mesh1D(vertices)
 
-    # B material parameters
+    # B material parameters from Etienne Hodilles's unpublished TDS study for boron
     b_density = 1.34e29  # atoms/m3
     D_0 = 1.07e-6  # m^2/s
     E_D = 0.3  # eV
@@ -352,25 +352,25 @@ def make_B_mb_model(
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
-        n=6.867e-1 * b_density,
+        n=6.867e-1 * b_density, # from Etienne Hodilles's unpublished TDS study for boron
         others=[trap1_T, trap1_D],
         name="empty_trap1",
     )
 
     empty_trap2 = F.ImplicitSpecies(  # implicit trap 2
-        n=5.214e-1 * b_density,
+        n=5.214e-1 * b_density,  # from Etienne Hodilles's unpublished TDS study for boron
         others=[trap2_T, trap2_D],
         name="empty_trap2",
     )
 
     empty_trap3 = F.ImplicitSpecies(
-        n=2.466e-1 * b_density,
+        n=2.466e-1 * b_density,  # from Etienne Hodilles's unpublished TDS study for boron
         others=[trap3_T, trap3_D],
         name="empty_trap3",
     )
 
     empty_trap4 = F.ImplicitSpecies(
-        n=1.280e-1 * b_density,
+        n=1.280e-1 * b_density,  # from Etienne Hodilles's unpublished TDS study for boron
         others=[trap4_T, trap4_D],
         name="empty_trap4",
     )
@@ -397,8 +397,8 @@ def make_B_mb_model(
             k_0=1e13
             / b_density,  
             E_k=E_D,
-            p_0=1e13,
-            E_p=1.052,
+            p_0=1e13, # from Etienne Hodilles's unpublished TDS study for boron
+            E_p=1.052, 
             volume=b_subdomain,
             reactant=[mobile_D, empty_trap1],
             product=trap1_D,
@@ -407,7 +407,7 @@ def make_B_mb_model(
             k_0=1e13
             / b_density,  
             E_k=E_D,
-            p_0=1e13,
+            p_0=1e13,  # from Etienne Hodilles's unpublished TDS study for boron
             E_p=1.052,
             volume=b_subdomain,
             reactant=[mobile_T, empty_trap1],
@@ -417,7 +417,7 @@ def make_B_mb_model(
             k_0=1e13
             / b_density,  
             E_k=E_D,
-            p_0=1e13,
+            p_0=1e13, # from Etienne Hodilles's unpublished TDS study for boron
             E_p=1.199,
             volume=b_subdomain,
             reactant=[mobile_D, empty_trap2],
@@ -427,7 +427,7 @@ def make_B_mb_model(
             k_0=1e13
             / b_density,  
             E_k=E_D,
-            p_0=1e13,
+            p_0=1e13, # from Etienne Hodilles's unpublished TDS study for boron
             E_p=1.199,
             volume=b_subdomain,
             reactant=[mobile_T, empty_trap2],
@@ -437,7 +437,7 @@ def make_B_mb_model(
             k_0=1e13
             / b_density,  
             E_k=E_D,
-            p_0=1e13,
+            p_0=1e13, # from Etienne Hodilles's unpublished TDS study for boron
             E_p=1.389,
             volume=b_subdomain,
             reactant=[mobile_D, empty_trap3],
@@ -447,7 +447,7 @@ def make_B_mb_model(
             k_0=1e13
             / b_density, 
             E_k=E_D,
-            p_0=1e13,
+            p_0=1e13, # from Etienne Hodilles's unpublished TDS study for boron
             E_p=1.389,
             volume=b_subdomain,
             reactant=[mobile_T, empty_trap3],
@@ -457,8 +457,8 @@ def make_B_mb_model(
             k_0=1e13
             / b_density,  
             E_k=E_D,
-            p_0=1e13,
-            E_p=1.589,
+            p_0=1e13,# from Etienne Hodilles's unpublished TDS study for boron
+            E_p=1.589, 
             volume=b_subdomain,
             reactant=[mobile_D, empty_trap4],
             product=trap4_D,
@@ -467,8 +467,8 @@ def make_B_mb_model(
             k_0=1e13
             / b_density, 
             E_k=E_D,
-            p_0=1e13,
-            E_p=1.589,
+            p_0=1e13, # from Etienne Hodilles's unpublished TDS study for boron
+            E_p=1.589, 
             volume=b_subdomain,
             reactant=[mobile_T, empty_trap4],
             product=trap4_T,
@@ -590,7 +590,9 @@ def make_DFW_mb_model(
     )
     my_model.mesh = F.Mesh1D(vertices)
 
-    # DFW material parameters
+    # TODO: pull DFW material parameters from HTM?
+
+    # from ITER mean value parameters (FIXME: add DOI)
     ss_density = 8.45e28  # atoms/m3
     D_0 = 1.45e-6  # m^2/s
     E_D = 0.59  # eV
@@ -616,7 +618,7 @@ def make_DFW_mb_model(
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
-        n=8e-2 * ss_density,
+        n=8e-2 * ss_density, # from Guillermain D 2016 ITER report T2YEND
         others=[trap1_T, trap1_D],
         name="empty_trap1",
     )
@@ -637,7 +639,7 @@ def make_DFW_mb_model(
             k_0=D_0
             / (interstitial_distance * interstitial_sites_per_atom * ss_density),
             E_k=E_D,
-            p_0=1e13,
+            p_0=1e13,  # from Guillermain D 2016 ITER report T2YEND
             E_p=0.7,
             volume=ss_subdomain,
             reactant=[mobile_D, empty_trap1],
@@ -647,7 +649,7 @@ def make_DFW_mb_model(
             k_0=D_0
             / (interstitial_distance * interstitial_sites_per_atom * ss_density),
             E_k=E_D,
-            p_0=1e13,
+            p_0=1e13,  # from Guillermain D 2016 ITER report T2YEND
             E_p=0.7,
             volume=ss_subdomain,
             reactant=[mobile_T, empty_trap1],

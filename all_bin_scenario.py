@@ -266,7 +266,8 @@ if __name__ == "__main__":
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
-    for fw_bin in range(3):
+    # for fw_bin in FW_bins.bins:
+    for fw_bin in range(3): # only running 3 fw_bins to demonstrate capability 
         nb_bin = FW_bins.get_bin(fw_bin)
         for sub_bin in nb_bin.sub_bins:
             my_model, quantities = which_model(fw_bin, sub_bin.material)
@@ -289,7 +290,8 @@ if __name__ == "__main__":
             global_data.update(quantities)
 
     ############# RUN DIV BIN SIMUS #############
-    for div_bin in range(total_fw_bins, 22):
+    # for div_bin in Div_bins.bins: 
+    for div_bin in range(total_fw_bins, 22): # only running 4 div bins to demonstrate capability 
         sub_bin = Div_bins.get_bin(div_bin)
         my_model, quantities = which_model(div_bin, sub_bin.material)
 
