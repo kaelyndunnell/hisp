@@ -755,7 +755,7 @@ def make_DFW_mb_model(
     return my_model, quantities
 
 
-def T_function_W_pure(x, heat_flux, coolant_temp, thickness):
+def calculate_temperature_W(x, heat_flux, coolant_temp, thickness):
     T_surface = 1.1e-4 * heat_flux + coolant_temp
     T_rear = 2.2e-5 * heat_flux + coolant_temp
     a = (T_rear - T_surface) / thickness
@@ -763,7 +763,7 @@ def T_function_W_pure(x, heat_flux, coolant_temp, thickness):
     return a * x + b
 
 
-def T_function_B_pure(heat_flux, coolant_temp):
+def calculate_temperature_B(heat_flux, coolant_temp):
     T_rear_tungsten = (
         2.2e-5 * heat_flux + coolant_temp
     )  # boron layers based off of rear temp of W mbs
@@ -802,11 +802,11 @@ def make_temperature_function(
         else:
             heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, bin, t_rel)
             if bin.material == "W":
-                flat_top_value = T_function_W_pure(
+                flat_top_value = calculate_temperature_W(
                     x[0], heat_flux, coolant_temp, bin.thickness
                 )
             elif bin.material == "B":
-                T_value = T_function_B_pure(heat_flux, coolant_temp)
+                T_value = calculate_temperature_B(heat_flux, coolant_temp)
                 flat_top_value = np.full_like(x[0], T_value)
             else:
                 raise ValueError(f"Unsupported material: {bin.material}")
