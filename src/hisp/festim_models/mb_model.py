@@ -755,7 +755,22 @@ def make_DFW_mb_model(
     return my_model, quantities
 
 
-def calculate_temperature_W(x: float | NDArray, heat_flux, coolant_temp, thickness):
+def calculate_temperature_W(
+    x: float | NDArray, heat_flux: float, coolant_temp: float, thickness: float
+) -> float | NDArray:
+    """Calculates the temperature in the W layer based on coolant temperature and heat flux
+
+    Reference: [insert reference]
+
+    Args:
+        x: position in m
+        heat_flux: heat flux in W/m2
+        coolant_temp: coolant temperature in K
+        thickness: thickness of the W layer in m
+
+    Returns:
+        temperature in K
+    """
     T_surface = 1.1e-4 * heat_flux + coolant_temp
     T_rear = 2.2e-5 * heat_flux + coolant_temp
     a = (T_rear - T_surface) / thickness
@@ -763,7 +778,18 @@ def calculate_temperature_W(x: float | NDArray, heat_flux, coolant_temp, thickne
     return a * x + b
 
 
-def calculate_temperature_B(heat_flux, coolant_temp):
+def calculate_temperature_B(heat_flux: float, coolant_temp: float) -> float:
+    """Calculates the temperature in the boron layer based on coolant temperature and heat flux
+
+    Reference: [insert reference]
+
+    Args:
+        heat_flux: heat flux in W/m2
+        coolant_temp: coolant temperature in K
+
+    Returns:
+        temperature in K
+    """
     T_rear_tungsten = (
         2.2e-5 * heat_flux + coolant_temp
     )  # boron layers based off of rear temp of W mbs
