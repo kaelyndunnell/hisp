@@ -9,9 +9,10 @@ import ufl
 from typing import Callable, Tuple, Dict
 
 # TODO this is hard coded and show depend on incident energy?
+# TODO this is all for tungsten only 
 width = lambda t: 1e-9  # m   FIXME
 ion_reflection_coeff = 0.7 # 60 degree incident angle
-atom_reflection_coeff = 0.65 # 33 degree incident angle
+atom_reflection_coeff = 0.60 # 33 degree incident angle
 
 
 def make_W_mb_model(
@@ -192,39 +193,33 @@ def make_W_mb_model(
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            # distribution=lambda x: gaussian_distribution(x, ion_implantation_range, width),
             mean=ion_implantation_range,
             width=width,
+            reflection_coeff=ion_reflection_coeff,
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            # distribution=lambda x: gaussian_distribution(
-            #     x, ion_implantation_range, width
-            # ),
             mean=ion_implantation_range,
             width=width,
+            reflection_coeff=ion_reflection_coeff,
             species=mobile_T,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            # distribution=lambda x: gaussian_distribution(
-            #     x, atom_implantation_range, width
-            # ),
-            mean=ion_implantation_range,
+            mean=atom_implantation_range,
             width=width,
+            reflection_coeff=atom_reflection_coeff,
             species=mobile_D,
             volume=w_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            # distribution=lambda x: gaussian_distribution(
-            #     x, atom_implantation_range, width
-            # ),
-            mean=ion_implantation_range,
+            mean=atom_implantation_range,
             width=width,
+            reflection_coeff=atom_reflection_coeff,
             species=mobile_T,
             volume=w_subdomain,
         ),
@@ -290,7 +285,7 @@ def make_W_mb_model(
     my_model.settings = F.Settings(
         atol=1e-10,
         rtol=1e-10,
-        max_iterations=1000000,
+        max_iterations=1000,
         final_time=final_time,
     )
 
@@ -495,38 +490,38 @@ def make_B_mb_model(
     my_model.temperature = temperature
 
     ############# Flux Parameters #############
-
-    # FIXME
+    
+    # FIXME: implantation & reflection values are W values rn 
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, ion_implantation_range, width
-            ),
+            mean=ion_implantation_range,
+            width=width,
+            reflection_coeff=ion_reflection_coeff,
             species=mobile_D,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, ion_implantation_range, width
-            ),
+            mean=ion_implantation_range,
+            width=width,
+            reflection_coeff=ion_reflection_coeff,
             species=mobile_T,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, atom_implantation_range, width
-            ),
+            mean=atom_implantation_range,
+            width=width,
+            reflection_coeff=atom_reflection_coeff,
             species=mobile_D,
             volume=b_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, atom_implantation_range, width
-            ),
+            mean=atom_implantation_range,
+            width=width,
+            reflection_coeff=atom_reflection_coeff,
             species=mobile_T,
             volume=b_subdomain,
         ),
@@ -689,37 +684,37 @@ def make_DFW_mb_model(
 
     ############# Flux Parameters #############
 
-    # FIXME
+    # FIXME: implantation & reflection values are W values rn 
     my_model.sources = [
         PulsedSource(
             flux=deuterium_ion_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, ion_implantation_range, width
-            ),
+            mean=ion_implantation_range,
+            width=width,
+            reflection_coeff=ion_reflection_coeff,
             species=mobile_D,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_ion_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, lambda t: ion_implantation_range(t), width
-            ),
+            mean=ion_implantation_range,
+            width=width,
+            reflection_coeff=ion_reflection_coeff,
             species=mobile_T,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=deuterium_atom_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, lambda t: atom_implantation_range(t), width
-            ),
+            mean=atom_implantation_range,
+            width=width,
+            reflection_coeff=atom_reflection_coeff,
             species=mobile_D,
             volume=ss_subdomain,
         ),
         PulsedSource(
             flux=tritium_atom_flux,
-            distribution=lambda x: gaussian_distribution(
-                x, lambda t: atom_implantation_range(t), width
-            ),
+            mean=atom_implantation_range,
+            width=width,
+            reflection_coeff=atom_reflection_coeff,
             species=mobile_T,
             volume=ss_subdomain,
         ),
