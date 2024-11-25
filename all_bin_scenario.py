@@ -224,43 +224,26 @@ if __name__ == "__main__":
         )
 
     def which_model(nb_bin: int, material: str):
-        if material == "W":
-            my_model, quantities = make_W_mb_model(
-                    temperature=T_function_W,
-                    deuterium_ion_flux=deuterium_ion_flux,
-                    tritium_ion_flux=tritium_ion_flux,
-                    deuterium_atom_flux=deuterium_atom_flux,
-                    tritium_atom_flux=tritium_atom_flux,
-                    # FIXME: -1s here to avoid last time step spike
-                    final_time=my_scenario.get_maximum_time() - 1,
-                    L=sub_bin.thickness,
-                    folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
-                )
-        elif material == "B":
-            my_model, quantities = make_B_mb_model(
-                temperature=T_function_B,
-                deuterium_ion_flux=deuterium_ion_flux,
-                tritium_ion_flux=tritium_ion_flux,
-                deuterium_atom_flux=deuterium_atom_flux,
-                tritium_atom_flux=tritium_atom_flux,
-                # FIXME: -1s here to avoid last time step spike
-                final_time=my_scenario.get_maximum_time() - 1,
-                L=sub_bin.thickness,
-                folder=f"mb{nb_bin+1}_{sub_bin.mode}_results",
-            )
+        common_args = {
+            "temperature": T_function_W,
+            "deuterium_ion_flux": deuterium_ion_flux,
+            "tritium_ion_flux": tritium_ion_flux,
+            "deuterium_atom_flux": deuterium_atom_flux,
+            "tritium_atom_flux": tritium_atom_flux,
+            "final_time": my_scenario.get_maximum_time() - 1,
+            "L": sub_bin.thickness,
+        }
 
+        if material == "W":
+            common_args["folder"] = f"mb{nb_bin+1}_{sub_bin.mode}_results"
+            my_model, quantities = make_W_mb_model(**common_args)
+        elif material == "B":
+            common_args["temperature"] = T_function_B
+            common_args["folder"] = f"mb{nb_bin+1}_{sub_bin.mode}_results"
+            my_model, quantities = make_B_mb_model(**common_args)
         elif material == "SS":
-            my_model, quantities = make_DFW_mb_model(
-                temperature=T_function_W,  # TODO: update for DFW function
-                deuterium_ion_flux=deuterium_ion_flux,
-                tritium_ion_flux=tritium_ion_flux,
-                deuterium_atom_flux=deuterium_atom_flux,
-                tritium_atom_flux=tritium_atom_flux,
-                # FIXME: -1s here to avoid last time step spike
-                final_time=my_scenario.get_maximum_time() - 1,
-                L=sub_bin.thickness,
-                folder=f"mb{nb_bin+1}_dfw_results",
-            )
+            common_args["folder"] = f"mb{nb_bin+1}_dfw_results"
+            my_model, quantities = make_DFW_mb_model(**common_args)
 
         return my_model, quantities
 
