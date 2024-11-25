@@ -227,6 +227,14 @@ if __name__ == "__main__":
         )
 
     def which_model(subbin: SubBin | DivBin):
+        """Returns the correct model for the subbin.
+
+        Args:
+            subbin: The bin/subbin to get the model for
+
+        Returns:
+            festim.HTransportModel, dict: The model and the quantities to plot
+        """
         common_args = {
             "deuterium_ion_flux": deuterium_ion_flux,
             "tritium_ion_flux": tritium_ion_flux,
