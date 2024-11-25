@@ -9,6 +9,7 @@ from make_iter_bins import FW_bins, Div_bins, total_fw_bins, total_nb_bins
 
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Scenario, Pulse
+from hisp.bin import SubBin, DivBin
 
 # import dolfinx
 
@@ -26,6 +27,7 @@ if __name__ == "__main__":
         steady_state=10,
         ramp_down=10,
         waiting=100,
+        tritium_fraction=0.5,
         tritium_fraction=0.5,
     )
 
@@ -65,6 +67,45 @@ if __name__ == "__main__":
             flat_top_value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
+            T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
+            T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
+            a = (T_rear - T_surface) / sub_bin.thickness
+            b = T_surface
+            flat_top_value = a * x[0] + b
+
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        return periodic_step_function(
+            t_rel,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=np.full_like(x[0], COOLANT_TEMP),
+        )
+
+    def T_function_B(x: NDArray, t: float) -> float:
+        """W Monoblock temperature function.
+
+        Args:
+            x: position along monoblock
+            t: time in seconds
+
+        Returns:
+            pulsed W monoblock temperature in K
+        """
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+        pulse = my_scenario.get_pulse(t)
+        t_rel = t - my_scenario.get_time_start_current_pulse(t)
+
+        if pulse.pulse_type == "BAKE":
+            T_bake = 483.15  # K
+            flat_top_value = np.full_like(x[0], T_bake)
+        else:
+            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
+            T_rear_tungsten = (
+                2.2e-5 * heat_flux + COOLANT_TEMP
+            )  # boron layers based off of rear temp of W mbs
+            flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + T_rear_tungsten)
             T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP # rear temp for tungsten, used in all calculations for now
             if sub_bin.material == "W":
                 T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
@@ -194,6 +235,15 @@ if __name__ == "__main__":
             value_off=None,
         )
 
+    def which_model(subbin: SubBin | DivBin):
+        """Returns the correct model for the subbin.
+
+        Args:
+            subbin: The bin/subbin to get the model for
+
+        Returns:
+            festim.HTransportModel, dict: The model and the quantities to plot
+        """
     def ion_implantation_range(t: float) -> float:
         # assert isinstance(t, float), f"t should be a float, not {type(t)}"
         pulse = my_scenario.get_pulse(t)
@@ -234,11 +284,35 @@ if __name__ == "__main__":
             "deuterium_atom_flux": deuterium_atom_flux,
             "tritium_atom_flux": tritium_atom_flux,
             "final_time": my_scenario.get_maximum_time() - 1,
+            "L": subbin.thickness,
             "L": sub_bin.thickness,
             "ion_implantation_range": ion_implantation_range,
             "atom_implantation_range": atom_implantation_range,
         }
 
+        if isinstance(subbin, DivBin):
+            parent_bin_index = subbin.index
+        elif isinstance(subbin, SubBin):
+            parent_bin_index = subbin.parent_bin_index
+
+        if subbin.material == "W":
+            return make_W_mb_model(
+                **common_args,
+                temperature=T_function_W,
+                folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+            )
+        elif subbin.material == "B":
+            return make_B_mb_model(
+                **common_args,
+                temperature=T_function_B,
+                folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+            )
+        elif subbin.material == "SS":
+            return make_DFW_mb_model(
+                **common_args,
+                temperature=T_function_W,  # TODO Change temperature to SS
+                folder=f"mb{parent_bin_index+1}_dfw_results",
+            )
         if material == "W":
             common_args["folder"] = f"mb{fw_bin.index+1}_{sub_bin.mode}_results"
             my_model, quantities = make_W_mb_model(**common_args)
@@ -253,9 +327,9 @@ if __name__ == "__main__":
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
-    for fw_bin in FW_bins.bins[:3]: # only running 3 fw_bins to demonstrate capability
+    for fw_bin in FW_bins.bins[:3]:  # only running 3 fw_bins to demonstrate capability
         for sub_bin in fw_bin.sub_bins:
-            my_model, quantities = which_model(fw_bin, sub_bin.material)
+            my_model, quantities = which_model(sub_bin)
 
             # add milestones for stepsize and adaptivity
             milestones = [pulse.total_duration for pulse in my_scenario.pulses]
@@ -275,9 +349,11 @@ if __name__ == "__main__":
             global_data.update(quantities)
 
     ############# RUN DIV BIN SIMUS #############
-    # for div_bin in Div_bins.bins: 
-    for div_bin in Div_bins.bins[:4]: # only running 4 div bins to demonstrate capability 
-        my_model, quantities = which_model(div_bin, div_bin.material)
+    # for div_bin in Div_bins.bins:
+    for div_bin in Div_bins.bins[
+        :4
+    ]:  # only running 4 div bins to demonstrate capability
+        my_model, quantities = which_model(div_bin)
 
         # add milestones for stepsize and adaptivity
         milestones = [pulse.total_duration for pulse in my_scenario.pulses]
