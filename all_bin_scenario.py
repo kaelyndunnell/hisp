@@ -17,15 +17,6 @@ from hisp.scenario import Scenario, Pulse
 NB_FP_PULSES_PER_DAY = 13
 COOLANT_TEMP = 343  # 70 degree C cooling water
 
-# tritium fraction = T/D
-PULSE_TYPE_TO_TRITIUM_FRACTION = {
-    "FP": 0.5,
-    "ICWC": 0,
-    "RISP": 0,
-    "GDC": 0,
-    "BAKE": 0,
-}
-
 if __name__ == "__main__":
 
     fp = Pulse(
@@ -35,6 +26,7 @@ if __name__ == "__main__":
         steady_state=10,
         ramp_down=10,
         waiting=100,
+        tritium_fraction=0.5
     )
 
     my_scenario = Scenario(pulses=[fp])
@@ -134,7 +126,7 @@ if __name__ == "__main__":
         ion_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
         )
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        tritium_fraction = pulse.tritium_fraction
         flat_top_value = ion_flux * (1 - tritium_fraction)
         resting_value = 0
         return periodic_step_function(
@@ -159,7 +151,7 @@ if __name__ == "__main__":
             pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=True
         )
 
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        tritium_fraction = pulse.tritium_fraction
         flat_top_value = ion_flux * tritium_fraction
         resting_value = 0.0
 
@@ -185,7 +177,7 @@ if __name__ == "__main__":
             pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
         )
 
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        tritium_fraction = pulse.tritium_fraction
         flat_top_value = atom_flux * (1 - tritium_fraction)
         resting_value = 0.0
         return periodic_step_function(
@@ -209,7 +201,7 @@ if __name__ == "__main__":
         atom_flux = plasma_data_handling.get_particle_flux(
             pulse_type=pulse_type, bin=sub_bin, t_rel=relative_time, ion=False
         )
-        tritium_fraction = PULSE_TYPE_TO_TRITIUM_FRACTION[pulse_type]
+        tritium_fraction = pulse.tritium_fraction
         flat_top_value = atom_flux * tritium_fraction
         resting_value = 0.0
         return periodic_step_function(

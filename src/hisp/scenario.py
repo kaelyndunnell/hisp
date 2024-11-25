@@ -19,6 +19,7 @@ class Pulse:
         steady_state: float,
         ramp_down: float,
         waiting: float,
+        tritium_fraction: float, # tritium fraction = T/D
     ):
         self.pulse_type = pulse_type
         self.nb_pulses = nb_pulses
@@ -26,6 +27,7 @@ class Pulse:
         self.steady_state = steady_state
         self.ramp_down = ramp_down
         self.waiting = waiting
+        self.tritium_fraction = tritium_fraction
 
     @property
     def total_duration(self) -> float:
@@ -50,7 +52,6 @@ class Pulse:
     @property
     def duration_no_waiting(self) -> float:
         return self.total_duration - self.waiting
-
 
 class Scenario:
     def __init__(self, pulses: List[Pulse] = None):
