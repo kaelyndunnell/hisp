@@ -9,7 +9,7 @@ from typing import Callable
 
 class PulsedSource(F.ParticleSource):
     def __init__(
-        self, flux: Callable, mean: Callable, width: Callable, volume, species
+        self, flux: Callable, mean: Callable, width: Callable, reflection_coeff: float, volume, species
     ):
         """Initalizes flux and distribution for PulsedSource.
 
@@ -17,12 +17,14 @@ class PulsedSource(F.ParticleSource):
             flux (callable): the input flux value from DINA data
             mean (callable): the mean of the distribution as a function of time
             width (callable): the width of the distribution as a function of time
+            reflection_coeff (float): the reflection coefficient 
             volume (F.VolumeSubdomain1D): volume where this flux is imposed
             species (F.species): species of flux (e.g. D/T)
         """
         self.flux = flux
         self.mean = mean
         self.width = width
+        self.reflection_coeff = reflection_coeff
         super().__init__(None, volume, species)
 
     @property
@@ -30,7 +32,7 @@ class PulsedSource(F.ParticleSource):
         return True
 
     def create_value_fenics(self, mesh, temperature, t: Constant):
-        self.flux_fenics = F.as_fenics_constant(self.flux(float(t)), mesh)
+        self.incident_flux = F.as_fenics_constant(self.flux(float(t)), mesh)
         self.mean_fenics = F.as_fenics_constant(self.mean(float(t)), mesh)
         self.width_fenics = F.as_fenics_constant(self.width(float(t)), mesh)
 
@@ -39,10 +41,11 @@ class PulsedSource(F.ParticleSource):
             x, self.mean_fenics, self.width_fenics, mod=ufl
         )
 
-        self.value_fenics = self.flux_fenics * distribution
+        implanted_flux = (1-self.reflection_coeff)*self.incident_flux
+        self.value_fenics = implanted_flux * distribution
 
     def update(self, t: float):
-        self.flux_fenics.value = self.flux(t)
+        self.incident_flux = self.flux(t)
         self.mean_fenics.value = self.mean(t)
         self.width_fenics.value = self.width(t)
 

@@ -10,6 +10,8 @@ from typing import Callable, Tuple, Dict
 
 # TODO this is hard coded and show depend on incident energy?
 width = lambda t: 1e-9  # m   FIXME
+ion_reflection_coeff = 0.7 # 60 degree incident angle
+atom_reflection_coeff = 0.65 # 33 degree incident angle
 
 
 def make_W_mb_model(

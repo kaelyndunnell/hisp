@@ -46,7 +46,7 @@ if __name__ == "__main__":
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
 
-    def T_function_W(x: NDArray, t: float) -> float:
+    def T_function(x: NDArray, t: float) -> float:
         """W Monoblock temperature function.
 
         Args:
@@ -65,45 +65,14 @@ if __name__ == "__main__":
             flat_top_value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
-            T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP
-            a = (T_rear - T_surface) / sub_bin.thickness
-            b = T_surface
-            flat_top_value = a * x[0] + b
-
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        return periodic_step_function(
-            t_rel,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=np.full_like(x[0], COOLANT_TEMP),
-        )
-
-    def T_function_B(x: NDArray, t: float) -> float:
-        """W Monoblock temperature function.
-
-        Args:
-            x: position along monoblock
-            t: time in seconds
-
-        Returns:
-            pulsed W monoblock temperature in K
-        """
-        assert isinstance(t, float), f"t should be a float, not {type(t)}"
-        pulse = my_scenario.get_pulse(t)
-        t_rel = t - my_scenario.get_time_start_current_pulse(t)
-
-        if pulse.pulse_type == "BAKE":
-            T_bake = 483.15  # K
-            flat_top_value = np.full_like(x[0], T_bake)
-        else:
-            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, sub_bin, t_rel)
-            T_rear_tungsten = (
-                2.2e-5 * heat_flux + COOLANT_TEMP
-            )  # boron layers based off of rear temp of W mbs
-            flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + T_rear_tungsten)
+            T_rear = 2.2e-5 * heat_flux + COOLANT_TEMP # rear temp for tungsten, used in all calculations for now
+            if sub_bin.material == "W":
+                T_surface = 1.1e-4 * heat_flux + COOLANT_TEMP
+                a = (T_rear - T_surface) / sub_bin.thickness
+                b = T_surface
+                flat_top_value = a * x[0] + b
+            else: # currently both B and DFW, later separate these when get DFW data 
+                flat_top_value = np.full_like(x[0], 5e-4 * heat_flux + T_rear) # boron layers based off of rear temp of W mbs
 
         total_time_on = pulse.duration_no_waiting
         total_time_pulse = pulse.total_duration
@@ -261,7 +230,7 @@ if __name__ == "__main__":
 
         if material == "W":
             my_model, quantities = make_W_mb_model(
-                temperature=T_function_W,
+                temperature=T_function,
                 deuterium_ion_flux=deuterium_ion_flux,
                 tritium_ion_flux=tritium_ion_flux,
                 deuterium_atom_flux=deuterium_atom_flux,
@@ -275,7 +244,7 @@ if __name__ == "__main__":
             )
         elif material == "B":
             my_model, quantities = make_B_mb_model(
-                temperature=T_function_B,
+                temperature=T_function,
                 deuterium_ion_flux=deuterium_ion_flux,
                 tritium_ion_flux=tritium_ion_flux,
                 deuterium_atom_flux=deuterium_atom_flux,
@@ -290,7 +259,7 @@ if __name__ == "__main__":
 
         elif material == "SS":
             my_model, quantities = make_DFW_mb_model(
-                temperature=T_function_W,  # TODO: update for DFW function
+                temperature=T_function,  # TODO: update for DFW function
                 deuterium_ion_flux=deuterium_ion_flux,
                 tritium_ion_flux=tritium_ion_flux,
                 deuterium_atom_flux=deuterium_atom_flux,
