@@ -11,7 +11,8 @@ class PulsedSource(F.ParticleSource):
     def __init__(
         self, flux: Callable, mean: Callable, width: Callable, reflection_coeff: float, volume, species
     ):
-        """Initalizes flux and distribution for PulsedSource.
+        """Initalizes flux and distribution for PulsedSource. Encorces distribution
+        as a gaussian.
 
         Args:
             flux (callable): the input flux value from DINA data
