@@ -805,10 +805,10 @@ def calculate_temperature_B(heat_flux: float, coolant_temp: float) -> float:
     Returns:
         temperature in K
     """
-    T_rear_tungsten = (
-        2.2e-5 * heat_flux + coolant_temp
+    T_surf_tungsten = (
+        1.1e-4 * heat_flux + coolant_temp
     )  # boron layers based off of rear temp of W mbs
-    return 5e-4 * heat_flux + T_rear_tungsten
+    return 5e-4 * heat_flux + T_surf_tungsten
 
 
 def make_temperature_function(
