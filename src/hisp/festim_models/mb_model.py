@@ -772,7 +772,9 @@ def calculate_temperature_W(
 ) -> float | NDArray:
     """Calculates the temperature in the W layer based on coolant temperature and heat flux
 
-    Reference: [insert reference]
+    Reference:
+    - Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020) 10.1038/s41598-020-74844-w
+    - E.A. Hodille et al 2021 Nucl. Fusion 61 126003 10.1088/1741-4326/ac2abc
 
     Args:
         x: position in m
@@ -794,9 +796,21 @@ def calculate_temperature_W(
 
 
 def calculate_temperature_B(heat_flux: float, coolant_temp: float) -> float:
-    """Calculates the temperature in the boron layer based on coolant temperature and heat flux
+    """
+    Calculates the temperature in the boron layer based on coolant temperature and heat flux.
+    The temperature is assumed to be homogeneous in the B layer and is calculated based on the
+    surface temperature of the W layer.
 
-    Reference: [insert reference]
+    T_B = R_c * q + T_surface_W
+
+    where
+    - R_c is the thermal contact resistance of the layer in m2 K/W
+    - q is the heat flux in W/m2
+    - T_surface_W is the surface temperature of the W layer in K
+
+    References:
+    - Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020) 10.1038/s41598-020-74844-w
+    - Jae-Sun Park et al 2023 Nucl. Fusion 63 076027 10.1088/1741-4326/acd9d9
 
     Args:
         heat_flux: heat flux in W/m2
@@ -805,10 +819,11 @@ def calculate_temperature_B(heat_flux: float, coolant_temp: float) -> float:
     Returns:
         temperature in K
     """
-    T_surf_tungsten = (
-        1.1e-4 * heat_flux + coolant_temp
-    )  # boron layers based off of rear temp of W mbs
-    return 5e-4 * heat_flux + T_surf_tungsten
+    # the evolution of T surface is taken from Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020).
+    # https://doi.org/10.1038/s41598-020-74844-w
+    T_surf_tungsten = 1.1e-4 * heat_flux + coolant_temp
+    R_c_jet = 5e-4  # m2 K/W  calculated from JET-ILW (JPN#98297)
+    return R_c_jet * heat_flux + T_surf_tungsten
 
 
 def make_temperature_function(
