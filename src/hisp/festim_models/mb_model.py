@@ -755,6 +755,18 @@ def make_DFW_mb_model(
     return my_model, quantities
 
 
+# calculate how the rear temperature of the W layer evolves with the surface temperature
+# data from E.A. Hodille et al 2021 Nucl. Fusion 61 126003 10.1088/1741-4326/ac2abc (Table I)
+heat_fluxes_hodille = [10e6, 5e6, 1e6]  # W/m2
+T_rears_hodille = [552, 436, 347]  # K
+
+import scipy.stats
+
+slope_T_rear, intercept, r_value, p_value, std_err = scipy.stats.linregress(
+    heat_fluxes_hodille, T_rears_hodille
+)
+
+
 def calculate_temperature_W(
     x: float | NDArray, heat_flux: float, coolant_temp: float, thickness: float
 ) -> float | NDArray:
@@ -771,8 +783,11 @@ def calculate_temperature_W(
     Returns:
         temperature in K
     """
+    # the evolution of T surface is taken from Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020).
+    # https://doi.org/10.1038/s41598-020-74844-w
     T_surface = 1.1e-4 * heat_flux + coolant_temp
-    T_rear = 2.2e-5 * heat_flux + coolant_temp
+
+    T_rear = slope_T_rear * heat_flux + coolant_temp
     a = (T_rear - T_surface) / thickness
     b = T_surface
     return a * x + b
