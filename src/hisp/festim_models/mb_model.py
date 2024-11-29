@@ -1,5 +1,8 @@
 from hisp.h_transport_class import CustomProblem
-from hisp.helpers import PulsedSource, gaussian_distribution
+from hisp.helpers import PulsedSource, gaussian_distribution, periodic_step_function
+from hisp.scenario import Scenario
+from hisp.plamsa_data_handling import PlasmaDataHandling
+import hisp.bin
 
 import numpy as np
 import festim as F
@@ -7,6 +10,7 @@ import h_transport_materials as htm
 import ufl
 
 from typing import Callable, Tuple, Dict
+from numpy.typing import NDArray
 
 # TODO this is hard coded and show depend on incident energy?
 implantation_range = 3e-9  # m
@@ -749,3 +753,186 @@ def make_DFW_mb_model(
     my_model.settings.stepsize = F.Stepsize(initial_value=1)
 
     return my_model, quantities
+
+
+# calculate how the rear temperature of the W layer evolves with the surface temperature
+# data from E.A. Hodille et al 2021 Nucl. Fusion 61 126003 10.1088/1741-4326/ac2abc (Table I)
+heat_fluxes_hodille = [10e6, 5e6, 1e6]  # W/m2
+T_rears_hodille = [552, 436, 347]  # K
+
+import scipy.stats
+
+slope_T_rear, intercept, r_value, p_value, std_err = scipy.stats.linregress(
+    heat_fluxes_hodille, T_rears_hodille
+)
+
+
+def calculate_temperature_W(
+    x: float | NDArray, heat_flux: float, coolant_temp: float, thickness: float
+) -> float | NDArray:
+    """Calculates the temperature in the W layer based on coolant temperature and heat flux
+
+    Reference:
+    - Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020) 10.1038/s41598-020-74844-w
+    - E.A. Hodille et al 2021 Nucl. Fusion 61 126003 10.1088/1741-4326/ac2abc
+
+    Args:
+        x: position in m
+        heat_flux: heat flux in W/m2
+        coolant_temp: coolant temperature in K
+        thickness: thickness of the W layer in m
+
+    Returns:
+        temperature in K
+    """
+    # the evolution of T surface is taken from Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020).
+    # https://doi.org/10.1038/s41598-020-74844-w
+    T_surface = 1.1e-4 * heat_flux + coolant_temp
+
+    T_rear = slope_T_rear * heat_flux + coolant_temp
+    a = (T_rear - T_surface) / thickness
+    b = T_surface
+    return a * x + b
+
+
+def calculate_temperature_B(heat_flux: float, coolant_temp: float) -> float:
+    """
+    Calculates the temperature in the boron layer based on coolant temperature and heat flux.
+    The temperature is assumed to be homogeneous in the B layer and is calculated based on the
+    surface temperature of the W layer.
+
+    T_B = R_c * q + T_surface_W
+
+    where
+    - R_c is the thermal contact resistance of the layer in m2 K/W
+    - q is the heat flux in W/m2
+    - T_surface_W is the surface temperature of the W layer in K
+
+    References:
+    - Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020) 10.1038/s41598-020-74844-w
+    - Jae-Sun Park et al 2023 Nucl. Fusion 63 076027 10.1088/1741-4326/acd9d9
+
+    Args:
+        heat_flux: heat flux in W/m2
+        coolant_temp: coolant temperature in K
+
+    Returns:
+        temperature in K
+    """
+    # the evolution of T surface is taken from Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020).
+    # https://doi.org/10.1038/s41598-020-74844-w
+    T_surf_tungsten = 1.1e-4 * heat_flux + coolant_temp
+    R_c_jet = 5e-4  # m2 K/W  calculated from JET-ILW (JPN#98297)
+    return R_c_jet * heat_flux + T_surf_tungsten
+
+
+def make_temperature_function(
+    scenario: Scenario,
+    plasma_data_handling: PlasmaDataHandling,
+    bin: hisp.bin.SubBin | hisp.bin.DivBin,
+    coolant_temp: float,
+) -> Callable[[NDArray, float], NDArray]:
+    """Returns a function that calculates the temperature of the bin based on time and position.
+
+    Args:
+        scenario: the Scenario object containing the pulses
+        plasma_data_handling: the object containing the plasma data
+        bin: the bin/subbin to get the temperature function for
+        coolant_temp: the coolant temperature in K
+
+    Returns:
+        a callable of x, t returning the temperature in K
+    """
+
+    def T_function(x: NDArray, t: float) -> NDArray:
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+
+        # get the pulse and time relative to the start of the pulse
+        pulse = scenario.get_pulse(t)
+        t_rel = t - scenario.get_time_start_current_pulse(t)
+
+        # calculate the flat top value
+        if pulse.pulse_type == "BAKE":
+            T_bake = 483.15  # K
+            flat_top_value = np.full_like(x[0], T_bake)
+        else:
+            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, bin, t_rel)
+            if bin.material == "W":
+                flat_top_value = calculate_temperature_W(
+                    x[0], heat_flux, coolant_temp, bin.thickness
+                )
+            elif bin.material == "B":
+                T_value = calculate_temperature_B(heat_flux, coolant_temp)
+                flat_top_value = np.full_like(x[0], T_value)
+            else:
+                raise ValueError(f"Unsupported material: {bin.material}")
+
+        # add in the step function for the pulse
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        return periodic_step_function(
+            t_rel,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=np.full_like(x[0], coolant_temp),
+        )
+
+    return T_function
+
+
+def make_particle_flux_function(
+    scenario: Scenario,
+    plasma_data_handling: PlasmaDataHandling,
+    bin: hisp.bin.SubBin | hisp.bin.DivBin,
+    ion: bool,
+    tritium: bool,
+) -> Callable[[float], float]:
+    """Returns a function that calculates the particle flux based on time.
+
+    Args:
+        scenario: the Scenario object containing the pulses
+        plasma_data_handling: the object containing the plasma data
+        bin: the bin/subbin to get the temperature function for
+        ion: whether to get the ion flux
+        tritium: whether to get the tritium flux
+
+    Returns:
+        a callable of t returning the **incident** particle flux in m^-2 s^-1
+    """
+
+    def particle_flux_function(t: float) -> float:
+        assert isinstance(t, float), f"t should be a float, not {type(t)}"
+
+        # get the pulse and time relative to the start of the pulse
+        pulse = scenario.get_pulse(t)
+        relative_time = t - scenario.get_time_start_current_pulse(t)
+
+        # get the incident particle flux
+        incident_hydrogen_particle_flux = plasma_data_handling.get_particle_flux(
+            pulse_type=pulse.pulse_type,
+            bin=bin,
+            t_rel=relative_time,
+            ion=ion,
+        )
+
+        # if tritium is requested, multiply by tritium fraction
+        tritium_fraction = pulse.tritium_fraction
+        if tritium:
+            flat_top_value = incident_hydrogen_particle_flux * tritium_fraction
+        else:
+            flat_top_value = incident_hydrogen_particle_flux * (1 - tritium_fraction)
+
+        # add in the step function for the pulse
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+        resting_value = 0.0
+        return periodic_step_function(
+            relative_time,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=flat_top_value,
+            value_off=resting_value,
+        )
+
+    return particle_flux_function
