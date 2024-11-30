@@ -1,7 +1,8 @@
 import numpy as np
 from numpy.typing import NDArray
-import pandas as pd
 from hisp.bin import SubBin, DivBin, FWBin
+from hisp.helpers import periodic_step_function
+from hisp.scenario import Pulse
 
 from typing import Dict
 
@@ -22,12 +23,12 @@ class PlasmaDataHandling:
         self._time_to_RISP_data = {}
 
     def get_particle_flux(
-        self, pulse_type: str, bin: SubBin | DivBin, t_rel: float, ion=True
+        self, pulse: Pulse, bin: SubBin | DivBin, t_rel: float, ion=True
     ) -> float:
         """Returns the particle flux for a given pulse type
 
         Args:
-            pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+            pulse: the pulse object
             bin: SubBin or DivBin
             t_rel: t_rel as an integer (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
@@ -54,19 +55,31 @@ class PlasmaDataHandling:
             other_index = 1
             flux_frac = 1  # there is no wettedness for atom fluxes -- every subbin / bin gets all the atom flux
 
-        if pulse_type == "FP":
-            flux = self.pulse_type_to_data[pulse_type][:, FP_index][bin_index]
-        elif pulse_type == "RISP":
+        if pulse.pulse_type == "FP":
+            flux = self.pulse_type_to_data[pulse.pulse_type][:, FP_index][bin_index]
+        elif pulse.pulse_type == "RISP":
             assert isinstance(
                 t_rel, float
             ), f"t_rel should be a float, not {type(t_rel)}"
             flux = self.RISP_data(bin=bin, t_rel=t_rel)[other_index]
-        elif pulse_type == "BAKE":
+        elif pulse.pulse_type == "BAKE":
             flux = 0.0
         else:
-            flux = self.pulse_type_to_data[pulse_type][:, other_index][bin_index]
+            flux = self.pulse_type_to_data[pulse.pulse_type][:, other_index][bin_index]
 
-        return flux * flux_frac
+        value = flux * flux_frac
+
+        # add in the step function for the pulse
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+
+        return periodic_step_function(
+            t_rel,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=value,
+            value_off=0,
+        )
 
     def RISP_data(self, bin: SubBin | DivBin, t_rel: float | int) -> NDArray:
         """Returns the correct RISP data file for indicated bin
@@ -144,11 +157,11 @@ class PlasmaDataHandling:
 
         return data[bin_index - offset_mb, :]
 
-    def get_heat(self, pulse_type: str, bin: SubBin | DivBin, t_rel: float):
+    def get_heat(self, pulse: Pulse, bin: SubBin | DivBin, t_rel: float):
         """Returns the surface heat flux (W/m2) for a given pulse type
 
         Args:
-            pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
+            pulse: the pulse object
             bin: SubBin or DivBin
             t_rel: t_rel as an integer (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
@@ -164,21 +177,21 @@ class PlasmaDataHandling:
         elif isinstance(bin, DivBin):
             bin_index = bin.index
 
-        if pulse_type == "RISP":
+        if pulse.pulse_type == "RISP":
             data = self.RISP_data(bin_index, t_rel=t_rel)
-        elif pulse_type in self.pulse_type_to_data.keys():
-            data = self.pulse_type_to_data[pulse_type]
+        elif pulse.pulse_type in self.pulse_type_to_data.keys():
+            data = self.pulse_type_to_data[pulse.pulse_type]
         else:
-            raise ValueError(f"Invalid pulse type {pulse_type}")
+            raise ValueError(f"Invalid pulse type {pulse.pulse_type}")
 
-        if pulse_type == "FP":
+        if pulse.pulse_type == "FP":
             heat_total = data[:, -2][bin_index]
             heat_ion = data[:, -1][bin_index]
             if isinstance(bin, SubBin):
                 heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
             else:
                 heat_val = heat_total
-        elif pulse_type == "RISP":
+        elif pulse.pulse_type == "RISP":
             if isinstance(bin, SubBin):
                 heat_total = data[-2]
                 heat_ion = data[-1]
@@ -188,4 +201,14 @@ class PlasmaDataHandling:
         else:  # currently no heat for other pulse types
             heat_val = data[:, -1][bin_index]
 
-        return heat_val
+        # add in the step function for the pulse
+        total_time_on = pulse.duration_no_waiting
+        total_time_pulse = pulse.total_duration
+
+        return periodic_step_function(
+            t_rel,
+            period_on=total_time_on,
+            period_total=total_time_pulse,
+            value=heat_val,
+            value_off=0,
+        )

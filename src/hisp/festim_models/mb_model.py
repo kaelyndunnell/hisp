@@ -1,5 +1,5 @@
 from hisp.h_transport_class import CustomProblem
-from hisp.helpers import PulsedSource, gaussian_distribution, periodic_step_function
+from hisp.helpers import PulsedSource, gaussian_distribution
 from hisp.scenario import Scenario
 from hisp.plamsa_data_handling import PlasmaDataHandling
 import hisp.bin
@@ -7,7 +7,6 @@ import hisp.bin
 import numpy as np
 import festim as F
 import h_transport_materials as htm
-import ufl
 
 from typing import Callable, Tuple, Dict
 from numpy.typing import NDArray
@@ -851,32 +850,22 @@ def make_temperature_function(
         pulse = scenario.get_pulse(t)
         t_rel = t - scenario.get_time_start_current_pulse(t)
 
-        # calculate the flat top value
         if pulse.pulse_type == "BAKE":
             T_bake = 483.15  # K
-            flat_top_value = np.full_like(x[0], T_bake)
+            value = np.full_like(x[0], T_bake)
         else:
-            heat_flux = plasma_data_handling.get_heat(pulse.pulse_type, bin, t_rel)
+            heat_flux = plasma_data_handling.get_heat(pulse, bin, t_rel)
             if bin.material == "W":
-                flat_top_value = calculate_temperature_W(
+                value = calculate_temperature_W(
                     x[0], heat_flux, coolant_temp, bin.thickness
                 )
             elif bin.material == "B":
                 T_value = calculate_temperature_B(heat_flux, coolant_temp)
-                flat_top_value = np.full_like(x[0], T_value)
+                value = np.full_like(x[0], T_value)
             else:
                 raise ValueError(f"Unsupported material: {bin.material}")
 
-        # add in the step function for the pulse
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        return periodic_step_function(
-            t_rel,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=np.full_like(x[0], coolant_temp),
-        )
+        return value
 
     return T_function
 
@@ -910,29 +899,18 @@ def make_particle_flux_function(
 
         # get the incident particle flux
         incident_hydrogen_particle_flux = plasma_data_handling.get_particle_flux(
-            pulse_type=pulse.pulse_type,
+            pulse=pulse,
             bin=bin,
             t_rel=relative_time,
             ion=ion,
         )
 
         # if tritium is requested, multiply by tritium fraction
-        tritium_fraction = pulse.tritium_fraction
         if tritium:
-            flat_top_value = incident_hydrogen_particle_flux * tritium_fraction
+            value = incident_hydrogen_particle_flux * pulse.tritium_fraction
         else:
-            flat_top_value = incident_hydrogen_particle_flux * (1 - tritium_fraction)
+            value = incident_hydrogen_particle_flux * (1 - pulse.tritium_fraction)
 
-        # add in the step function for the pulse
-        total_time_on = pulse.duration_no_waiting
-        total_time_pulse = pulse.total_duration
-        resting_value = 0.0
-        return periodic_step_function(
-            relative_time,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
-            value=flat_top_value,
-            value_off=resting_value,
-        )
+        return value
 
     return particle_flux_function
