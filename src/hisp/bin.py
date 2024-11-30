@@ -1,5 +1,6 @@
 from typing import List, Tuple
 import pandas as pd
+import numpy as np
 
 
 class SubBin:
@@ -178,6 +179,18 @@ class BinCollection:
             if bin.index == index:
                 return bin
         raise ValueError(f"No bin found with index {index}")
+
+    def arc_length(self, middle: bool = False):
+        """Returns the cumulative length of all bins in the collection."""
+        if middle:
+            middle_of_bins = []
+            cumulative_lengths = [0]
+            for bin in self.bins:
+                middle_of_bins.append(cumulative_lengths[-1] + bin.length / 2)
+                cumulative_lengths.append(cumulative_lengths[-1] + bin.length)
+            return middle_of_bins
+        else:
+            return np.cumsum([bin.length for bin in self.bins])
 
 
 class Reactor:

@@ -126,3 +126,20 @@ def test_length_fwbin(start, end):
 
     length = np.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2)
     assert np.isclose(my_bin.length, length)
+
+
+def test_arc_length():
+    """Tests that the arc length of a collection of bins is correctly computed."""
+    bin_1 = FWBin()
+    bin_1.start_point = (0, 0)
+    bin_1.end_point = (1, 0)
+    bin_2 = FWBin()
+    bin_2.start_point = bin_1.end_point
+    bin_2.end_point = (3, 0)
+    bin_3 = FWBin()
+    bin_3.start_point = bin_2.end_point
+    bin_3.end_point = (4, 0)
+
+    bins = BinCollection([bin_1, bin_2, bin_3])
+    assert np.allclose(bins.arc_length(), [1, 3, 4])
+    assert np.allclose(bins.arc_length(middle=True), [0.5, 2, 3.5])
