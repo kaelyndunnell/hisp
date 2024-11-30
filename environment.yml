@@ -9,4 +9,5 @@ dependencies:
   - pandas
   - pint # need to install pint with conda to avoid conflicts (HTM)
   - nbconvert
+  - ipykernel
   - pip
