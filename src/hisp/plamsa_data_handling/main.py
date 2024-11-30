@@ -79,6 +79,10 @@ class PlasmaDataHandling:
         Returns:
             data: data from correct file as a numpy array
         """
+        assert isinstance(
+            bin, (SubBin, DivBin)
+        ), f"bin should be a SubBin or DivBin, not {type(bin)}"
+
         if isinstance(bin, SubBin):
             bin_index = bin.parent_bin_index
             div = False
@@ -165,7 +169,7 @@ class PlasmaDataHandling:
             bin_index = bin.index
 
         if pulse_type == "RISP":
-            data = self.RISP_data(bin_index, t_rel=t_rel)
+            data = self.RISP_data(bin, t_rel=t_rel)
         elif pulse_type in self.pulse_type_to_data.keys():
             data = self.pulse_type_to_data[pulse_type]
         else:
