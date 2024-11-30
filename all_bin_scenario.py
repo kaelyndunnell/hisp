@@ -23,33 +23,31 @@ from hisp.bin import SubBin, DivBin
 
 NB_FP_PULSES_PER_DAY = 13
 COOLANT_TEMP = 343  # 70 degree C cooling water
+fp = Pulse(
+    pulse_type="FP",
+    nb_pulses=1,
+    ramp_up=10,
+    steady_state=10,
+    ramp_down=10,
+    waiting=100,
+    tritium_fraction=0.5,
+)
+
+my_scenario = Scenario(pulses=[fp])
+
+data_folder = "data"
+plasma_data_handling = PlasmaDataHandling(
+    pulse_type_to_data={
+        "FP": np.loadtxt(data_folder + "/Binned_Flux_Data.dat", skiprows=1),
+        "ICWC": np.loadtxt(data_folder + "/ICWC_data.dat", skiprows=1),
+        "GDC": np.loadtxt(data_folder + "/GDC_data.dat", skiprows=1),
+    },
+    path_to_ROSP_data=data_folder + "/ROSP_data",
+    path_to_RISP_data=data_folder + "/RISP_data",
+    path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
+)
 
 if __name__ == "__main__":
-
-    fp = Pulse(
-        pulse_type="FP",
-        nb_pulses=1,
-        ramp_up=10,
-        steady_state=10,
-        ramp_down=10,
-        waiting=100,
-        tritium_fraction=0.5,
-    )
-
-    my_scenario = Scenario(pulses=[fp])
-
-    data_folder = "data"
-    plasma_data_handling = PlasmaDataHandling(
-        pulse_type_to_data={
-            "FP": np.loadtxt(data_folder + "/Binned_Flux_Data.dat", skiprows=1),
-            "ICWC": np.loadtxt(data_folder + "/ICWC_data.dat", skiprows=1),
-            "GDC": np.loadtxt(data_folder + "/GDC_data.dat", skiprows=1),
-        },
-        path_to_ROSP_data=data_folder + "/ROSP_data",
-        path_to_RISP_data=data_folder + "/RISP_data",
-        path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
-    )
-
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
 

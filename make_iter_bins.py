@@ -3,7 +3,6 @@ from hisp.bin import FWBin3Subs, FWBin2Subs, DivBin, BinCollection, Reactor
 total_nb_bins = 64
 total_fw_bins = 18
 
-
 # add all subbins to the FW bins
 fw_bins = [FWBin3Subs() for _ in range(total_fw_bins)]
 
@@ -136,7 +135,33 @@ filename = "Wetted_Frac_Bin_Data.csv"
 my_reactor.read_wetted_data(filename)
 
 
+# add start and end points to bins
+import pandas as pd
+
+data = pd.read_csv("bin_data.dat", sep=",")
+
+
+for bin in my_reactor.first_wall.bins + my_reactor.divertor.bins:
+    bin.start_point = (data.loc[bin.index]["R_Coord"], data.loc[bin.index]["Z_Coord"])
+
+# end point is the start point of next bin
+for bin in my_reactor.first_wall.bins + my_reactor.divertor.bins:
+    try:
+        next_bin = my_reactor.get_bin(bin.index + 1)
+    except ValueError:
+        next_bin = my_reactor.get_bin(0)
+    bin.end_point = next_bin.start_point
+
 # test
+assert len(data) == len(FW_bins.bins) + len(
+    Div_bins.bins
+), f"{len(data)} {len(FW_bins.bins) + len(Div_bins.bins)}"
+
+
+for bin in my_reactor.first_wall.bins + my_reactor.divertor.bins:
+    assert bin.start_point is not None
+    assert bin.end_point is not None
+
 for bin in FW_bins.bins:
     for subbin_index, subbin in enumerate(bin.sub_bins):
         assert (
