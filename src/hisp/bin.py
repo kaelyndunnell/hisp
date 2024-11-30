@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import pandas as pd
 
 
@@ -51,10 +51,14 @@ class SubBin:
 class FWBin:
     index: int
     sub_bins: List[SubBin]
+    start_point: Tuple[float, float]
+    end_point: Tuple[float, float]
 
     def __init__(self, sub_bins: List[SubBin] = None):
         self.sub_bins = sub_bins or []
         self.index = None
+        self.start_point = None
+        self.end_point = None
 
     @property
     def shadowed_subbin(self) -> SubBin:
@@ -63,6 +67,18 @@ class FWBin:
                 return subbin
 
         raise ValueError(f"No shadowed subbin found in bin {self.index}")
+
+    @property
+    def length(self) -> float:
+        """Calculates the poloidal length of the bin (in m).
+
+        Returns:
+            The poloidal length of the bin (in m).
+        """
+        return (
+            (self.end_point[0] - self.start_point[0]) ** 2
+            + (self.end_point[1] - self.start_point[1]) ** 2
+        ) ** 0.5
 
     def add_dfw_bin(self, **kwargs):
         dfw_bin = SubBin(mode="shadowed", **kwargs)
@@ -108,6 +124,8 @@ class DivBin:
     mode = "wetted"
     inner_bin = bool
     outer_bin = bool
+    start_point: Tuple[float, float]
+    end_point: Tuple[float, float]
 
     def __init__(self):
         self.index = None
@@ -115,6 +133,8 @@ class DivBin:
         self.material = None
         self.inner_bin = False
         self.outer_bin = False
+        self.start_point = None
+        self.end_point = None
 
     def set_inner_and_outer_bins(self) -> bool:
         """Flags if a DivBin is an inner target or outer target bin.
@@ -130,6 +150,18 @@ class DivBin:
             self.inner_bin = True
         elif self.index in outer_swept_bins:
             self.outer_bin = True
+
+    @property
+    def length(self) -> float:
+        """Calculates the poloidal length of the bin (in m).
+
+        Returns:
+            The poloidal length of the bin (in m).
+        """
+        return (
+            (self.end_point[0] - self.start_point[0]) ** 2
+            + (self.end_point[1] - self.start_point[1]) ** 2
+        ) ** 0.5
 
 
 class BinCollection:
