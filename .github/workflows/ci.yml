@@ -34,4 +34,4 @@ jobs:
 
       - name: Run example
         shell: bash -l {0}
-        run: python all_bin_scenario.py
+        run: python examples/all_bin_scenario.py
