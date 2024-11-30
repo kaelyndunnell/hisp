@@ -29,7 +29,7 @@ class PlasmaDataHandling:
         Args:
             pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
             bin: SubBin or DivBin
-            t_rel: t_rel as an integer (in seconds).
+            t_rel: Relative time (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
             ion (bool, optional): _description_. Defaults to True.
 
@@ -73,7 +73,7 @@ class PlasmaDataHandling:
 
         Args:
             bin: Subbin or Divbin object
-            t_rel: t_rel as an integer(in seconds).
+            t_rel: relative time (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
         Returns:
@@ -154,7 +154,7 @@ class PlasmaDataHandling:
         Args:
             pulse_type: pulse type (eg. FP, ICWC, RISP, GDC, BAKE)
             bin: SubBin or DivBin
-            t_rel: t_rel as an integer (in seconds).
+            t_rel: Relative time (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
         Raises:
