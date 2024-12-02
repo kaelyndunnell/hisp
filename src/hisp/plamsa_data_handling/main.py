@@ -30,7 +30,7 @@ class PlasmaDataHandling:
         Args:
             pulse: the pulse object
             bin: SubBin or DivBin
-            t_rel: t_rel as an integer (in seconds).
+            t_rel: Relative time (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
             ion (bool, optional): _description_. Defaults to True.
 
@@ -86,12 +86,16 @@ class PlasmaDataHandling:
 
         Args:
             bin: Subbin or Divbin object
-            t_rel: t_rel as an integer(in seconds).
+            t_rel: relative time (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
         Returns:
             data: data from correct file as a numpy array
         """
+        assert isinstance(
+            bin, (SubBin, DivBin)
+        ), f"bin should be a SubBin or DivBin, not {type(bin)}"
+
         if isinstance(bin, SubBin):
             bin_index = bin.parent_bin_index
             div = False
@@ -163,7 +167,7 @@ class PlasmaDataHandling:
         Args:
             pulse: the pulse object
             bin: SubBin or DivBin
-            t_rel: t_rel as an integer (in seconds).
+            t_rel: Relative time (in seconds).
                 t_rel = t - t_pulse_start where t_pulse_start is the start of the pulse in seconds
 
         Raises:
@@ -178,7 +182,7 @@ class PlasmaDataHandling:
             bin_index = bin.index
 
         if pulse.pulse_type == "RISP":
-            data = self.RISP_data(bin_index, t_rel=t_rel)
+            data = self.RISP_data(bin, t_rel=t_rel)
         elif pulse.pulse_type in self.pulse_type_to_data.keys():
             data = self.pulse_type_to_data[pulse.pulse_type]
         else:

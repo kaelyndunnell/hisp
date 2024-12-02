@@ -34,4 +34,10 @@ jobs:
 
       - name: Run example
         shell: bash -l {0}
+        working-directory: examples
         run: python all_bin_scenario.py
+
+      - name: Run plotting example
+        shell: bash -l {0}
+        working-directory: examples
+        run: jupyter-nbconvert --to notebook plotting.ipynb --execute

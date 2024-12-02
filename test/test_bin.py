@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import pandas as pd
-from hisp.bin import FWBin3Subs, FWBin2Subs, DivBin, BinCollection, Reactor
+from hisp.bin import FWBin3Subs, FWBin2Subs, DivBin, FWBin, BinCollection, Reactor
 
 # create Reactor
 fw_bins = [FWBin3Subs() for _ in range(18)]
@@ -30,6 +30,7 @@ filename = "test/wetted_test_data.csv"
 my_reactor.read_wetted_data(filename)
 df = pd.read_csv(filename)
 
+
 def test_wetted_fraction():
     """Tests that wetted fraction is correctly computed 
     for FW sub-bins.
@@ -44,10 +45,10 @@ def test_wetted_fraction():
         elif sub_bin.mode == "high_wetted":
             high_wet_frac = sub_bin.wetted_frac
 
-    Slow = df['Slow'][0]
-    Stot = df['Stot'][0]
-    Shigh = df['Shigh'][0]
-    f = df['f'][0]
+    Slow = df["Slow"][0]
+    Stot = df["Stot"][0]
+    Shigh = df["Shigh"][0]
+    f = df["f"][0]
 
     expected_shadowed = 0.0
     expected_low_wet = f * Stot / Slow
@@ -66,8 +67,8 @@ def test_wetted_fraction():
         elif sub_bin.mode == "wetted":
             low_wet_frac = sub_bin.wetted_frac
 
-    Slow = df['Slow'][1]
-    Stot = df['Stot'][1]
+    Slow = df["Slow"][1]
+    Stot = df["Stot"][1]
 
     expected_shadowed = 0.0
     expected_low_wet = Stot / Slow
@@ -89,3 +90,56 @@ def test_inner_or_outer_bin(nb_bin, inner_flag, outer_flag):
 
     assert div_bin.inner_bin == inner_flag
     assert div_bin.outer_bin == outer_flag
+
+
+@pytest.mark.parametrize(
+    "start, end",
+    [
+        ((0, 0), (0, 1)),
+        ((0, 0), (1, 0)),
+        ((0, 0), (1, 1)),
+        ((0, 0), (1, 1)),
+    ],
+)
+def test_length_divbin(start, end):
+    my_bin = DivBin()
+    my_bin.start_point = start
+    my_bin.end_point = end
+
+    length = np.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2)
+    assert np.isclose(my_bin.length, length)
+
+
+@pytest.mark.parametrize(
+    "start, end",
+    [
+        ((0, 0), (0, 1)),
+        ((0, 0), (1, 0)),
+        ((0, 0), (1, 1)),
+        ((0, 0), (1, 1)),
+    ],
+)
+def test_length_fwbin(start, end):
+    my_bin = FWBin()
+    my_bin.start_point = start
+    my_bin.end_point = end
+
+    length = np.sqrt((end[0] - start[0]) ** 2 + (end[1] - start[1]) ** 2)
+    assert np.isclose(my_bin.length, length)
+
+
+def test_arc_length():
+    """Tests that the arc length of a collection of bins is correctly computed."""
+    bin_1 = FWBin()
+    bin_1.start_point = (0, 0)
+    bin_1.end_point = (1, 0)
+    bin_2 = FWBin()
+    bin_2.start_point = bin_1.end_point
+    bin_2.end_point = (3, 0)
+    bin_3 = FWBin()
+    bin_3.start_point = bin_2.end_point
+    bin_3.end_point = (4, 0)
+
+    bins = BinCollection([bin_1, bin_2, bin_3])
+    assert np.allclose(bins.arc_length(), [1, 3, 4])
+    assert np.allclose(bins.arc_length(middle=True), [0.5, 2, 3.5])
