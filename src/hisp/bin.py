@@ -181,7 +181,12 @@ class BinCollection:
         raise ValueError(f"No bin found with index {index}")
 
     def arc_length(self, middle: bool = False):
-        """Returns the cumulative length of all bins in the collection."""
+        """Returns the cumulative length of all bins in the collection.
+
+        Args:
+            middle: If True, computes from the middle of each bin.
+                If False, computes from the start of each bin.
+        """
         if middle:
             middle_of_bins = []
             cumulative_lengths = [0]
