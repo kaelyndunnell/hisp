@@ -51,7 +51,7 @@ plasma_data_handling = PlasmaDataHandling(
 if __name__ == "__main__":
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
-    processed_data = {}
+    processed_data = []
 
     def max_stepsize(t: float) -> float:
         pulse = my_scenario.get_pulse(t)
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     # TODO: adjust to run monoblocks in parallel
     for fw_bin in FW_bins.bins[:3]:  # only running 3 fw_bins to demonstrate capability
         global_data[fw_bin] = {}
-        processed_data[fw_bin.index] = {}
+        fw_bin_data = {"bin_index": fw_bin.index, "sub_bins": []}
 
         for sub_bin in fw_bin.sub_bins:
             my_model, quantities = which_model(sub_bin)
@@ -164,11 +164,14 @@ if __name__ == "__main__":
             my_model.progress_bar.close()
 
             global_data[fw_bin][sub_bin] = quantities
-            processed_data[fw_bin.index][sub_bin.mode] = {}
+            subbin_data = {
+                "mode": sub_bin.mode,
+                "parent_bin_index": sub_bin.parent_bin_index,
+            }
             for key, value in quantities.items():
-                processed_data[fw_bin.index][sub_bin.mode][key] = {}
-                processed_data[fw_bin.index][sub_bin.mode][key]["t"] = value.t
-                processed_data[fw_bin.index][sub_bin.mode][key]["data"] = value.data
+                subbin_data[key] = {"t": value.t, "data": value.data}
+            fw_bin_data["sub_bins"].append(subbin_data)
+        processed_data.append(fw_bin_data)
 
     ############# RUN DIV BIN SIMUS #############
     # for div_bin in Div_bins.bins:
@@ -194,11 +197,10 @@ if __name__ == "__main__":
         my_model.progress_bar.close()
 
         global_data[div_bin] = quantities
-        processed_data[div_bin.index] = {}
+        bin_data = {"bin_index": div_bin.index}
         for key, value in quantities.items():
-            processed_data[div_bin.index][key] = {}
-            processed_data[div_bin.index][key]["t"] = value.t
-            processed_data[div_bin.index][key]["data"] = value.data
+            bin_data[key] = {"t": value.t, "data": value.data}
+        processed_data.append(bin_data)
 
     # write the processed data to JSON
 
