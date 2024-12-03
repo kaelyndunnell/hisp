@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 from numpy.typing import NDArray
 
@@ -50,6 +51,7 @@ plasma_data_handling = PlasmaDataHandling(
 if __name__ == "__main__":
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
+    processed_data = []
 
     def max_stepsize(t: float) -> float:
         pulse = my_scenario.get_pulse(t)
@@ -139,6 +141,9 @@ if __name__ == "__main__":
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
     for fw_bin in FW_bins.bins[:3]:  # only running 3 fw_bins to demonstrate capability
+        global_data[fw_bin] = {}
+        fw_bin_data = {"bin_index": fw_bin.index, "sub_bins": []}
+
         for sub_bin in fw_bin.sub_bins:
             my_model, quantities = which_model(sub_bin)
 
@@ -157,7 +162,16 @@ if __name__ == "__main__":
             my_model.initialise()
             my_model.run()
             my_model.progress_bar.close()
-            global_data.update(quantities)
+
+            global_data[fw_bin][sub_bin] = quantities
+            subbin_data = {
+                "mode": sub_bin.mode,
+                "parent_bin_index": sub_bin.parent_bin_index,
+            }
+            for key, value in quantities.items():
+                subbin_data[key] = {"t": value.t, "data": value.data}
+            fw_bin_data["sub_bins"].append(subbin_data)
+        processed_data.append(fw_bin_data)
 
     ############# RUN DIV BIN SIMUS #############
     # for div_bin in Div_bins.bins:
@@ -181,30 +195,39 @@ if __name__ == "__main__":
         my_model.initialise()
         my_model.run()
         my_model.progress_bar.close()
-        global_data.update(quantities)
 
+        global_data[div_bin] = quantities
+        bin_data = {"bin_index": div_bin.index}
+        for key, value in quantities.items():
+            bin_data[key] = {"t": value.t, "data": value.data}
+        processed_data.append(bin_data)
+
+    # write the processed data to JSON
+
+    with open("processed_data.json", "w+") as f:
+        json.dump(processed_data, f, indent=4)
     ############# Results Plotting #############
     # TODO: add a graph that computes grams
 
-    for name, quantity in global_data.items():
-        plt.plot(quantity.t, quantity.data, label=name, marker="o")
+    # for name, quantity in global_data.items():
+    #     plt.plot(quantity.t, quantity.data, label=name, marker="o")
 
-    plt.xlabel("Time (s)")
-    plt.ylabel("Total quantity (atoms/m2)")
-    plt.legend()
-    plt.yscale("log")
+    # plt.xlabel("Time (s)")
+    # plt.ylabel("Total quantity (atoms/m2)")
+    # plt.legend()
+    # plt.yscale("log")
 
-    plt.show()
+    # plt.show()
 
-    fig, ax = plt.subplots()
+    # fig, ax = plt.subplots()
 
-    ax.stackplot(
-        quantity.t,
-        [quantity.data for quantity in global_data.values()],
-        labels=global_data.keys(),
-    )
+    # ax.stackplot(
+    #     quantity.t,
+    #     [quantity.data for quantity in global_data.values()],
+    #     labels=global_data.keys(),
+    # )
 
-    plt.xlabel("Time (s)")
-    plt.ylabel("Total quantity (atoms/m2)")
-    plt.legend()
-    plt.show()
+    # plt.xlabel("Time (s)")
+    # plt.ylabel("Total quantity (atoms/m2)")
+    # plt.legend()
+    # plt.show()

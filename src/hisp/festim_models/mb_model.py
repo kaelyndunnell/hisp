@@ -855,7 +855,7 @@ def make_temperature_function(
             value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse, bin, t_rel)
-            if bin.material == "W":
+            if bin.material == "W" or bin.material == "SS": #FIXME: update ss temp when gven data:
                 value = calculate_temperature_W(
                     x[0], heat_flux, coolant_temp, bin.thickness
                 )
