@@ -350,8 +350,8 @@ def make_B_mb_model(
     trap2_T = F.Species("trap2_T", mobile=False)
     trap3_D = F.Species("trap3_D", mobile=False)
     trap3_T = F.Species("trap3_T", mobile=False)
-    trap4_D = F.Species("trap3_T", mobile=False)
-    trap4_T = F.Species("trap3_T", mobile=False)
+    trap4_D = F.Species("trap4_D", mobile=False)
+    trap4_T = F.Species("trap4_T", mobile=False)
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
