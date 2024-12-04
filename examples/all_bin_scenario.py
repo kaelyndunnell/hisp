@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 
-from numpy.typing import NDArray
 
 from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.festim_models import (
@@ -12,7 +11,7 @@ from hisp.festim_models import (
     make_temperature_function,
     make_particle_flux_function,
 )
-from make_iter_bins import FW_bins, Div_bins, total_fw_bins, total_nb_bins
+from make_iter_bins import FW_bins, Div_bins
 
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Scenario, Pulse
@@ -148,9 +147,19 @@ if __name__ == "__main__":
             my_model, quantities = which_model(sub_bin)
 
             # add milestones for stepsize and adaptivity
-            milestones = [pulse.total_duration for pulse in my_scenario.pulses]
-            milestones += [pulse.duration_no_waiting for pulse in my_scenario.pulses]
-            milestones.append(my_model.settings.final_time)
+            milestones = []
+            current_time = 0
+            for pulse in my_scenario.pulses:
+                start_of_pulse = my_scenario.get_time_start_current_pulse(current_time)
+                for i in range(pulse.nb_pulses):
+                    milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
+                    milestones.append(
+                        start_of_pulse
+                        + pulse.total_duration * i
+                        + pulse.duration_no_waiting
+                    )
+
+                current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
             milestones = sorted(np.unique(milestones))
             my_model.settings.stepsize.milestones = milestones
             my_model.settings.stepsize.growth_factor = 1.2
@@ -181,9 +190,20 @@ if __name__ == "__main__":
         my_model, quantities = which_model(div_bin)
 
         # add milestones for stepsize and adaptivity
-        milestones = [pulse.total_duration for pulse in my_scenario.pulses]
-        milestones += [pulse.duration_no_waiting for pulse in my_scenario.pulses]
-        milestones.append(my_model.settings.final_time)
+        milestones = []
+        current_time = 0
+        for pulse in my_scenario.pulses:
+            start_of_pulse = my_scenario.get_time_start_current_pulse(current_time)
+            for i in range(pulse.nb_pulses):
+                milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
+                milestones.append(
+                    start_of_pulse
+                    + pulse.total_duration * i
+                    + pulse.duration_no_waiting
+                )
+
+            current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
+
         milestones = sorted(np.unique(milestones))
         my_model.settings.stepsize.milestones = milestones
         my_model.settings.stepsize.growth_factor = 1.2
