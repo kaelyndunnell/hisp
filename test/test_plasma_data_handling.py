@@ -16,6 +16,9 @@ risp = Pulse(
 
 
 def test_get_RISP_data_t_rel_zero():
+    """
+    Test that the RISP data for t_rel = 0 and t_rel = 1 are the same
+    """
     my_plasmadata = PlasmaDataHandling(
         pulse_type_to_data=None,
         path_to_RISP_data="test/test_data/RISP_data",
