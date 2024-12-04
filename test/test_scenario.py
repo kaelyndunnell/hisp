@@ -236,3 +236,17 @@ def test_reading_a_file():
         plt.plot(times[i : i + 2], np.ones_like(times[i : i + 2]), c=colors[i])
     # plt.xscale("log")
     # plt.show()
+
+
+def test_duplicate_objects():
+    my_scenario = Scenario([pulse1, pulse1])
+
+    t_1 = (pulse1.total_duration * pulse1.nb_pulses) / 2
+    t_2 = (
+        pulse1.total_duration * pulse1.nb_pulses
+        + (pulse2.total_duration * pulse2.nb_pulses) / 2
+    )
+    start_time_pulse_1 = my_scenario.get_time_start_current_pulse(t_1)
+    start_time_pulse_2 = my_scenario.get_time_start_current_pulse(t_2)
+    print(start_time_pulse_1, start_time_pulse_2)
+    assert start_time_pulse_1 != start_time_pulse_2
