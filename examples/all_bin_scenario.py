@@ -176,7 +176,7 @@ if __name__ == "__main__":
     ############# RUN DIV BIN SIMUS #############
     # for div_bin in Div_bins.bins:
     for div_bin in Div_bins.bins[
-        :4
+        15:18
     ]:  # only running 4 div bins to demonstrate capability
         my_model, quantities = which_model(div_bin)
 
