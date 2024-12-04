@@ -189,8 +189,7 @@ class Scenario:
         Returns:
             the time at which the current pulse started
         """
-        current_pulse = self.get_pulse(t)
-        pulse_index = self.pulses.index(current_pulse)
+        pulse_index = self.get_row(t)
         return sum(
             [
                 pulse.nb_pulses * pulse.total_duration
