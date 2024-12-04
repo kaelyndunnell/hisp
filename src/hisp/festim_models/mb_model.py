@@ -350,8 +350,8 @@ def make_B_mb_model(
     trap2_T = F.Species("trap2_T", mobile=False)
     trap3_D = F.Species("trap3_D", mobile=False)
     trap3_T = F.Species("trap3_T", mobile=False)
-    trap4_D = F.Species("trap3_T", mobile=False)
-    trap4_T = F.Species("trap3_T", mobile=False)
+    trap4_D = F.Species("trap4_D", mobile=False)
+    trap4_T = F.Species("trap4_T", mobile=False)
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
@@ -855,7 +855,9 @@ def make_temperature_function(
             value = np.full_like(x[0], T_bake)
         else:
             heat_flux = plasma_data_handling.get_heat(pulse, bin, t_rel)
-            if bin.material == "W" or bin.material == "SS": #FIXME: update ss temp when gven data:
+            if (
+                bin.material == "W" or bin.material == "SS"
+            ):  # FIXME: update ss temp when gven data:
                 value = calculate_temperature_W(
                     x[0], heat_flux, coolant_temp, bin.thickness
                 )
