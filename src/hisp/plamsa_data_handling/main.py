@@ -61,7 +61,12 @@ class PlasmaDataHandling:
             assert isinstance(
                 t_rel, float
             ), f"t_rel should be a float, not {type(t_rel)}"
-            flux = self.RISP_data(bin=bin, t_rel=t_rel)[other_index]
+
+            t_rel_within_a_single_risp = t_rel % pulse.total_duration
+
+            data = self.RISP_data(bin, t_rel=t_rel_within_a_single_risp)
+
+            flux = data[other_index]
         elif pulse.pulse_type == "BAKE":
             flux = 0.0
         else:
@@ -116,7 +121,7 @@ class PlasmaDataHandling:
         t_rel = int(t_rel)
         # NOTE: what is the point of this test since it takes bin_index as an argument?
         if div:
-            if 1 <= t_rel <= 9:
+            if 0 <= t_rel <= 9:
                 key = f"{folder}_1_9"
                 if key not in self._time_to_RISP_data.keys():
                     self._time_to_RISP_data[key] = np.loadtxt(
@@ -137,7 +142,7 @@ class PlasmaDataHandling:
                         f"{folder}/time{t_rel}.dat", skiprows=1
                     )
                 data = self._time_to_RISP_data[key]
-            elif 261 <= t_rel <= 269:
+            elif 261 <= t_rel <= 270:
                 key = f"{folder}_261_269"
                 if key not in self._time_to_RISP_data.keys():
                     self._time_to_RISP_data[key] = np.loadtxt(
@@ -182,7 +187,8 @@ class PlasmaDataHandling:
             bin_index = bin.index
 
         if pulse.pulse_type == "RISP":
-            data = self.RISP_data(bin, t_rel=t_rel)
+            t_rel_within_a_single_risp = t_rel % pulse.total_duration
+            data = self.RISP_data(bin, t_rel=t_rel_within_a_single_risp)
         elif pulse.pulse_type in self.pulse_type_to_data.keys():
             data = self.pulse_type_to_data[pulse.pulse_type]
         else:
