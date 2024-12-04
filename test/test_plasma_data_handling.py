@@ -32,4 +32,4 @@ def test_get_RISP_data_t_rel_zero():
 
     print(val_t_zero)
     print(val_t_one)
-    assert np.testing.assert_array_equal(val_t_zero, val_t_one)
+    assert np.testing.assert_array_equal(val_t_zero, val_t_one) is None
