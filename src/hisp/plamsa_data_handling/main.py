@@ -121,7 +121,7 @@ class PlasmaDataHandling:
             offset_mb = 0
 
         t_rel = int(t_rel)
-        # NOTE: what is the point of this test since it takes bin_index as an argument?
+        
         if div and offset_mb != 0:
             if 0 <= t_rel <= 9:
                 key = f"{folder}_1_9"
