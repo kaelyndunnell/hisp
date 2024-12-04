@@ -160,6 +160,7 @@ if __name__ == "__main__":
                     )
 
                 current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
+            milestones.append(my_model.settings.final_time)
             milestones = sorted(np.unique(milestones))
             my_model.settings.stepsize.milestones = milestones
             my_model.settings.stepsize.growth_factor = 1.2
@@ -204,6 +205,7 @@ if __name__ == "__main__":
 
             current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
 
+        milestones.append(my_model.settings.final_time)
         milestones = sorted(np.unique(milestones))
         my_model.settings.stepsize.milestones = milestones
         my_model.settings.stepsize.growth_factor = 1.2
