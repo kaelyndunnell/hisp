@@ -145,7 +145,7 @@ class DivBin:
             outer_bin: True if outer bin
         """
         inner_swept_bins = list(range(45, 64))
-        outer_swept_bins = list(range(18, 33))
+        outer_swept_bins = list(range(18, 32))
 
         if self.index in inner_swept_bins:
             self.inner_bin = True
