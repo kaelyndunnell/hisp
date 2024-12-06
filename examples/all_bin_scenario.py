@@ -38,9 +38,9 @@ my_scenario = Scenario(pulses=[fp])
 data_folder = "data"
 plasma_data_handling = PlasmaDataHandling(
     pulse_type_to_data={
-        "FP": pd.read_csv(data_folder + "/Binned_Flux_Data.dat",delimiter=','),
-        "ICWC": pd.read_csv(data_folder + "/ICWC_data.dat",delimiter=','),
-        "GDC": pd.read_csv(data_folder + "/GDC_data.dat",delimiter=','),
+        "FP": pd.read_csv(data_folder + "/Binned_Flux_Data.dat", delimiter=","),
+        "ICWC": pd.read_csv(data_folder + "/ICWC_data.dat", delimiter=","),
+        "GDC": pd.read_csv(data_folder + "/GDC_data.dat", delimiter=","),
     },
     path_to_ROSP_data=data_folder + "/ROSP_data",
     path_to_RISP_data=data_folder + "/RISP_data",
