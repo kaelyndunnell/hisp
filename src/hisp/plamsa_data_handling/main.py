@@ -3,6 +3,7 @@ from numpy.typing import NDArray
 from hisp.bin import SubBin, DivBin, FWBin
 from hisp.helpers import periodic_step_function
 from hisp.scenario import Pulse
+import pandas as pd
 
 from typing import Dict
 
@@ -45,18 +46,16 @@ class PlasmaDataHandling:
             wetted_frac = 1  # all div bins are wetted, so get full flux
 
         if ion:
-            FP_index = 2
-            other_index = 0
+            flux_header = 'Flux_Ion'
             flux_frac = (
                 wetted_frac  # for an ion flux, apply the wetted frac for this bin
             )
         if not ion:
-            FP_index = 3
-            other_index = 1
+            flux_header = 'Flux_Atom'
             flux_frac = 1  # there is no wettedness for atom fluxes -- every subbin / bin gets all the atom flux
 
         if pulse.pulse_type == "FP":
-            flux = self.pulse_type_to_data[pulse.pulse_type][:, FP_index][bin_index]
+            flux = self.pulse_type_to_data[pulse.pulse_type][:, flux_header][bin_index]
         elif pulse.pulse_type == "RISP":
             assert isinstance(
                 t_rel, float
@@ -66,11 +65,11 @@ class PlasmaDataHandling:
 
             data = self.RISP_data(bin, t_rel=t_rel_within_a_single_risp)
 
-            flux = data[other_index]
+            flux = data[flux_header]
         elif pulse.pulse_type == "BAKE":
             flux = 0.0
         else:
-            flux = self.pulse_type_to_data[pulse.pulse_type][:, other_index][bin_index]
+            flux = self.pulse_type_to_data[pulse.pulse_type][:, flux_header][bin_index]
 
         value = flux * flux_frac
 
@@ -111,62 +110,60 @@ class PlasmaDataHandling:
         if div:
             if bin.inner_bin:
                 folder = self.path_to_RISP_data
-                offset_mb = 45
+                strike_point = True
             elif bin.outer_bin:
                 folder = self.path_to_ROSP_data
-                offset_mb = 18
+                strike_point = True
             else:
-                offset_mb = 0
-        else:
-            offset_mb = 0
+                strike_point = False # set up boolean to determine if divbin is on strike point or not
 
         t_rel = int(t_rel)
         
-        if div and offset_mb != 0:
+        if div and strike_point:
             if 0 <= t_rel <= 9:
                 key = f"{folder}_1_9"
                 if key not in self._time_to_RISP_data.keys():
-                    self._time_to_RISP_data[key] = np.loadtxt(
-                        f"{folder}/time0.dat", skiprows=1
+                    self._time_to_RISP_data[key] = pd.read_csv(
+                        f"{folder}/time0.dat", delimiter=','
                     )
                 data = self._time_to_RISP_data[key]
             elif 10 <= t_rel <= 98:
                 key = f"{folder}_10_98"
                 if key not in self._time_to_RISP_data.keys():
-                    self._time_to_RISP_data[key] = np.loadtxt(
-                        f"{folder}/time10.dat", skiprows=1
+                    self._time_to_RISP_data[key] = pd.read_csv(
+                        f"{folder}/time10.dat", delimiter=','
                     )
                 data = self._time_to_RISP_data[key]
             elif 100 <= t_rel <= 260:
                 key = f"{folder}_{t_rel}"
                 if key not in self._time_to_RISP_data.keys():
-                    self._time_to_RISP_data[key] = np.loadtxt(
-                        f"{folder}/time{t_rel}.dat", skiprows=1
+                    self._time_to_RISP_data[key] = pd.read_csv(
+                        f"{folder}/time{t_rel}.dat", delimiter=','
                     )
                 data = self._time_to_RISP_data[key]
             elif 261 <= t_rel <= 270:
                 key = f"{folder}_261_269"
                 if key not in self._time_to_RISP_data.keys():
-                    self._time_to_RISP_data[key] = np.loadtxt(
-                        f"{folder}/time260.dat", skiprows=1
+                    self._time_to_RISP_data[key] = pd.read_csv(
+                        f"{folder}/time260.dat", delimiter=','
                     )
                 data = self._time_to_RISP_data[key]
             else:  # NOTE: so if time is too large a MB transforms into a FW element???
                 key = "wall_data"
                 if key not in self._time_to_RISP_data.keys():
-                    self._time_to_RISP_data[key] = np.loadtxt(
-                        self.path_to_RISP_wall_data, skiprows=1
+                    self._time_to_RISP_data[key] = pd.read_csv(
+                        self.path_to_RISP_wall_data, delimiter=','
                     )
                 data = self._time_to_RISP_data[key]
         else:
             key = "wall_data"
             if key not in self._time_to_RISP_data.keys():
-                self._time_to_RISP_data[key] = np.loadtxt(
-                    self.path_to_RISP_wall_data, skiprows=1
+                self._time_to_RISP_data[key] = pd.read_csv(
+                    self.path_to_RISP_wall_data, delimiter=','
                 )
             data = self._time_to_RISP_data[key]
 
-        return data[bin_index - offset_mb, :]
+        return data.loc[bin_index]
 
     def get_heat(self, pulse: Pulse, bin: SubBin | DivBin, t_rel: float):
         """Returns the surface heat flux (W/m2) for a given pulse type
@@ -197,21 +194,21 @@ class PlasmaDataHandling:
             raise ValueError(f"Invalid pulse type {pulse.pulse_type}")
 
         if pulse.pulse_type == "FP":
-            heat_total = data[:, -2][bin_index]
-            heat_ion = data[:, -1][bin_index]
+            heat_total = data['heat_total'][bin_index]
+            heat_ion = data['heat_ion'][bin_index]
             if isinstance(bin, SubBin):
                 heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
             else:
                 heat_val = heat_total
         elif pulse.pulse_type == "RISP":
             if isinstance(bin, SubBin):
-                heat_total = data[-2]
-                heat_ion = data[-1]
+                heat_total = data['heat_total']
+                heat_ion = data['heat_ion']
                 heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
             else:
-                heat_val = data[-1]
+                heat_val = data['heat_total']
         else:  # currently no heat for other pulse types
-            heat_val = data[:, -1][bin_index]
+            heat_val = data['heat_total'][bin_index]
 
         # add in the step function for the pulse
         total_time_on = pulse.duration_no_waiting
