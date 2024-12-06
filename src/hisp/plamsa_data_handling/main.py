@@ -74,12 +74,27 @@ class PlasmaDataHandling:
             data = self.RISP_data(bin, t_rel=t_rel_within_a_single_risp)
 
             flux = data[flux_header]
+
+            # take the single value from the series
+            if isinstance(flux, pd.Series):
+                if flux.values.size == 0:
+                    flux = 0.0
+                else:
+                    assert (
+                        flux.values.size == 1
+                    ), f"flux should be a single value, values: {flux.values}"
+                    flux = flux.values[0]
         elif pulse.pulse_type == "BAKE":
             flux = 0.0
         else:
             flux = self.pulse_type_to_data[pulse.pulse_type][flux_header][bin_index]
 
         value = flux * flux_frac
+
+        # check that heat_val is a float
+        assert isinstance(
+            value, (float, np.float64)
+        ), f"value should be a float, not {type(value)}"
 
         # add in the step function for the pulse
         total_time_on = pulse.duration_no_waiting
