@@ -55,7 +55,7 @@ class PlasmaDataHandling:
             flux_frac = 1  # there is no wettedness for atom fluxes -- every subbin / bin gets all the atom flux
 
         if pulse.pulse_type == "FP":
-            flux = self.pulse_type_to_data[pulse.pulse_type][:, flux_header][bin_index]
+            flux = self.pulse_type_to_data[pulse.pulse_type][flux_header][bin_index]
         elif pulse.pulse_type == "RISP":
             assert isinstance(
                 t_rel, float
@@ -69,7 +69,7 @@ class PlasmaDataHandling:
         elif pulse.pulse_type == "BAKE":
             flux = 0.0
         else:
-            flux = self.pulse_type_to_data[pulse.pulse_type][:, flux_header][bin_index]
+            flux = self.pulse_type_to_data[pulse.pulse_type][flux_header][bin_index]
 
         value = flux * flux_frac
 
