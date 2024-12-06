@@ -163,7 +163,7 @@ class PlasmaDataHandling:
                 )
             data = self._time_to_RISP_data[key]
 
-        return data.loc[bin_index]
+        return data.loc[data['Bin_Index'] == bin_index]
 
     def get_heat(self, pulse: Pulse, bin: SubBin | DivBin, t_rel: float):
         """Returns the surface heat flux (W/m2) for a given pulse type
