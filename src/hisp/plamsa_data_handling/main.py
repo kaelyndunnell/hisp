@@ -9,6 +9,8 @@ from typing import Dict
 
 
 class PlasmaDataHandling:
+    _time_to_RISP_data: Dict[str, pd.DataFrame]
+
     def __init__(
         self,
         pulse_type_to_data: Dict[str, pd.DataFrame],
@@ -20,6 +22,13 @@ class PlasmaDataHandling:
         self.path_to_RISP_data = path_to_RISP_data
         self.path_to_ROSP_data = path_to_ROSP_data
         self.path_to_RISP_wall_data = path_to_RISP_wall_data
+
+        # check that the values in pulse_type_to_data are pandas DataFrames
+        for value in self.pulse_type_to_data.values():
+            if not isinstance(value, pd.DataFrame):
+                raise TypeError(
+                    f"Expected a pandas DataFrame in pulse_type_to_data, got {type(value)} instead"
+                )
 
         self._time_to_RISP_data = {}
 
@@ -55,7 +64,6 @@ class PlasmaDataHandling:
             flux_frac = 1  # there is no wettedness for atom fluxes -- every subbin / bin gets all the atom flux
 
         if pulse.pulse_type == "FP":
-            print(flux_header, bin_index)
             flux = self.pulse_type_to_data[pulse.pulse_type][flux_header][bin_index]
         elif pulse.pulse_type == "RISP":
             assert isinstance(
