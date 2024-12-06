@@ -11,7 +11,7 @@ from typing import Dict
 class PlasmaDataHandling:
     def __init__(
         self,
-        pulse_type_to_data: Dict[str, NDArray],
+        pulse_type_to_data: Dict[str, pd.DataFrame],
         path_to_RISP_data: str,
         path_to_ROSP_data: str,
         path_to_RISP_wall_data: str,
