@@ -55,6 +55,7 @@ class PlasmaDataHandling:
             flux_frac = 1  # there is no wettedness for atom fluxes -- every subbin / bin gets all the atom flux
 
         if pulse.pulse_type == "FP":
+            print(flux_header, bin_index)
             flux = self.pulse_type_to_data[pulse.pulse_type][flux_header][bin_index]
         elif pulse.pulse_type == "RISP":
             assert isinstance(
@@ -213,19 +214,19 @@ class PlasmaDataHandling:
                 heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
             else:
                 heat_val = data["heat_total"]
+
+            # if heat_val is an empty pandas Series set it at 0.0 (no heat)
+            # otherwise take the single value from the series
+            if isinstance(heat_val, pd.Series):
+                if heat_val.values.size == 0:
+                    heat_val = 0.0
+                else:
+                    assert (
+                        heat_val.values.size == 1
+                    ), f"heat_val should be a single value, values: {heat_val.values}"
+                    heat_val = heat_val.values[0]
         else:  # currently no heat for other pulse types
             heat_val = data["heat_total"][bin_index]
-
-        # if heat_val is an empty pandas Series set it at 0.0 (no heat)
-        # otherwise take the single value from the series
-        if isinstance(heat_val, pd.Series):
-            if heat_val.values.size == 0:
-                heat_val = 0.0
-            else:
-                assert (
-                    heat_val.values.size == 1
-                ), f"heat_val should be a single value, values: {heat_val.values}"
-                heat_val = heat_val.values[0]
 
         # check that heat_val is a float
         assert isinstance(
