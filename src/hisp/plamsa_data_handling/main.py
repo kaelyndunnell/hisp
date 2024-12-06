@@ -22,13 +22,13 @@ class PlasmaDataHandling:
         self.path_to_RISP_data = path_to_RISP_data
         self.path_to_ROSP_data = path_to_ROSP_data
         self.path_to_RISP_wall_data = path_to_RISP_wall_data
-
         # check that the values in pulse_type_to_data are pandas DataFrames
-        for value in self.pulse_type_to_data.values():
-            if not isinstance(value, pd.DataFrame):
-                raise TypeError(
-                    f"Expected a pandas DataFrame in pulse_type_to_data, got {type(value)} instead"
-                )
+        if self.pulse_type_to_data is not None:
+            for value in self.pulse_type_to_data.values():
+                if not isinstance(value, pd.DataFrame):
+                    raise TypeError(
+                        f"Expected a pandas DataFrame in pulse_type_to_data, got {type(value)} instead"
+                    )
 
         self._time_to_RISP_data = {}
 
