@@ -85,7 +85,7 @@ class PlasmaDataHandling:
             value_off=0,
         )
 
-    def RISP_data(self, bin: SubBin | DivBin, t_rel: float | int) -> NDArray:
+    def RISP_data(self, bin: SubBin | DivBin, t_rel: float | int) -> pd.DataFrame:
         """Returns the correct RISP data file for indicated bin
 
         Args:
