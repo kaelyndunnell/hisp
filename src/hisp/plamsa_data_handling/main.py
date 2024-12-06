@@ -115,57 +115,61 @@ class PlasmaDataHandling:
                 folder = self.path_to_ROSP_data
                 strike_point = True
             else:
-                strike_point = False # set up boolean to determine if divbin is on strike point or not
+                strike_point = False  # set up boolean to determine if divbin is on strike point or not
 
         t_rel = int(t_rel)
-        
+
         if div and strike_point:
             if 0 <= t_rel <= 9:
                 key = f"{folder}_1_9"
                 if key not in self._time_to_RISP_data.keys():
                     self._time_to_RISP_data[key] = pd.read_csv(
-                        f"{folder}/time0.dat", delimiter=','
+                        f"{folder}/time0.dat", delimiter=","
                     )
                 data = self._time_to_RISP_data[key]
             elif 10 <= t_rel <= 98:
                 key = f"{folder}_10_98"
                 if key not in self._time_to_RISP_data.keys():
                     self._time_to_RISP_data[key] = pd.read_csv(
-                        f"{folder}/time10.dat", delimiter=','
+                        f"{folder}/time10.dat", delimiter=","
                     )
                 data = self._time_to_RISP_data[key]
             elif 100 <= t_rel <= 260:
                 key = f"{folder}_{t_rel}"
                 if key not in self._time_to_RISP_data.keys():
                     self._time_to_RISP_data[key] = pd.read_csv(
-                        f"{folder}/time{t_rel}.dat", delimiter=','
+                        f"{folder}/time{t_rel}.dat", delimiter=","
                     )
                 data = self._time_to_RISP_data[key]
             elif 261 <= t_rel <= 270:
                 key = f"{folder}_261_269"
                 if key not in self._time_to_RISP_data.keys():
                     self._time_to_RISP_data[key] = pd.read_csv(
-                        f"{folder}/time260.dat", delimiter=','
+                        f"{folder}/time260.dat", delimiter=","
                     )
                 data = self._time_to_RISP_data[key]
             else:  # NOTE: so if time is too large a MB transforms into a FW element???
                 key = "wall_data"
                 if key not in self._time_to_RISP_data.keys():
                     self._time_to_RISP_data[key] = pd.read_csv(
-                        self.path_to_RISP_wall_data, delimiter=','
+                        self.path_to_RISP_wall_data, delimiter=","
                     )
                 data = self._time_to_RISP_data[key]
         else:
             key = "wall_data"
             if key not in self._time_to_RISP_data.keys():
                 self._time_to_RISP_data[key] = pd.read_csv(
-                    self.path_to_RISP_wall_data, delimiter=','
+                    self.path_to_RISP_wall_data, delimiter=","
                 )
             data = self._time_to_RISP_data[key]
 
-        return data.loc[data['Bin_Index'] == bin_index]
+        data_for_bin = data.loc[data["Bin_Index"] == bin_index]
 
-    def get_heat(self, pulse: Pulse, bin: SubBin | DivBin, t_rel: float):
+        # check there is only one row for this bin
+        assert (
+            data_for_bin.shape[0] <= 1
+        ), f"More than one row for bin {bin_index}. t_rel: {t_rel}, div: {div}, strike_point: {strike_point}"
+        return data_for_bin
         """Returns the surface heat flux (W/m2) for a given pulse type
 
         Args:
