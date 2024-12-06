@@ -36,3 +36,22 @@ def test_get_RISP_data_t_rel_zero():
     print(val_t_zero)
     print(val_t_one)
     assert np.testing.assert_array_equal(val_t_zero, val_t_one) is None
+
+def test_none_sp_divbin():
+    """
+    Test that divbins not on either strike point are assigned time indepenent data.
+    """
+    my_plasmadata = PlasmaDataHandling(
+        pulse_type_to_data=None,
+        path_to_RISP_data="test/test_data/RISP_data",
+        path_to_RISP_wall_data="test/test_data/RISP_Wall_data.dat",
+        path_to_ROSP_data="test/test_data/ROSP_data",
+    )
+
+    my_bin = DivBin()
+    my_bin.index = 35
+
+    val_t_zero = my_plasmadata.RISP_data(my_bin, t_rel=0)
+    val_t_150 = my_plasmadata.RISP_data(my_bin, t_rel=150)
+
+    assert np.testing.assert_array_equal(val_t_zero, val_t_150) is None
