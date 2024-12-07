@@ -47,95 +47,129 @@ plasma_data_handling = PlasmaDataHandling(
     path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
 )
 
+
+def max_stepsize(t: float) -> float:
+    pulse = my_scenario.get_pulse(t)
+    relative_time = t - my_scenario.get_time_start_current_pulse(t)
+    return periodic_step_function(
+        relative_time,
+        period_on=pulse.duration_no_waiting,
+        period_total=pulse.total_duration,
+        value=pulse.duration_no_waiting / 10,
+        value_off=None,
+    )
+
+
+def which_model(subbin: SubBin | DivBin):
+    """Returns the correct model for the subbin.
+
+    Args:
+        subbin: The bin/subbin to get the model for
+
+    Returns:
+        festim.HTransportModel, dict: The model and the quantities to plot
+    """
+    temperature_fuction = make_temperature_function(
+        scenario=my_scenario,
+        plasma_data_handling=plasma_data_handling,
+        bin=subbin,
+        coolant_temp=COOLANT_TEMP,
+    )
+    d_ion_incident_flux = make_particle_flux_function(
+        scenario=my_scenario,
+        plasma_data_handling=plasma_data_handling,
+        bin=subbin,
+        ion=True,
+        tritium=False,
+    )
+    tritium_ion_flux = make_particle_flux_function(
+        scenario=my_scenario,
+        plasma_data_handling=plasma_data_handling,
+        bin=subbin,
+        ion=True,
+        tritium=True,
+    )
+    deuterium_atom_flux = make_particle_flux_function(
+        scenario=my_scenario,
+        plasma_data_handling=plasma_data_handling,
+        bin=subbin,
+        ion=False,
+        tritium=False,
+    )
+    tritium_atom_flux = make_particle_flux_function(
+        scenario=my_scenario,
+        plasma_data_handling=plasma_data_handling,
+        bin=subbin,
+        ion=False,
+        tritium=True,
+    )
+    common_args = {
+        "deuterium_ion_flux": d_ion_incident_flux,
+        "tritium_ion_flux": tritium_ion_flux,
+        "deuterium_atom_flux": deuterium_atom_flux,
+        "tritium_atom_flux": tritium_atom_flux,
+        "final_time": my_scenario.get_maximum_time() - 1,
+        "temperature": temperature_fuction,
+        "L": subbin.thickness,
+    }
+
+    if isinstance(subbin, DivBin):
+        parent_bin_index = subbin.index
+    elif isinstance(subbin, SubBin):
+        parent_bin_index = subbin.parent_bin_index
+
+    if subbin.material == "W":
+        return make_W_mb_model(
+            **common_args,
+            folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+        )
+    elif subbin.material == "B":
+        return make_B_mb_model(
+            **common_args,
+            folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+        )
+    elif subbin.material == "SS":
+        return make_DFW_mb_model(
+            **common_args,
+            folder=f"mb{parent_bin_index+1}_dfw_results",
+        )
+
+
+def run_bin(bin: SubBin | DivBin):
+    my_model, quantities = which_model(bin)
+
+    # add milestones for stepsize and adaptivity
+    milestones = []
+    current_time = 0
+    for pulse in my_scenario.pulses:
+        start_of_pulse = my_scenario.get_time_start_current_pulse(current_time)
+        for i in range(pulse.nb_pulses):
+            milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
+            milestones.append(
+                start_of_pulse + pulse.total_duration * i + pulse.duration_no_waiting
+            )
+
+        current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
+    milestones.append(my_model.settings.final_time)
+    milestones = sorted(np.unique(milestones))
+    my_model.settings.stepsize.milestones = milestones
+    my_model.settings.stepsize.growth_factor = 1.2
+    my_model.settings.stepsize.cutback_factor = 0.9
+    my_model.settings.stepsize.target_nb_iterations = 4
+
+    my_model.settings.stepsize.max_stepsize = max_stepsize
+
+    my_model.initialise()
+    my_model.run()
+    my_model.progress_bar.close()
+
+    return my_model, quantities
+
+
 if __name__ == "__main__":
     ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
     processed_data = []
-
-    def max_stepsize(t: float) -> float:
-        pulse = my_scenario.get_pulse(t)
-        relative_time = t - my_scenario.get_time_start_current_pulse(t)
-        return periodic_step_function(
-            relative_time,
-            period_on=pulse.duration_no_waiting,
-            period_total=pulse.total_duration,
-            value=pulse.duration_no_waiting / 10,
-            value_off=None,
-        )
-
-    def which_model(subbin: SubBin | DivBin):
-        """Returns the correct model for the subbin.
-
-        Args:
-            subbin: The bin/subbin to get the model for
-
-        Returns:
-            festim.HTransportModel, dict: The model and the quantities to plot
-        """
-        temperature_fuction = make_temperature_function(
-            scenario=my_scenario,
-            plasma_data_handling=plasma_data_handling,
-            bin=subbin,
-            coolant_temp=COOLANT_TEMP,
-        )
-        d_ion_incident_flux = make_particle_flux_function(
-            scenario=my_scenario,
-            plasma_data_handling=plasma_data_handling,
-            bin=subbin,
-            ion=True,
-            tritium=False,
-        )
-        tritium_ion_flux = make_particle_flux_function(
-            scenario=my_scenario,
-            plasma_data_handling=plasma_data_handling,
-            bin=subbin,
-            ion=True,
-            tritium=True,
-        )
-        deuterium_atom_flux = make_particle_flux_function(
-            scenario=my_scenario,
-            plasma_data_handling=plasma_data_handling,
-            bin=subbin,
-            ion=False,
-            tritium=False,
-        )
-        tritium_atom_flux = make_particle_flux_function(
-            scenario=my_scenario,
-            plasma_data_handling=plasma_data_handling,
-            bin=subbin,
-            ion=False,
-            tritium=True,
-        )
-        common_args = {
-            "deuterium_ion_flux": d_ion_incident_flux,
-            "tritium_ion_flux": tritium_ion_flux,
-            "deuterium_atom_flux": deuterium_atom_flux,
-            "tritium_atom_flux": tritium_atom_flux,
-            "final_time": my_scenario.get_maximum_time() - 1,
-            "temperature": temperature_fuction,
-            "L": subbin.thickness,
-        }
-
-        if isinstance(subbin, DivBin):
-            parent_bin_index = subbin.index
-        elif isinstance(subbin, SubBin):
-            parent_bin_index = subbin.parent_bin_index
-
-        if subbin.material == "W":
-            return make_W_mb_model(
-                **common_args,
-                folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
-            )
-        elif subbin.material == "B":
-            return make_B_mb_model(
-                **common_args,
-                folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
-            )
-        elif subbin.material == "SS":
-            return make_DFW_mb_model(
-                **common_args,
-                folder=f"mb{parent_bin_index+1}_dfw_results",
-            )
 
     ############# RUN FW BIN SIMUS #############
     # TODO: adjust to run monoblocks in parallel
@@ -144,34 +178,7 @@ if __name__ == "__main__":
         fw_bin_data = {"bin_index": fw_bin.index, "sub_bins": []}
 
         for sub_bin in fw_bin.sub_bins:
-            my_model, quantities = which_model(sub_bin)
-
-            # add milestones for stepsize and adaptivity
-            milestones = []
-            current_time = 0
-            for pulse in my_scenario.pulses:
-                start_of_pulse = my_scenario.get_time_start_current_pulse(current_time)
-                for i in range(pulse.nb_pulses):
-                    milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
-                    milestones.append(
-                        start_of_pulse
-                        + pulse.total_duration * i
-                        + pulse.duration_no_waiting
-                    )
-
-                current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
-            milestones.append(my_model.settings.final_time)
-            milestones = sorted(np.unique(milestones))
-            my_model.settings.stepsize.milestones = milestones
-            my_model.settings.stepsize.growth_factor = 1.2
-            my_model.settings.stepsize.cutback_factor = 0.9
-            my_model.settings.stepsize.target_nb_iterations = 4
-
-            my_model.settings.stepsize.max_stepsize = max_stepsize
-
-            my_model.initialise()
-            my_model.run()
-            my_model.progress_bar.close()
+            my_model, quantities = run_bin(sub_bin)
 
             global_data[fw_bin][sub_bin] = quantities
             subbin_data = {
@@ -184,39 +191,10 @@ if __name__ == "__main__":
         processed_data.append(fw_bin_data)
 
     ############# RUN DIV BIN SIMUS #############
-    # for div_bin in Div_bins.bins:
     for div_bin in Div_bins.bins[
         15:18
     ]:  # only running 4 div bins to demonstrate capability
-        my_model, quantities = which_model(div_bin)
-
-        # add milestones for stepsize and adaptivity
-        milestones = []
-        current_time = 0
-        for pulse in my_scenario.pulses:
-            start_of_pulse = my_scenario.get_time_start_current_pulse(current_time)
-            for i in range(pulse.nb_pulses):
-                milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
-                milestones.append(
-                    start_of_pulse
-                    + pulse.total_duration * i
-                    + pulse.duration_no_waiting
-                )
-
-            current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
-
-        milestones.append(my_model.settings.final_time)
-        milestones = sorted(np.unique(milestones))
-        my_model.settings.stepsize.milestones = milestones
-        my_model.settings.stepsize.growth_factor = 1.2
-        my_model.settings.stepsize.cutback_factor = 0.9
-        my_model.settings.stepsize.target_nb_iterations = 4
-
-        my_model.settings.stepsize.max_stepsize = max_stepsize
-
-        my_model.initialise()
-        my_model.run()
-        my_model.progress_bar.close()
+        my_model, quantities = run_bin(div_bin)
 
         global_data[div_bin] = quantities
         bin_data = {"bin_index": div_bin.index}
