@@ -21,7 +21,6 @@ from hisp.bin import SubBin, DivBin
 
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
-NB_FP_PULSES_PER_DAY = 13
 COOLANT_TEMP = 343  # 70 degree C cooling water
 fp = Pulse(
     pulse_type="FP",
@@ -60,11 +59,11 @@ def max_stepsize(t: float) -> float:
     )
 
 
-def which_model(subbin: SubBin | DivBin):
+def which_model(bin: SubBin | DivBin):
     """Returns the correct model for the subbin.
 
     Args:
-        subbin: The bin/subbin to get the model for
+        bin: The bin/subbin to get the model for
 
     Returns:
         festim.HTransportModel, dict: The model and the quantities to plot
@@ -72,34 +71,34 @@ def which_model(subbin: SubBin | DivBin):
     temperature_fuction = make_temperature_function(
         scenario=my_scenario,
         plasma_data_handling=plasma_data_handling,
-        bin=subbin,
+        bin=bin,
         coolant_temp=COOLANT_TEMP,
     )
     d_ion_incident_flux = make_particle_flux_function(
         scenario=my_scenario,
         plasma_data_handling=plasma_data_handling,
-        bin=subbin,
+        bin=bin,
         ion=True,
         tritium=False,
     )
     tritium_ion_flux = make_particle_flux_function(
         scenario=my_scenario,
         plasma_data_handling=plasma_data_handling,
-        bin=subbin,
+        bin=bin,
         ion=True,
         tritium=True,
     )
     deuterium_atom_flux = make_particle_flux_function(
         scenario=my_scenario,
         plasma_data_handling=plasma_data_handling,
-        bin=subbin,
+        bin=bin,
         ion=False,
         tritium=False,
     )
     tritium_atom_flux = make_particle_flux_function(
         scenario=my_scenario,
         plasma_data_handling=plasma_data_handling,
-        bin=subbin,
+        bin=bin,
         ion=False,
         tritium=True,
     )
@@ -110,25 +109,25 @@ def which_model(subbin: SubBin | DivBin):
         "tritium_atom_flux": tritium_atom_flux,
         "final_time": my_scenario.get_maximum_time() - 1,
         "temperature": temperature_fuction,
-        "L": subbin.thickness,
+        "L": bin.thickness,
     }
 
-    if isinstance(subbin, DivBin):
-        parent_bin_index = subbin.index
-    elif isinstance(subbin, SubBin):
-        parent_bin_index = subbin.parent_bin_index
+    if isinstance(bin, DivBin):
+        parent_bin_index = bin.index
+    elif isinstance(bin, SubBin):
+        parent_bin_index = bin.parent_bin_index
 
-    if subbin.material == "W":
+    if bin.material == "W":
         return make_W_mb_model(
             **common_args,
             folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
         )
-    elif subbin.material == "B":
+    elif bin.material == "B":
         return make_B_mb_model(
             **common_args,
             folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
         )
-    elif subbin.material == "SS":
+    elif bin.material == "SS":
         return make_DFW_mb_model(
             **common_args,
             folder=f"mb{parent_bin_index+1}_dfw_results",
@@ -136,6 +135,16 @@ def which_model(subbin: SubBin | DivBin):
 
 
 def run_bin(bin: SubBin | DivBin):
+    """
+    Runs the FESTIM model for the given bin.
+
+    Args:
+        bin: The bin to run the model for
+
+    Returns:
+        The model, the quantities
+    """
+    # create the FESTIM model
     my_model, quantities = which_model(bin)
 
     # add milestones for stepsize and adaptivity
@@ -167,13 +176,13 @@ def run_bin(bin: SubBin | DivBin):
 
 
 if __name__ == "__main__":
-    ############# CREATE EMPTY NP ARRAYS TO STORE ALL DATA #############
     global_data = {}
     processed_data = []
 
+    # running only a subset of the bins for demonstration purposes
+
     ############# RUN FW BIN SIMUS #############
-    # TODO: adjust to run monoblocks in parallel
-    for fw_bin in FW_bins.bins[:3]:  # only running 3 fw_bins to demonstrate capability
+    for fw_bin in FW_bins.bins[:3]:
         global_data[fw_bin] = {}
         fw_bin_data = {"bin_index": fw_bin.index, "sub_bins": []}
 
@@ -181,53 +190,31 @@ if __name__ == "__main__":
             my_model, quantities = run_bin(sub_bin)
 
             global_data[fw_bin][sub_bin] = quantities
+
             subbin_data = {
-                "mode": sub_bin.mode,
-                "parent_bin_index": sub_bin.parent_bin_index,
+                key: {"t": value.t, "data": value.data}
+                for key, value in quantities.items()
             }
-            for key, value in quantities.items():
-                subbin_data[key] = {"t": value.t, "data": value.data}
+            subbin_data["mode"] = sub_bin.mode
+            subbin_data["parent_bin_index"] = sub_bin.parent_bin_index
+
             fw_bin_data["sub_bins"].append(subbin_data)
+
         processed_data.append(fw_bin_data)
 
     ############# RUN DIV BIN SIMUS #############
-    for div_bin in Div_bins.bins[
-        15:18
-    ]:  # only running 4 div bins to demonstrate capability
+    for div_bin in Div_bins.bins[15:18]:
         my_model, quantities = run_bin(div_bin)
 
         global_data[div_bin] = quantities
-        bin_data = {"bin_index": div_bin.index}
-        for key, value in quantities.items():
-            bin_data[key] = {"t": value.t, "data": value.data}
+
+        bin_data = {
+            key: {"t": value.t, "data": value.data} for key, value in quantities.items()
+        }
+        bin_data["bin_index"] = div_bin.index
+
         processed_data.append(bin_data)
 
     # write the processed data to JSON
-
     with open("processed_data.json", "w+") as f:
         json.dump(processed_data, f, indent=4)
-    ############# Results Plotting #############
-    # TODO: add a graph that computes grams
-
-    # for name, quantity in global_data.items():
-    #     plt.plot(quantity.t, quantity.data, label=name, marker="o")
-
-    # plt.xlabel("Time (s)")
-    # plt.ylabel("Total quantity (atoms/m2)")
-    # plt.legend()
-    # plt.yscale("log")
-
-    # plt.show()
-
-    # fig, ax = plt.subplots()
-
-    # ax.stackplot(
-    #     quantity.t,
-    #     [quantity.data for quantity in global_data.values()],
-    #     labels=global_data.keys(),
-    # )
-
-    # plt.xlabel("Time (s)")
-    # plt.ylabel("Total quantity (atoms/m2)")
-    # plt.legend()
-    # plt.show()
