@@ -1,17 +1,16 @@
 import json
 import pandas as pd
-
-from hisp.plamsa_data_handling import PlasmaDataHandling
-
 from make_iter_bins import FW_bins, Div_bins, my_reactor
 
+from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.scenario import Scenario, Pulse
-
 from hisp.model import Model
 
 # import dolfinx
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
+
+# Make a scenario
 fp = Pulse(
     pulse_type="FP",
     nb_pulses=1,
@@ -24,6 +23,7 @@ fp = Pulse(
 
 my_scenario = Scenario(pulses=[fp])
 
+# Make a plasma data handling object
 data_folder = "data"
 plasma_data_handling = PlasmaDataHandling(
     pulse_type_to_data={
@@ -36,6 +36,7 @@ plasma_data_handling = PlasmaDataHandling(
     path_to_RISP_wall_data=data_folder + "/RISP_Wall_data.dat",
 )
 
+# Make a HISP model object
 my_hisp_model = Model(
     reactor=my_reactor,
     scenario=my_scenario,
