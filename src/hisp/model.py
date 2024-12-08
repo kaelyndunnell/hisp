@@ -14,6 +14,11 @@ import numpy as np
 
 
 class Model:
+    """
+    The main HISP model class.
+    Takes a reactor, a scenario, a plasma data handling object and runs the FESTIM model(s) for each reactor bin.
+    """
+
     def __init__(
         self,
         reactor: Reactor,
@@ -21,6 +26,13 @@ class Model:
         plasma_data_handling: PlasmaDataHandling,
         coolant_temp: float = 343.0,
     ):
+        """
+        Args:
+            reactor: The reactor to run the model for
+            scenario: The scenario to run the model for
+            plasma_data_handling: The plasma data handling object
+            coolant_temp: The coolant temperature (K)
+        """
         self.reactor = reactor
         self.scenario = scenario
         self.plasma_data_handling = plasma_data_handling
@@ -56,15 +68,18 @@ class Model:
         milestones.append(my_model.settings.final_time)
         milestones = sorted(np.unique(milestones))
         my_model.settings.stepsize.milestones = milestones
+
+        # add adatpivity settings
         my_model.settings.stepsize.growth_factor = 1.2
         my_model.settings.stepsize.cutback_factor = 0.9
         my_model.settings.stepsize.target_nb_iterations = 4
 
+        # add the stepsize cap function
         my_model.settings.stepsize.max_stepsize = self.max_stepsize
 
+        # run the model
         my_model.initialise()
         my_model.run()
-        my_model.progress_bar.close()
 
         return my_model, quantities
 
@@ -75,7 +90,7 @@ class Model:
             bin: The bin/subbin to get the model for
 
         Returns:
-            festim.HTransportModel, dict: The model and the quantities to plot
+            The model and the quantities to plot
         """
         temperature_fuction = make_temperature_function(
             scenario=self.scenario,

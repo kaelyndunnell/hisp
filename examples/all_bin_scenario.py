@@ -10,7 +10,6 @@ from hisp.scenario import Scenario, Pulse
 from hisp.model import Model
 
 # import dolfinx
-
 # dolfinx.log.set_log_level(dolfinx.log.LogLevel.INFO)
 
 fp = Pulse(
