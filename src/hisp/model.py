@@ -11,6 +11,7 @@ from hisp.festim_models import (
 )
 
 import numpy as np
+from typing import List
 
 
 class Model:
@@ -52,21 +53,8 @@ class Model:
         my_model, quantities = self.which_model(bin)
 
         # add milestones for stepsize and adaptivity
-        milestones = []
-        current_time = 0
-        for pulse in self.scenario.pulses:
-            start_of_pulse = self.scenario.get_time_start_current_pulse(current_time)
-            for i in range(pulse.nb_pulses):
-                milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
-                milestones.append(
-                    start_of_pulse
-                    + pulse.total_duration * i
-                    + pulse.duration_no_waiting
-                )
-
-            current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
+        milestones = self.make_milestones()
         milestones.append(my_model.settings.final_time)
-        milestones = sorted(np.unique(milestones))
         my_model.settings.stepsize.milestones = milestones
 
         # add adatpivity settings
@@ -169,3 +157,29 @@ class Model:
             value=pulse.duration_no_waiting / 10,
             value_off=None,
         )
+
+    def make_milestones(self) -> List[float]:
+        """
+        Returns the milestones for the stepsize.
+        For each pulse, the milestones are the start
+        of the pulse, the start of the waiting period,
+        and the end of the pulse.
+
+        Returns:
+            The milestones in seconds
+        """
+        milestones = []
+        current_time = 0
+        for pulse in self.scenario.pulses:
+            start_of_pulse = self.scenario.get_time_start_current_pulse(current_time)
+            for i in range(pulse.nb_pulses):
+                milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
+                milestones.append(
+                    start_of_pulse
+                    + pulse.total_duration * i
+                    + pulse.duration_no_waiting
+                )
+
+            current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
+
+        return sorted(np.unique(milestones))
