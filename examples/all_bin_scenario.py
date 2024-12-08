@@ -48,9 +48,7 @@ if __name__ == "__main__":
     global_data = {}
     processed_data = []
 
-    # running only a subset of the bins for demonstration purposes
-
-    ############# RUN FW BIN SIMUS #############
+    # first wall bins
     for fw_bin in FW_bins.bins[:3]:
         global_data[fw_bin] = {}
         fw_bin_data = {"bin_index": fw_bin.index, "sub_bins": []}
@@ -71,7 +69,7 @@ if __name__ == "__main__":
 
         processed_data.append(fw_bin_data)
 
-    ############# RUN DIV BIN SIMUS #############
+    # divertor bins
     for div_bin in Div_bins.bins[15:18]:
         my_model, quantities = my_hisp_model.run_bin(div_bin)
 
