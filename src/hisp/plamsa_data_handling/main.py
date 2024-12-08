@@ -247,7 +247,7 @@ class PlasmaDataHandling:
                         heat_val.values.size == 1
                     ), f"heat_val should be a single value, values: {heat_val.values}"
                     heat_val = heat_val.values[0]
-        else:  # currently no heat for other pulse types
+        else:
             heat_val = data["heat_total"][bin_index]
 
         # check that heat_val is a float
