@@ -120,12 +120,12 @@ def which_model(bin: SubBin | DivBin):
     if bin.material == "W":
         return make_W_mb_model(
             **common_args,
-            folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+            folder=f"mb{parent_bin_index+1}_{bin.mode}_results",
         )
     elif bin.material == "B":
         return make_B_mb_model(
             **common_args,
-            folder=f"mb{parent_bin_index+1}_{sub_bin.mode}_results",
+            folder=f"mb{parent_bin_index+1}_{bin.mode}_results",
         )
     elif bin.material == "SS":
         return make_DFW_mb_model(
