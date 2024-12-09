@@ -57,7 +57,7 @@ class Model:
         milestones.append(my_model.settings.final_time)
         my_model.settings.stepsize.milestones = milestones
 
-        # add adatpivity settings
+        # add adaptivity settings
         my_model.settings.stepsize.growth_factor = 1.2
         my_model.settings.stepsize.cutback_factor = 0.9
         my_model.settings.stepsize.target_nb_iterations = 4
@@ -70,6 +70,10 @@ class Model:
         my_model.run()
 
         return my_model, quantities
+
+    # TODO implement this method
+    def run_all_bins(self):
+        pass
 
     def which_model(self, bin: SubBin | DivBin):
         """Returns the correct model for the subbin.
