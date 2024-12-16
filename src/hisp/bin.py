@@ -9,11 +9,10 @@ class SubBin:
     mode: str
     dfw: bool
     parent_bin_index: int
-    low_wetted_area: float  # m^2
-    high_wetted_area: float  # m^2
-    total_area: float  # m^2
-    f: float  # fraction of heat values in low_wetted_area from SMITER
-    # (f = H_low * low_wetted_area /(H_low * low_wetted_area + H_high * high_wetted_area))
+    low_wetted_area: float
+    high_wetted_area: float
+    total_area: float
+    f: float
 
     def __init__(
         self,
@@ -21,6 +20,27 @@ class SubBin:
         thickness: float = None,
         material: str = None,
     ):
+        """
+        A SubBin object represents a sub-bin of a FW bin in a reactor.
+
+
+        Args:
+            thickness: The thickness of the subbin (in m).
+            material: The material of the subbin.
+            mode: The mode of the subbin (shadowed, wetted, low_wetted, high_wetted).
+
+        Attributes:
+            thickness: The thickness of the subbin (in m).
+            material: The material of the subbin.
+            mode: The mode of the subbin (shadowed, wetted, low_wetted, high_wetted).
+            dfw: A boolean indicating if the subbin is a Divertor First Wall (DFW) subbin.
+            parent_bin_index: The index of the parent bin.
+            low_wetted_area: The low wetted area of the parent bin (in m^2).
+            high_wetted_area: The high wetted area of the parent bin (in m^2).
+            total_area: The total area of the parent bin (in m^2).
+            f: The fraction of heat values in the low wetted area. Calculated from SMITER as:
+                f = H_low * low_wetted_area / (H_low * low_wetted_area + H_high * high_wetted_area)
+        """
         self.thickness = thickness
         self.material = material
         self.mode = mode
@@ -47,6 +67,22 @@ class SubBin:
 
         elif self.mode == "high_wetted":
             return (1 - self.f) * self.total_area / self.high_wetted_area
+
+    @property
+    def surface_area(self) -> float:
+        """Calculates the surface area of the subbin (in m^2).
+
+        Returns:
+            The surface area of the subbin (in m^2).
+        """
+        if self.shadowed:
+            low_wetted_area = self.low_wetted_area or 0
+            high_wetted_area = self.high_wetted_area or 0
+            return self.total_area - low_wetted_area - high_wetted_area
+        elif self.mode in ["wetted", "low_wetted"]:
+            return self.low_wetted_area
+        elif self.mode == "high_wetted":
+            return self.high_wetted_area
 
 
 class FWBin:
