@@ -76,8 +76,18 @@ class SubBin:
             The surface area of the subbin (in m^2).
         """
         if self.shadowed:
-            low_wetted_area = self.low_wetted_area or 0
-            high_wetted_area = self.high_wetted_area or 0
+            low_wetted_area = self.low_wetted_area
+            high_wetted_area = self.high_wetted_area
+            if (
+                isinstance(self.low_wetted_area, type(np.nan))
+                or self.low_wetted_area is None
+            ):
+                low_wetted_area = 0
+            if (
+                isinstance(self.high_wetted_area, type(np.nan))
+                or self.high_wetted_area is None
+            ):
+                high_wetted_area = 0
             return self.total_area - low_wetted_area - high_wetted_area
         elif self.mode in ["wetted", "low_wetted"]:
             return self.low_wetted_area
