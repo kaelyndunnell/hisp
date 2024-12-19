@@ -40,7 +40,9 @@ class PulsedSource(F.ParticleSource):
 def gaussian_distribution(
     x: npt.NDArray, mean: float, width: float, mod=ufl
 ) -> ufl.core.expr.Expr:
-    return mod.exp(-((x[0] - mean) ** 2) / (2 * width**2))
+    return mod.exp(-((x[0] - mean) ** 2) / (2 * width**2)) / (
+        np.sqrt(2 * np.pi * width**2)
+    )
 
 
 def periodic_step_function(x, period_on, period_total, value, value_off=0.0):
