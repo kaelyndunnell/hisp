@@ -223,7 +223,7 @@ class PlasmaDataHandling:
             raise ValueError(f"Invalid pulse type {pulse.pulse_type}")
 
         if pulse.pulse_type == "FP":
-            heat_total = data["heat_total"][bin_index]
+            heat_total = data["heat_total"][bin_index]+0.11e+06 # photon radiation heat adjustment
             heat_ion = data["heat_ion"][bin_index]
             if isinstance(bin, SubBin):
                 heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
@@ -231,7 +231,7 @@ class PlasmaDataHandling:
                 heat_val = heat_total
         elif pulse.pulse_type == "RISP":
             if isinstance(bin, SubBin):
-                heat_total = data["heat_total"]
+                heat_total = data["heat_total"]+0.11e+06 # photon radiation heat adjustment
                 heat_ion = data["heat_ion"]
                 heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
             else:
