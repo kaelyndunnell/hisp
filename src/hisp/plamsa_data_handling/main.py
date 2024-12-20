@@ -223,7 +223,8 @@ class PlasmaDataHandling:
             raise ValueError(f"Invalid pulse type {pulse.pulse_type}")
 
         if pulse.pulse_type == "FP":
-            heat_total = data["heat_total"][bin_index]+0.11e+06 # photon radiation heat adjustment
+            photon_heat_radiation = 0.11e6  # W/m2
+            heat_total = data["heat_total"][bin_index]+ photon_heat_radiation 
             heat_ion = data["heat_ion"][bin_index]
             if isinstance(bin, SubBin):
                 heat_val = heat_total - heat_ion * (1 - bin.wetted_frac)
