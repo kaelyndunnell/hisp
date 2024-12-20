@@ -318,7 +318,7 @@ def make_B_mb_model(
 
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
-            np.linspace(0, 5e-9, num=300),
+            np.linspace(0, 5e-9, num=200),
             np.linspace(5e-9, 1e-8, num=500),
             np.linspace(1e-8, L, num=300),
         ]
