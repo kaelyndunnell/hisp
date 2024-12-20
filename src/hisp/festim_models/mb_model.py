@@ -48,10 +48,11 @@ def make_W_mb_model(
 
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
-            np.linspace(0, 30e-9, num=200),
-            np.linspace(30e-9, 3e-6, num=300),
-            np.linspace(3e-6, 30e-6, num=200),
-            np.linspace(30e-6, L, num=200),
+            np.linspace(0, 30e-9, num=300),
+            np.linspace(30e-9, 3e-6, num=400),
+            np.linspace(3e-6, 30e-6, num=400),
+            np.linspace(30e-6, 1e-4, num=400),
+            np.linspace(1e-4, L, num=300),
         ]
     )
     my_model.mesh = F.Mesh1D(vertices)
@@ -274,7 +275,7 @@ def make_W_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e-10,
+        atol=1e10,
         rtol=1e-10,
         max_iterations=1000,
         final_time=final_time,
@@ -317,8 +318,9 @@ def make_B_mb_model(
 
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
-            np.linspace(0, 30e-9, num=200),
-            np.linspace(30e-9, L, num=200),
+            np.linspace(0, 5e-9, num=200),
+            np.linspace(5e-9, 1e-8, num=500),
+            np.linspace(1e-8, L, num=300),
         ]
     )
     my_model.mesh = F.Mesh1D(vertices)
@@ -538,8 +540,8 @@ def make_B_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e-15,
-        rtol=1e-15,
+        atol=1e10,
+        rtol=1e-8,
         max_iterations=1000,
         final_time=final_time,
     )
@@ -743,8 +745,8 @@ def make_DFW_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e-15,
-        rtol=1e-15,
+        atol=1e10,
+        rtol=1e-10,
         max_iterations=1000,
         final_time=final_time,
     )
