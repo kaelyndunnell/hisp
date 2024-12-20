@@ -48,10 +48,11 @@ def make_W_mb_model(
 
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
-            np.linspace(0, 30e-9, num=200),
-            np.linspace(30e-9, 3e-6, num=300),
-            np.linspace(3e-6, 30e-6, num=200),
-            np.linspace(30e-6, L, num=200),
+            np.linspace(0, 30e-9, num=300),
+            np.linspace(30e-9, 3e-6, num=400),
+            np.linspace(3e-6, 30e-6, num=400),
+            np.linspace(30e-6, 1e-4, num=400),
+            np.linspace(1e-4, L, num=300),
         ]
     )
     my_model.mesh = F.Mesh1D(vertices)
