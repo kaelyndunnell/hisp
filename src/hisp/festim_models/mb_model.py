@@ -541,7 +541,7 @@ def make_B_mb_model(
     ############# Settings #############
     my_model.settings = F.Settings(
         atol=1e10,
-        rtol=1e-5,
+        rtol=1e-8,
         max_iterations=1000,
         final_time=final_time,
     )
