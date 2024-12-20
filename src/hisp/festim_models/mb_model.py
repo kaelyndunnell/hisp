@@ -274,7 +274,7 @@ def make_W_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e-10,
+        atol=1e10,
         rtol=1e-10,
         max_iterations=1000,
         final_time=final_time,
@@ -538,8 +538,8 @@ def make_B_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e-15,
-        rtol=1e-15,
+        atol=1e10,
+        rtol=1e-10,
         max_iterations=1000,
         final_time=final_time,
     )
@@ -743,8 +743,8 @@ def make_DFW_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e-15,
-        rtol=1e-15,
+        atol=1e10,
+        rtol=1e-10,
         max_iterations=1000,
         final_time=final_time,
     )
