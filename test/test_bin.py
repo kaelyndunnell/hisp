@@ -1,7 +1,15 @@
 import numpy as np
 import pytest
 import pandas as pd
-from hisp.bin import FWBin3Subs, FWBin2Subs, DivBin, FWBin, BinCollection, Reactor
+from hisp.bin import (
+    FWBin3Subs,
+    FWBin2Subs,
+    DivBin,
+    FWBin,
+    BinCollection,
+    Reactor,
+    SubBin,
+)
 
 # create Reactor
 fw_bins = [FWBin3Subs() for _ in range(18)]
@@ -143,3 +151,56 @@ def test_arc_length():
     bins = BinCollection([bin_1, bin_2, bin_3])
     assert np.allclose(bins.arc_length(), [1, 3, 4])
     assert np.allclose(bins.arc_length(middle=True), [0.5, 2, 3.5])
+
+
+def test_sub_bin_surface_area_3_subbins():
+
+    # BUILD
+    my_bin = FWBin()
+
+    subbin_shadowed = SubBin(mode="shadowed")
+    subbin_low_wetted = SubBin(mode="low_wetted")
+    subbin_high_wetted = SubBin(mode="high_wetted")
+    my_bin.sub_bins = [subbin_shadowed, subbin_low_wetted, subbin_high_wetted]
+
+    bin_low_wetted_area = 5
+    bin_high_wetted_area = 3
+    bin_shadowed_area = 2
+
+    bin_total_area = bin_low_wetted_area + bin_high_wetted_area + bin_shadowed_area
+
+    for subbin in my_bin.sub_bins:
+        subbin.low_wetted_area = bin_low_wetted_area
+        subbin.high_wetted_area = bin_high_wetted_area
+        subbin.total_area = bin_total_area
+
+    # TEST
+    assert (
+        subbin_shadowed.surface_area
+        == bin_total_area - bin_low_wetted_area - bin_high_wetted_area
+    )
+    assert subbin_low_wetted.surface_area == bin_low_wetted_area
+    assert subbin_high_wetted.surface_area == bin_high_wetted_area
+
+
+def test_sub_bin_surface_area_2_subbins():
+
+    # BUILD
+    my_bin = FWBin()
+
+    subbin_shadowed = SubBin(mode="shadowed")
+    subbin_wetted = SubBin(mode="wetted")
+    my_bin.sub_bins = [subbin_shadowed, subbin_wetted]
+
+    bin_wetted_area = 5
+    bin_shadowed_area = 2
+
+    bin_total_area = bin_wetted_area + bin_shadowed_area
+
+    for subbin in my_bin.sub_bins:
+        subbin.low_wetted_area = bin_wetted_area
+        subbin.total_area = bin_total_area
+
+    # TEST
+    assert subbin_shadowed.surface_area == bin_total_area - bin_wetted_area
+    assert subbin_wetted.surface_area == bin_wetted_area
