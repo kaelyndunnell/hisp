@@ -546,7 +546,7 @@ def make_B_mb_model(
         final_time=final_time,
     )
 
-    my_model.settings.stepsize = F.Stepsize(initial_value=1)
+    my_model.settings.stepsize = F.Stepsize(initial_value=1e-4)
 
     return my_model, quantities
 
