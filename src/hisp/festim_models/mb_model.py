@@ -281,7 +281,7 @@ def make_W_mb_model(
         final_time=final_time,
     )
 
-    my_model.settings.stepsize = F.Stepsize(initial_value=1)
+    my_model.settings.stepsize = F.Stepsize(initial_value=1e-3)
 
     return my_model, quantities
 
@@ -585,8 +585,9 @@ def make_DFW_mb_model(
         [
             np.linspace(0, 30e-9, num=200),
             np.linspace(30e-9, 3e-6, num=300),
-            np.linspace(3e-6, 30e-6, num=200),
-            np.linspace(30e-6, L, num=200),
+            np.linspace(3e-6, 30e-6, num=300),
+            np.linspace(30e-6, 1e-4, num=300),
+            np.linspace(1e-4, L, num=200),
         ]
     )
     my_model.mesh = F.Mesh1D(vertices)
@@ -751,7 +752,7 @@ def make_DFW_mb_model(
         final_time=final_time,
     )
 
-    my_model.settings.stepsize = F.Stepsize(initial_value=1)
+    my_model.settings.stepsize = F.Stepsize(initial_value=1e-3)
 
     return my_model, quantities
 
