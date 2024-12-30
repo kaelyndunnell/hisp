@@ -154,11 +154,15 @@ class Model:
     def max_stepsize(self, t: float) -> float:
         pulse = self.scenario.get_pulse(t)
         relative_time = t - self.scenario.get_time_start_current_pulse(t)
+        if pulse.pulse_type == "RISP":
+            value = 0.3  # s
+        else:
+            value = pulse.duration_no_waiting / 10  # s
         return periodic_step_function(
             relative_time,
             period_on=pulse.duration_no_waiting,
             period_total=pulse.total_duration,
-            value=pulse.duration_no_waiting / 10,
+            value=value,
             value_off=None,
         )
 
