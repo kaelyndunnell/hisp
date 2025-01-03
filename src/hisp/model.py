@@ -217,7 +217,7 @@ class Model:
 
                     # hack: a milestone right after to ensure the stepsize is small enough
                     milestones.append(
-                        t_begin_real_pulse + pulse.total_duration * i + 0.1
+                        t_begin_real_pulse + pulse.total_duration * i + 0.05
                     )
 
             # update the current time to the end of the current "sequence" of pulses
