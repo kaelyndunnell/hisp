@@ -277,7 +277,7 @@ def make_W_mb_model(
     my_model.settings = F.Settings(
         atol=1e10,
         rtol=1e-10,
-        max_iterations=1000,
+        max_iterations=30,
         final_time=final_time,
     )
 
@@ -748,7 +748,7 @@ def make_DFW_mb_model(
     my_model.settings = F.Settings(
         atol=1e10,
         rtol=1e-10,
-        max_iterations=1000,
+        max_iterations=30,
         final_time=final_time,
     )
 
