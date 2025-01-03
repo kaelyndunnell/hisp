@@ -12,7 +12,7 @@ import pytest
 @pytest.mark.parametrize(
     "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
 )
-def test_mb_model(temp):
+def test_mb_W_model(temp):
     """Builds a festim tungsten model, run it, and tests the output."""
     (mb_model, quantities) = make_W_mb_model(
         temperature=temp,
@@ -40,7 +40,7 @@ def test_mb_model(temp):
 @pytest.mark.parametrize(
     "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
 )
-def test_mb_model(temp):
+def test_mb_model_B(temp):
     """Builds a festim boron model, run it, and tests the output."""
     (mb_model, quantities) = make_B_mb_model(
         temperature=temp,
@@ -68,7 +68,7 @@ def test_mb_model(temp):
 @pytest.mark.parametrize(
     "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
 )
-def test_mb_model(temp):
+def test_mb_model_DFW(temp):
     """Builds a festim tungsten model, run it, and tests the output."""
     (mb_model, quantities) = make_DFW_mb_model(
         temperature=temp,
