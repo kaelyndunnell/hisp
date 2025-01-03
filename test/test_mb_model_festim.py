@@ -15,11 +15,11 @@ import pytest
 def test_mb_W_model(temp):
     """Builds a festim tungsten model, run it, and tests the output."""
     (mb_model, quantities) = make_W_mb_model(
-        temperature=temp,
-        deuterium_ion_flux=lambda _: 1e22,
-        deuterium_atom_flux=lambda _: 1e22,
-        tritium_ion_flux=lambda _: 1e22,
-        tritium_atom_flux=lambda _: 1e22,
+        temperature=1000,
+        deuterium_ion_flux=lambda _: 2e10,
+        deuterium_atom_flux=lambda _: 2e10,
+        tritium_ion_flux=lambda _: 2e10,
+        tritium_atom_flux=lambda _: 2e10,
         L=6e-3,
         final_time=50,
         folder=".",
