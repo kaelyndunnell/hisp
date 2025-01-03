@@ -24,6 +24,7 @@ def test_mb_model(temp):
         final_time=50,
         folder=".",
     )
+    mb_model.settings.stepsize.initial_value = 1
 
     mb_model.initialise()
     mb_model.run()
@@ -51,6 +52,7 @@ def test_mb_model(temp):
         L=6e-3,
         folder=".",
     )
+    mb_model.settings.stepsize.initial_value = 1
 
     mb_model.initialise()
     mb_model.run()
@@ -78,6 +80,8 @@ def test_mb_model(temp):
         L=6e-3,
         folder=".",
     )
+
+    mb_model.settings.stepsize.initial_value = 1
 
     mb_model.initialise()
     mb_model.run()
