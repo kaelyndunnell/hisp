@@ -9,7 +9,9 @@ import festim as F
 import pytest
 
 
-@pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
+@pytest.mark.parametrize(
+    "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
+)
 def test_mb_model(temp):
     """Builds a festim tungsten model, run it, and tests the output."""
     (mb_model, quantities) = make_W_mb_model(
@@ -34,7 +36,9 @@ def test_mb_model(temp):
         assert len(value.data) > 0
 
 
-@pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
+@pytest.mark.parametrize(
+    "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
+)
 def test_mb_model(temp):
     """Builds a festim boron model, run it, and tests the output."""
     (mb_model, quantities) = make_B_mb_model(
@@ -59,7 +63,9 @@ def test_mb_model(temp):
         assert len(value.data) > 0
 
 
-@pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
+@pytest.mark.parametrize(
+    "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
+)
 def test_mb_model(temp):
     """Builds a festim tungsten model, run it, and tests the output."""
     (mb_model, quantities) = make_DFW_mb_model(
