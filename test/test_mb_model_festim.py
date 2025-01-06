@@ -82,3 +82,50 @@ def test_mb_model(temp):
         assert isinstance(key, str)
         assert isinstance(value, F.TotalVolume)
         assert len(value.data) > 0
+
+
+def test_model_last_timestep_overshoot():
+
+    from hisp.scenario import Scenario, Pulse
+
+    pulse1 = Pulse(
+        pulse_type="FP",
+        nb_pulses=1,
+        ramp_up=0,
+        steady_state=50,
+        ramp_down=0,
+        waiting=0,
+        tritium_fraction=0.5,
+    )
+
+    scenario = Scenario([pulse1])
+
+    def fun(t):
+        scenario.get_pulse(t)
+        return None
+
+    (my_model, quantities) = make_DFW_mb_model(
+        temperature=1000,
+        deuterium_ion_flux=lambda _: 0,
+        deuterium_atom_flux=lambda _: 0,
+        tritium_ion_flux=lambda _: 0,
+        tritium_atom_flux=lambda _: 0,
+        final_time=50,
+        L=6e-3,
+        folder=".",
+    )
+
+    my_model.settings.stepsize.growth_factor = 1.2
+    my_model.settings.stepsize.cutback_factor = 0.9
+    my_model.settings.stepsize.target_nb_iterations = 4
+    my_model.settings.stepsize.max_stepsize = fun
+
+    my_model.initialise()
+
+    my_model.t.value = 49
+    my_model.settings.stepsize.value = 20
+    my_model.dt.value = 20
+
+    my_model.show_progress_bar = False
+
+    my_model.iterate()
