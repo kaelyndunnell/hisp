@@ -157,10 +157,12 @@ class Model:
         if pulse.pulse_type == "RISP":
             # RISP has a special treatment
             time_real_risp_starts = (
-                89  # (s) relative time at which the real RISP starts
+                100  # (s) relative time at which the real RISP starts
             )
-            if relative_time < time_real_risp_starts:
+            if relative_time < time_real_risp_starts - 11:
                 value = 10  # s
+            elif relative_time < time_real_risp_starts + 1:
+                value = 0.01  # s
             else:
                 value = 1  # s
         else:
@@ -198,6 +200,12 @@ class Model:
                 # start of the next pulse
                 milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
 
+                # add milestones 10 s before the end of the waiting period
+                assert pulse.total_duration - pulse.duration_no_waiting >= 10
+                milestones.append(start_of_pulse + pulse.total_duration * (i + 1) - 10)
+
+                # add milestones 2 s before the end of the waiting period
+                milestones.append(start_of_pulse + pulse.total_duration * (i + 1) - 2)
                 # start of the waiting period of this pulse
                 milestones.append(
                     start_of_pulse
