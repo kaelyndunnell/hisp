@@ -129,7 +129,10 @@ class Scenario:
         return Scenario(pulses)
 
     def get_row(self, t: float) -> int:
-        """Returns the index of the pulse at time t.
+        """
+        Returns the index of the pulse at time t.
+        If t is greater than the maximum time in the scenario, a
+        warning is raised and the last pulse index is returned.
 
         Args:
             t: the time in seconds
@@ -152,7 +155,10 @@ class Scenario:
         return i
 
     def get_pulse(self, t: float) -> Pulse:
-        """Returns the pulse at time t.
+        """
+        Returns the pulse at time t.
+        If t is greater than the maximum time in the scenario, a
+        warning is raised and the last pulse is returned.
 
         Args:
             t: the time in seconds
