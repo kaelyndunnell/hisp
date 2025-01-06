@@ -277,7 +277,7 @@ def make_W_mb_model(
     my_model.settings = F.Settings(
         atol=1e10,
         rtol=1e-10,
-        max_iterations=30,
+        max_iterations=100,  # the first timestep needs about 66 iterations....
         final_time=final_time,
     )
 
