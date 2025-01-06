@@ -145,9 +145,11 @@ class Scenario:
             else:
                 current_time += phase_duration
 
-        raise ValueError(
-            f"Time t {t} is out of bounds of the scenario file. Valid times are t < {self.get_maximum_time()}"
+        warnings.warn(
+            f"Time t {t} is out of bounds of the scenario file. Valid times are t < {self.get_maximum_time()}",
+            UserWarning,
         )
+        return i
 
     def get_pulse(self, t: float) -> Pulse:
         """Returns the pulse at time t.
