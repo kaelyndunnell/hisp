@@ -154,11 +154,25 @@ class Model:
     def max_stepsize(self, t: float) -> float:
         pulse = self.scenario.get_pulse(t)
         relative_time = t - self.scenario.get_time_start_current_pulse(t)
+        if pulse.pulse_type == "RISP":
+            # RISP has a special treatment
+            time_real_risp_starts = (
+                100  # (s) relative time at which the real RISP starts
+            )
+            if relative_time < time_real_risp_starts - 11:
+                value = 10  # s
+            elif relative_time < time_real_risp_starts + 1:
+                value = 0.01  # s
+            else:
+                value = 1  # s
+        else:
+            # the stepsize is 1/10 of the duration of the pulse
+            value = pulse.duration_no_waiting / 10  # s
         return periodic_step_function(
             relative_time,
             period_on=pulse.duration_no_waiting,
             period_total=pulse.total_duration,
-            value=pulse.duration_no_waiting / 10,
+            value=value,
             value_off=None,
         )
 
@@ -173,17 +187,48 @@ class Model:
             The milestones in seconds
         """
         milestones = []
-        current_time = 0
+        current_time = 0  # initialise the current time (s)
+
+        # loop over all pulses (or rather sequences of pulses)
         for pulse in self.scenario.pulses:
+
             start_of_pulse = self.scenario.get_time_start_current_pulse(current_time)
+
+            # loop over all "pulses" whithin the current pulse
             for i in range(pulse.nb_pulses):
+
+                # start of the next pulse
                 milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
+
+                # add milestones 10 s before the end of the waiting period
+                assert pulse.total_duration - pulse.duration_no_waiting >= 10
+                milestones.append(start_of_pulse + pulse.total_duration * (i + 1) - 10)
+
+                # add milestones 2 s before the end of the waiting period
+                milestones.append(start_of_pulse + pulse.total_duration * (i + 1) - 2)
+                # start of the waiting period of this pulse
                 milestones.append(
                     start_of_pulse
                     + pulse.total_duration * i
                     + pulse.duration_no_waiting
                 )
 
+                # RISP pulses need additional milestones
+                if pulse.pulse_type == "RISP":
+
+                    t_begin_real_pulse = (
+                        start_of_pulse + 95
+                    )  # time at which the real RISP starts
+
+                    # a milestone for when the real RISP starts
+                    milestones.append(t_begin_real_pulse + pulse.total_duration * i)
+
+                    # hack: a milestone right after to ensure the stepsize is small enough
+                    milestones.append(
+                        t_begin_real_pulse + pulse.total_duration * i + 0.05
+                    )
+
+            # update the current time to the end of the current "sequence" of pulses
             current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
 
         return sorted(np.unique(milestones))

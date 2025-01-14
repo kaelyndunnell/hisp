@@ -277,7 +277,7 @@ def make_W_mb_model(
     my_model.settings = F.Settings(
         atol=1e10,
         rtol=1e-10,
-        max_iterations=1000,
+        max_iterations=100,  # the first timestep needs about 66 iterations....
         final_time=final_time,
     )
 
@@ -318,9 +318,9 @@ def make_B_mb_model(
 
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
-            np.linspace(0, 5e-9, num=200),
-            np.linspace(5e-9, 1e-8, num=500),
-            np.linspace(1e-8, L, num=300),
+            np.linspace(0, 30e-9, num=500),
+            np.linspace(30e-9, 1e-7, num=500),
+            np.linspace(1e-7, L, num=500),
         ]
     )
     my_model.mesh = F.Mesh1D(vertices)
@@ -540,9 +540,9 @@ def make_B_mb_model(
 
     ############# Settings #############
     my_model.settings = F.Settings(
-        atol=1e10,
-        rtol=1e-8,
-        max_iterations=1000,
+        atol=1e8,
+        rtol=1e-10,
+        max_iterations=30,
         final_time=final_time,
     )
 
@@ -748,7 +748,7 @@ def make_DFW_mb_model(
     my_model.settings = F.Settings(
         atol=1e10,
         rtol=1e-10,
-        max_iterations=1000,
+        max_iterations=30,
         final_time=final_time,
     )
 

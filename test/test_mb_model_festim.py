@@ -9,19 +9,22 @@ import festim as F
 import pytest
 
 
-@pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
-def test_mb_model(temp):
+@pytest.mark.parametrize(
+    "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
+)
+def test_mb_W_model(temp):
     """Builds a festim tungsten model, run it, and tests the output."""
     (mb_model, quantities) = make_W_mb_model(
-        temperature=temp,
-        deuterium_ion_flux=lambda _: 1e22,
-        deuterium_atom_flux=lambda _: 1e22,
-        tritium_ion_flux=lambda _: 1e22,
-        tritium_atom_flux=lambda _: 1e22,
+        temperature=1000,
+        deuterium_ion_flux=lambda _: 2e10,
+        deuterium_atom_flux=lambda _: 2e10,
+        tritium_ion_flux=lambda _: 2e10,
+        tritium_atom_flux=lambda _: 2e10,
         L=6e-3,
         final_time=50,
         folder=".",
     )
+    mb_model.settings.stepsize.initial_value = 1
 
     mb_model.initialise()
     mb_model.run()
@@ -34,8 +37,10 @@ def test_mb_model(temp):
         assert len(value.data) > 0
 
 
-@pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
-def test_mb_model(temp):
+@pytest.mark.parametrize(
+    "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
+)
+def test_mb_model_B(temp):
     """Builds a festim boron model, run it, and tests the output."""
     (mb_model, quantities) = make_B_mb_model(
         temperature=temp,
@@ -47,6 +52,7 @@ def test_mb_model(temp):
         L=6e-3,
         folder=".",
     )
+    mb_model.settings.stepsize.initial_value = 1
 
     mb_model.initialise()
     mb_model.run()
@@ -59,8 +65,10 @@ def test_mb_model(temp):
         assert len(value.data) > 0
 
 
-@pytest.mark.parametrize("temp", [400, lambda t: 400 + 1, lambda x, t: 400 + t - x[0]])
-def test_mb_model(temp):
+@pytest.mark.parametrize(
+    "temp", [1000, lambda t: 1000 + 1, lambda x, t: 1000 + t - x[0]]
+)
+def test_mb_model_DFW(temp):
     """Builds a festim tungsten model, run it, and tests the output."""
     (mb_model, quantities) = make_DFW_mb_model(
         temperature=temp,
@@ -72,6 +80,8 @@ def test_mb_model(temp):
         L=6e-3,
         folder=".",
     )
+
+    mb_model.settings.stepsize.initial_value = 1
 
     mb_model.initialise()
     mb_model.run()
