@@ -129,7 +129,10 @@ class Scenario:
         return Scenario(pulses)
 
     def get_row(self, t: float) -> int:
-        """Returns the index of the pulse at time t.
+        """
+        Returns the index of the pulse at time t.
+        If t is greater than the maximum time in the scenario, a
+        warning is raised and the last pulse index is returned.
 
         Args:
             t: the time in seconds
@@ -145,12 +148,17 @@ class Scenario:
             else:
                 current_time += phase_duration
 
-        raise ValueError(
-            f"Time t {t} is out of bounds of the scenario file. Valid times are t < {self.get_maximum_time()}"
+        warnings.warn(
+            f"Time t {t} is out of bounds of the scenario file. Valid times are t < {self.get_maximum_time()}",
+            UserWarning,
         )
+        return i
 
     def get_pulse(self, t: float) -> Pulse:
-        """Returns the pulse at time t.
+        """
+        Returns the pulse at time t.
+        If t is greater than the maximum time in the scenario, a
+        warning is raised and the last pulse is returned.
 
         Args:
             t: the time in seconds

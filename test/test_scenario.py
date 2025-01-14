@@ -159,7 +159,7 @@ pulse2 = Pulse(
     [
         (0, pulse1),
         (6000, pulse2),
-        (1e5, None),
+        (1e5, pulse2),
         (pulse1.nb_pulses * pulse1.total_duration, pulse2),
     ],
 )
@@ -167,13 +167,9 @@ def test_get_pulse(t, expected_pulse):
 
     my_scenario = Scenario([pulse1, pulse2])
 
-    if expected_pulse is None:
-        with pytest.raises(ValueError):
-            my_scenario.get_pulse(t=t)
-    else:
-        pulse = my_scenario.get_pulse(t=t)
-        print(pulse.pulse_type)
-        assert pulse == expected_pulse
+    pulse = my_scenario.get_pulse(t=t)
+    print(pulse.pulse_type)
+    assert pulse == expected_pulse
 
 
 @pytest.mark.parametrize("t, expected_pulse", [(100, pulse1)])
