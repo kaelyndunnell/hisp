@@ -53,7 +53,7 @@ class Model:
         my_model, quantities = self.which_model(bin)
 
         # add milestones for stepsize and adaptivity
-        milestones = self.make_milestones()
+        milestones = self.make_milestones(initial_stepsize_value=my_model.settings.stepsize.initial_value)
         milestones.append(my_model.settings.final_time)
         my_model.settings.stepsize.milestones = milestones
 
@@ -153,17 +153,19 @@ class Model:
 
     def max_stepsize(self, t: float) -> float:
         pulse = self.scenario.get_pulse(t)
-        relative_time = t - self.scenario.get_time_start_current_pulse(t)
+        relative_time = t - self.scenario.get_time_start_current_pulse(t)  # Pulse()
         if pulse.pulse_type == "RISP":
+            relative_time_within_sub_pulse = relative_time % pulse.total_duration
             # RISP has a special treatment
             time_real_risp_starts = (
                 100  # (s) relative time at which the real RISP starts
             )
-            if relative_time < time_real_risp_starts - 11:
-                value = 10  # s
-            elif relative_time < time_real_risp_starts + 1:
+            if relative_time_within_sub_pulse < time_real_risp_starts - 11:
+                value = None  # s
+            elif relative_time_within_sub_pulse  < time_real_risp_starts + 1:
                 value = 0.01  # s
             else:
+                # NOTE this seems to have an influence on the accuracy of the calculation
                 value = 1  # s
         else:
             # the stepsize is 1/10 of the duration of the pulse
@@ -176,12 +178,16 @@ class Model:
             value_off=None,
         )
 
-    def make_milestones(self) -> List[float]:
+    def make_milestones(self, initial_stepsize_value: float) -> List[float]:
         """
         Returns the milestones for the stepsize.
         For each pulse, the milestones are the start
         of the pulse, the start of the waiting period,
         and the end of the pulse.
+
+        Args:
+            initial_stepsize_value: the value of the stepsize at
+                the beginning of each pulse (s)
 
         Returns:
             The milestones in seconds
@@ -196,6 +202,9 @@ class Model:
 
             # loop over all "pulses" whithin the current pulse
             for i in range(pulse.nb_pulses):
+
+                # hack: a milestone right after to ensure the stepsize is small enough
+                milestones.append(start_of_pulse + pulse.total_duration * i + initial_stepsize_value)
 
                 # start of the next pulse
                 milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
@@ -227,7 +236,7 @@ class Model:
                     # NOTE do we need this?
                     # hack: a milestone right after to ensure the stepsize is small enough
                     milestones.append(
-                        t_begin_real_pulse + pulse.total_duration * i + 0.05
+                        t_begin_real_pulse + pulse.total_duration * i + 0.001
                     )
 
             # update the current time to the end of the current "sequence" of pulses
