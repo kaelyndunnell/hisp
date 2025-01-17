@@ -223,6 +223,8 @@ class Model:
                     # a milestone for when the real RISP starts
                     milestones.append(t_begin_real_pulse + pulse.total_duration * i)
 
+
+                    # NOTE do we need this?
                     # hack: a milestone right after to ensure the stepsize is small enough
                     milestones.append(
                         t_begin_real_pulse + pulse.total_duration * i + 0.05

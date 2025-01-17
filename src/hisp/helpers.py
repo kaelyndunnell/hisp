@@ -37,6 +37,35 @@ class PulsedSource(F.ParticleSource):
         self.flux_fenics.value = self.flux(t)
 
 
+
+# we override Stepsize to control the precision of milestones detection
+# TODO remove this when https://github.com/festim-dev/FESTIM/issues/933 is fixed
+class Stepsize(F.Stepsize):
+    def modify_value(self, value, nb_iterations, t=None):
+        if not self.is_adapt(t):
+            return value
+
+        if nb_iterations < self.target_nb_iterations:
+            updated_value = value * self.growth_factor
+        elif nb_iterations > self.target_nb_iterations:
+            updated_value = value * self.cutback_factor
+        else:
+            updated_value = value
+
+        if max_step := self.get_max_stepsize(t):
+            if updated_value > max_step:
+                updated_value = max_step
+
+        next_milestone = self.next_milestone(t)
+        if next_milestone is not None:
+            time_to_milestone = next_milestone - t
+            if updated_value > time_to_milestone and not np.isclose(
+                t, next_milestone, atol=0.0001, rtol=0
+            ):
+                updated_value = time_to_milestone
+
+        return updated_value
+
 def gaussian_distribution(
     x: npt.NDArray, mean: float, width: float, mod=ufl
 ) -> ufl.core.expr.Expr:

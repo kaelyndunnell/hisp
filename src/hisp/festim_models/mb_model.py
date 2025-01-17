@@ -1,5 +1,5 @@
 from hisp.h_transport_class import CustomProblem
-from hisp.helpers import PulsedSource, gaussian_distribution
+from hisp.helpers import PulsedSource, gaussian_distribution, Stepsize
 from hisp.scenario import Scenario
 from hisp.plamsa_data_handling import PlasmaDataHandling
 import hisp.bin
@@ -281,7 +281,7 @@ def make_W_mb_model(
         final_time=final_time,
     )
 
-    my_model.settings.stepsize = F.Stepsize(initial_value=1e-3)
+    my_model.settings.stepsize = Stepsize(initial_value=1e-3)
 
     return my_model, quantities
 
@@ -546,7 +546,7 @@ def make_B_mb_model(
         final_time=final_time,
     )
 
-    my_model.settings.stepsize = F.Stepsize(initial_value=1e-4)
+    my_model.settings.stepsize = Stepsize(initial_value=1e-4)
 
     return my_model, quantities
 
@@ -752,7 +752,7 @@ def make_DFW_mb_model(
         final_time=final_time,
     )
 
-    my_model.settings.stepsize = F.Stepsize(initial_value=1e-3)
+    my_model.settings.stepsize = Stepsize(initial_value=1e-3)
 
     return my_model, quantities
 
