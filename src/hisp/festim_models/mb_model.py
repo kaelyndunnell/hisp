@@ -129,7 +129,7 @@ def make_W_mb_model(
     # hydrogen reactions - 1 per trap per species
     my_model.reactions = [
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
+            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.85,
@@ -138,7 +138,7 @@ def make_W_mb_model(
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
+            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.85,
@@ -147,7 +147,7 @@ def make_W_mb_model(
             product=trap1_T,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
+            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1,
@@ -156,7 +156,7 @@ def make_W_mb_model(
             product=trap2_D,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
+            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1,
@@ -165,7 +165,7 @@ def make_W_mb_model(
             product=trap2_T,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
+            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.5,
@@ -174,7 +174,7 @@ def make_W_mb_model(
             product=trap3_D,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance * interstitial_sites_per_atom * w_density),
+            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1.5,
