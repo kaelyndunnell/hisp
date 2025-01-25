@@ -164,6 +164,8 @@ class Model:
                 value = None  # s
             elif relative_time_within_sub_pulse  < time_real_risp_starts + 1:
                 value = 0.01  # s
+            elif relative_time_within_sub_pulse  < time_real_risp_starts + 50:
+                value = 0.1  # s
             else:
                 # NOTE this seems to have an influence on the accuracy of the calculation
                 value = 1  # s
