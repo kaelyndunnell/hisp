@@ -157,7 +157,7 @@ def test_model_last_timestep_overshoot():
 
 
 @pytest.mark.parametrize(
-        "rtol", [1e-10, lambda t: 1e-8 + 1e-7]
+        "rtol", [1e-10, lambda t: 1e-8 if t<10 else 1e-10]
         )
 def test_callable_rtol(rtol): 
     """Builds B model to test custom rtol."""
@@ -172,5 +172,8 @@ def test_callable_rtol(rtol):
         custom_rtol=rtol,
         folder=".",
     )
+
+    # initialise the model
+    my_model.initialise()
 
     assert my_model.settings.rtol == rtol
