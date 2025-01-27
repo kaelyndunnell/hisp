@@ -9,7 +9,7 @@ import numpy as np
 import festim as F
 import h_transport_materials as htm
 
-from typing import Callable, Tuple, Dict
+from typing import Callable, Tuple, Dict, Union
 from numpy.typing import NDArray
 
 # TODO this is hard coded and show depend on incident energy?
@@ -296,6 +296,7 @@ def make_B_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    custom_rtol: Union[float, Callable] = 1e-10, # default rtol unless otherwise specified, used for FP, ICWC, RISP in hisp-for-iter
     exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the B MB scenario.
@@ -542,7 +543,7 @@ def make_B_mb_model(
     ############# Settings #############
     my_model.settings = CustomSettings(
         atol=1e8,
-        rtol=1e-10,
+        rtol=custom_rtol,
         max_iterations=30,
         final_time=final_time,
     )

@@ -4,8 +4,8 @@ from hisp.festim_models.mb_model import (
     make_DFW_mb_model,
 )
 
+from hisp.settings import CustomSettings
 import festim as F
-
 import pytest
 
 
@@ -153,3 +153,24 @@ def test_model_last_timestep_overshoot():
     my_model.dt.value = 20
 
     my_model.iterate()
+
+
+
+@pytest.mark.parametrize(
+        "rtol", [1e-10, lambda t: 1e-8 + 1e-7]
+        )
+def test_callable_rtol(rtol): 
+    """Builds B model to test custom rtol."""
+    (my_model, quantities) = make_B_mb_model(
+        temperature=500,
+        deuterium_ion_flux=lambda _: 1e22,
+        deuterium_atom_flux=lambda _: 1e22,
+        tritium_ion_flux=lambda _: 1e22,
+        tritium_atom_flux=lambda _: 1e22,
+        final_time=50,
+        L=6e-3,
+        custom_rtol=rtol,
+        folder=".",
+    )
+
+    assert my_model.settings.rtol == rtol
