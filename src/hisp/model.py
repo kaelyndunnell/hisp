@@ -141,6 +141,7 @@ class Model:
         elif bin.material == "B":
             return make_B_mb_model(
                 **common_args,
+                custom_rtol=self.make_custom_rtol,
                 folder=f"mb{parent_bin_index+1}_{bin.mode}_results",
             )
         elif bin.material == "SS":
@@ -245,3 +246,11 @@ class Model:
             current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
 
         return sorted(np.unique(milestones))
+
+    def make_custom_rtol(self, t:float) -> float:
+        pulse = self.scenario.get_pulse(t)
+        if pulse.pulse_type == "GDC":
+            rtol = 1e-11
+        else: 
+            rtol = 1e-10
+        return rtol
