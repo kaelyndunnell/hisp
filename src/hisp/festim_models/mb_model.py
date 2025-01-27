@@ -2,6 +2,7 @@ from hisp.h_transport_class import CustomProblem
 from hisp.helpers import PulsedSource, gaussian_distribution, Stepsize
 from hisp.scenario import Scenario
 from hisp.plamsa_data_handling import PlasmaDataHandling
+from hisp.settings import CustomSettings
 import hisp.bin
 
 import numpy as np
@@ -539,7 +540,7 @@ def make_B_mb_model(
         quantities[species.name] = quantity
 
     ############# Settings #############
-    my_model.settings = F.Settings(
+    my_model.settings = CustomSettings(
         atol=1e8,
         rtol=1e-10,
         max_iterations=30,
