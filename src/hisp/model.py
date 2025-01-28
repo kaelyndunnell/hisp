@@ -249,7 +249,7 @@ class Model:
 
     def make_custom_rtol(self, t:float) -> float:
         pulse = self.scenario.get_pulse(t)
-        if pulse.pulse_type == "GDC":
+        if pulse.pulse_type == "GDC" or pulse.pulse_type == "ICWC":
             rtol = 1e-11
         else: 
             rtol = 1e-10
