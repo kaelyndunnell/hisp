@@ -251,6 +251,8 @@ class Model:
         pulse = self.scenario.get_pulse(t)
         if pulse.pulse_type == "GDC" or pulse.pulse_type == "ICWC":
             rtol = 1e-11
+        elif pulse.pulse_type == "BAKE":
+            rtol = 1e-9
         else: 
             rtol = 1e-10
         return rtol
