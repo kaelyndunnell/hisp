@@ -49,10 +49,8 @@ def make_W_mb_model(
 
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
-            np.linspace(0, 30e-9, num=300),
-            np.linspace(30e-9, 3e-6, num=400),
-            np.linspace(3e-6, 30e-6, num=400),
-            np.linspace(30e-6, 1e-4, num=400),
+            np.linspace(0, 1e-5, num=100),
+            np.linspace(1e-5, 1e-4, num=300),
             np.linspace(1e-4, L, num=300),
         ]
     )
@@ -89,8 +87,8 @@ def make_W_mb_model(
     trap1_T = F.Species("trap1_T", mobile=False)
     trap2_D = F.Species("trap2_D", mobile=False)
     trap2_T = F.Species("trap2_T", mobile=False)
-    trap3_D = F.Species("trap3_D", mobile=False)
-    trap3_T = F.Species("trap3_T", mobile=False)
+    # trap3_D = F.Species("trap3_D", mobile=False)
+    # trap3_T = F.Species("trap3_T", mobile=False)
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
@@ -105,13 +103,13 @@ def make_W_mb_model(
         name="empty_trap2",
     )
 
-    # TODO: make trap space dependent (existing in only first 10nm)
+    # TODO: make trap space dependent (existing in only first 10nm). commenting out until implemented
     # density_func = lambda x: ufl.conditional(ufl.gt(x[0],10), 6.338e27, 0.0) #  small damanged zone in first 10nm, 1e-1 at.fr.
-    empty_trap3 = F.ImplicitSpecies(
-        n=6.338e27,
-        others=[trap3_T, trap3_D],
-        name="empty_trap3",
-    )
+    # empty_trap3 = F.ImplicitSpecies(
+    #     n=6.338e27,
+    #     others=[trap3_T, trap3_D],
+    #     name="empty_trap3",
+    # )
 
     my_model.species = [
         mobile_D,
@@ -120,8 +118,8 @@ def make_W_mb_model(
         trap1_T,
         trap2_D,
         trap2_T,
-        trap3_D,
-        trap3_T,
+        # trap3_D,
+        # trap3_T,
     ]
 
     interstitial_distance = 1.117e-10  # m
@@ -165,24 +163,24 @@ def make_W_mb_model(
             reactant=[mobile_T, empty_trap2],
             product=trap2_T,
         ),
-        F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
-            E_k=E_D,
-            p_0=1e13,
-            E_p=1.5,
-            volume=w_subdomain,
-            reactant=[mobile_D, empty_trap3],
-            product=trap3_D,
-        ),
-        F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
-            E_k=E_D,
-            p_0=1e13,
-            E_p=1.5,
-            volume=w_subdomain,
-            reactant=[mobile_T, empty_trap3],
-            product=trap3_T,
-        ),
+        # F.Reaction(
+        #     k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+        #     E_k=E_D,
+        #     p_0=1e13,
+        #     E_p=1.5,
+        #     volume=w_subdomain,
+        #     reactant=[mobile_D, empty_trap3],
+        #     product=trap3_D,
+        # ),
+        # F.Reaction(
+        #     k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+        #     E_k=E_D,
+        #     p_0=1e13,
+        #     E_p=1.5,
+        #     volume=w_subdomain,
+        #     reactant=[mobile_T, empty_trap3],
+        #     product=trap3_T,
+        # ),
     ]
 
     ############# Temperature Parameters (K) #############
@@ -264,8 +262,8 @@ def make_W_mb_model(
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
         ]
 
     quantities = {}
