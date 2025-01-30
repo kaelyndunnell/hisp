@@ -209,6 +209,20 @@ class Model:
                 # hack: a milestone right after to ensure the stepsize is small enough
                 milestones.append(start_of_pulse + pulse.total_duration * i + initial_stepsize_value)
 
+                if i == 0: 
+                    # end of ramp up
+                    milestones.append(start_of_pulse + pulse.ramp_up)
+
+                    # start of ramp down 
+                    milestones.append(start_of_pulse + pulse.ramp_up + pulse.steady_state)
+
+                else:
+                    # end of ramp up
+                    milestones.append(start_of_pulse + pulse.total_duration * (i - 1) + pulse.ramp_up)
+
+                    # start of ramp down 
+                    milestones.append(start_of_pulse + pulse.total_duration * (i - 1) + pulse.ramp_up + pulse.steady_state)
+
                 # start of the next pulse
                 milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
 
