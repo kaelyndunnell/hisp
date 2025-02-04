@@ -263,10 +263,13 @@ class Model:
 
     def make_custom_rtol(self, t:float) -> float:
         pulse = self.scenario.get_pulse(t)
+        relative_time = t - self.scenario.get_time_start_current_pulse(t)
         if pulse.pulse_type == "GDC" or pulse.pulse_type == "ICWC":
             rtol = 1e-11
         elif pulse.pulse_type == "BAKE": 
             rtol = 1e-14
+        elif pulse.pulse_type == "FP" and relative_time % pulse.total_duration > pulse.duration_no_waiting:
+            rtol = 1e-15
         else: 
             rtol = 1e-10
         return rtol
