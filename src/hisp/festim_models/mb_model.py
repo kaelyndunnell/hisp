@@ -856,13 +856,13 @@ def make_temperature_function(
         if pulse.pulse_type == "BAKE":
             total_time_on = pulse.duration_no_waiting
             total_time_pulse = pulse.total_duration
-            
-            return periodic_pulse_function(
-            t_rel,
-            pulse=pulse,
-            value=483.15, # K
-            value_off=0,
-        )
+            return np.full_like(x[0], 300)
+        #     return periodic_pulse_function(
+        #     t_rel,
+        #     pulse=pulse,
+        #     value=483.15, # K
+        #     value_off=0,
+        # )
         # if pulse.pulse_type == "BAKE":
         #     T_bake = 483.15  # K
         #     value = np.full_like(x[0], T_bake)
