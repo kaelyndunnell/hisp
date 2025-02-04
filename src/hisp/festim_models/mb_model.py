@@ -1,5 +1,5 @@
 from hisp.h_transport_class import CustomProblem
-from hisp.helpers import PulsedSource, gaussian_distribution, Stepsize, periodic_step_function
+from hisp.helpers import PulsedSource, gaussian_distribution, Stepsize, periodic_pulse_function
 from hisp.scenario import Scenario
 from hisp.plamsa_data_handling import PlasmaDataHandling
 from hisp.settings import CustomSettings
@@ -857,10 +857,9 @@ def make_temperature_function(
             total_time_on = pulse.duration_no_waiting
             total_time_pulse = pulse.total_duration
             
-            return periodic_step_function(
+            return periodic_pulse_function(
             t_rel,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
+            pulse=pulse,
             value=483.15, # K
             value_off=0,
         )

@@ -97,3 +97,22 @@ def periodic_step_function(x, period_on, period_total, value, value_off=0.0):
         return value
     else:
         return value_off
+    
+def periodic_pulse_function(current_time, pulse: Pulse, value, value_off=343.0):
+    """Creates bake function with ramp up rate and ramp down rate.
+
+    Args:
+        FILL IN
+    """
+    if current_time < 100:
+        return 343
+    else:
+        return 400
+    
+    # if current_time % pulse.total_duration < pulse.ramp_up: # ramp up 
+    #     return (value - value_off) / (pulse.ramp_up) * current_time + value_off # y = mx + b, slope is temp/ramp up time
+    # elif current_time % pulse.total_duration < pulse.ramp_up + pulse.steady_state: # steady state
+    #     return value
+    # else: # ramp down, waiting
+    #     return (value_off - value) / (pulse.ramp_down) * current_time + value_off # y = mx + b, slope is temp/ramp down time
+
