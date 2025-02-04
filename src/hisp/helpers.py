@@ -104,7 +104,7 @@ def periodic_pulse_function(current_time, pulse: Pulse, value, value_off=343.0):
     Args:
         FILL IN
     """
-    if current_time < 100:
+    if current_time < 300000:
         return 343
     else:
         return 400
