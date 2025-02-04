@@ -3,6 +3,7 @@ from dolfinx.fem.function import Constant
 import ufl
 import numpy as np
 import numpy.typing as npt
+from hisp.scenario import Pulse
 
 
 class PulsedSource(F.ParticleSource):
