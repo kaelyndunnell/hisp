@@ -858,10 +858,10 @@ def make_temperature_function(
             t_rel,
             pulse=pulse,
             value=483.15, # K
-            value_off=343.0,
+            value_off=343.0, # K
         )
             value = np.full_like(x[0], T_value)
-            
+
         else:
             heat_flux = plasma_data_handling.get_heat(pulse, bin, t_rel)
             if (
