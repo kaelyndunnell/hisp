@@ -177,3 +177,26 @@ def test_callable_rtol(rtol):
     my_model.initialise()
 
     assert my_model.settings.rtol == rtol
+
+@pytest.mark.parametrize(
+        "atol", [1e10, lambda t: 1e12 if t<10 else 1e10]
+        )
+def test_callable_atol(atol): 
+    """Builds B model to test custom rtol."""
+    (my_model, quantities) = make_B_mb_model(
+        temperature=500,
+        deuterium_ion_flux=lambda _: 1e22,
+        deuterium_atom_flux=lambda _: 1e22,
+        tritium_ion_flux=lambda _: 1e22,
+        tritium_atom_flux=lambda _: 1e22,
+        final_time=50,
+        L=6e-3,
+        custom_atol=atol,
+        custom_rtol=1e-10,
+        folder=".",
+    )
+
+    # initialise the model
+    my_model.initialise()
+
+    assert my_model.settings.atol == atol

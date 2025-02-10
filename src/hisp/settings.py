@@ -8,7 +8,7 @@ class CustomSettings(F.Settings):
     """Custom Settings for a festim Boron simulation.
 
     Args:
-        atol (float): Absolute tolerance for the solver.
+        atol (float, Callable): Absolute tolerance for the solver.
         rtol (float, Callable): Relative tolerance for the solver.
         max_iterations (int, optional): Maximum number of iterations for the
             solver. Defaults to 30.
@@ -19,8 +19,8 @@ class CustomSettings(F.Settings):
             simulation. Defaults to None
 
     Attributes:
-        atol (float): Absolute tolerance for the solver.
-        rtol (float): Relative tolerance for the solver.
+        atol (float, Callable): Absolute tolerance for the solver.
+        rtol (float, Callable): Relative tolerance for the solver.
         max_iterations (int): Maximum number of iterations for the solver.
         transient (bool): Whether the simulation is transient or not.
         final_time (float): Final time for a transient simulation.
@@ -30,7 +30,14 @@ class CustomSettings(F.Settings):
 
     def __init__(
         self,
-        atol,
+        atol: (
+            float
+            | Callable[
+                [npt.NDArray[dolfinx.default_scalar_type]],
+                npt.NDArray[dolfinx.default_scalar_type],
+            ]
+            | None
+        ) = None,
         rtol: (
             float
             | Callable[
@@ -89,6 +96,33 @@ class CustomSettings(F.Settings):
             return False
         if callable(self.rtol):
             arguments = self.rtol.__code__.co_varnames
+            return "t" in arguments
+        else:
+            return False
+        
+    @property
+    def atol(self):
+        return self._atol
+    
+    @atol.setter
+    def atol(self, value):
+        if value is None:
+            self._atol = value
+        elif isinstance(value, float):
+            self._atol = value
+        elif callable(value):
+            self._atol = value
+        else:
+            raise TypeError(
+                "Value must be a float, or callable"
+            )
+        
+    @property
+    def atol_time_dependent(self):
+        if self.atol is None:
+            return False
+        if callable(self.atol):
+            arguments = self.atol.__code__.co_varnames
             return "t" in arguments
         else:
             return False

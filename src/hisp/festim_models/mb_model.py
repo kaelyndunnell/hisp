@@ -274,7 +274,7 @@ def make_W_mb_model(
         quantities[species.name] = quantity
 
     ############# Settings #############
-    my_model.settings = F.Settings(
+    my_model.settings = CustomSettings(
         atol=1e10,
         rtol=custom_rtol,
         max_iterations=100,  # the first timestep needs about 66 iterations....
@@ -295,6 +295,7 @@ def make_B_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    custom_atol: Union[float, Callable] = 1e8, # default atol unless otherwise specified, used for FP, ICWC, RISP in hisp-for-iter
     custom_rtol: Union[float, Callable] = 1e-10, # default rtol unless otherwise specified, used for FP, ICWC, RISP in hisp-for-iter
     exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
@@ -541,7 +542,7 @@ def make_B_mb_model(
 
     ############# Settings #############
     my_model.settings = CustomSettings(
-        atol=1e8,
+        atol=custom_atol,
         rtol=custom_rtol,
         max_iterations=30,
         final_time=final_time,
