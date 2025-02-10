@@ -15,7 +15,7 @@ requires-python = ">=3.9"
 license = { file = "LICENSE" }
 dependencies = [
     "h_transport_materials~=0.17",
-    "festim@git+https://github.com/kaelyndunnell/FESTIM@4e3874cca399ef3521b00243fc309088c483f03d"]
+    "festim@git+https://github.com/kaelyndunnell/FESTIM@9ac79df299171f12a57406755e441d8deb35c186"]
 
 classifiers = [
     "Natural Language :: English",
