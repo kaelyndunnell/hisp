@@ -277,9 +277,8 @@ class Model:
     
     def bake_rtol(self, t:float) -> float:
         pulse = self.scenario.get_pulse(t)
-        relative_time = t - self.scenario.get_time_start_current_pulse(t)
         if pulse.pulse_type == "BAKE": 
             rtol = 1e-12
         else: 
-            rtol = 1e-10
+            rtol = 1e-8
         return rtol
