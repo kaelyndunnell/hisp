@@ -164,16 +164,25 @@ class Model:
             )
             if relative_time_within_sub_pulse < time_real_risp_starts - 11:
                 value = None  # s
-            elif relative_time_within_sub_pulse  < time_real_risp_starts + 1:
-                value = 0.01  # s
-            elif relative_time_within_sub_pulse  < time_real_risp_starts + 50:
-                value = 0.1  # s
+            elif relative_time_within_sub_pulse  < time_real_risp_starts + 160:
+                value = 1e-3  # s
+            # elif relative_time_within_sub_pulse  < time_real_risp_starts + 1:
+            #     value = 0.01  # s
+            # elif relative_time_within_sub_pulse  < time_real_risp_starts + 50:
+            #     value = 0.1  # s
             else:
                 # NOTE this seems to have an influence on the accuracy of the calculation
                 value = 1  # s
         else:
+            relative_time_within_sub_pulse = relative_time % pulse.total_duration
             # the stepsize is 1/10 of the duration of the pulse
-            value = pulse.duration_no_waiting / 10  # s
+            if pulse.pulse_type == "FP": 
+                if relative_time_within_sub_pulse < pulse.duration_no_waiting:
+                    value = 0.1 # s
+                else: 
+                    value = pulse.duration_no_waiting / 10
+            else:
+                value = pulse.duration_no_waiting / 10
         return periodic_step_function(
             relative_time,
             period_on=pulse.duration_no_waiting,
@@ -269,8 +278,12 @@ class Model:
             rtol = 1e-11
         elif pulse.pulse_type == "BAKE": 
             rtol = 1e-13
-        elif pulse.pulse_type == "FP" and relative_time % pulse.total_duration > pulse.duration_no_waiting:
-            rtol = 1e-15
+        elif pulse.pulse_type == "FP":
+             # rtol = 1e-10
+            if relative_time % pulse.total_duration > pulse.duration_no_waiting:
+                rtol = 1e-14
+            else:
+                rtol = 1e-5
         else: 
             rtol = 1e-10
         return rtol
