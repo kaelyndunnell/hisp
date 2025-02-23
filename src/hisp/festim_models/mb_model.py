@@ -272,6 +272,14 @@ def make_W_mb_model(
         quantity = F.TotalVolume(field=species, volume=w_subdomain)
         my_model.exports.append(quantity)
         quantities[species.name] = quantity
+        if species.mobile: 
+            flux = F.SurfaceFlux(field=species, surface=inlet)
+            my_model.exports.append(flux)
+            quantities[species.name+"_surface_flux"] = flux
+
+    surface_temperature = F.SurfaceTemperature(my_model.temperature, surface=inlet)
+    my_model.exports.append(surface_temperature)
+    quantities["surface_temperature"] = surface_temperature
 
     ############# Settings #############
     my_model.settings = CustomSettings(
@@ -569,6 +577,14 @@ def make_B_mb_model(
         quantity = F.TotalVolume(field=species, volume=b_subdomain)
         my_model.exports.append(quantity)
         quantities[species.name] = quantity
+        if species.mobile: 
+            flux = F.SurfaceFlux(field=species, surface=inlet)
+            my_model.exports.append(flux)
+            quantities[species.name+"_surface_flux"] = flux
+
+    surface_temperature = F.SurfaceTemperature(my_model.temperature, surface=inlet)
+    my_model.exports.append(surface_temperature)
+    quantities["surface_temperature"] = surface_temperature
 
     ############# Settings #############
     my_model.settings = CustomSettings(
@@ -775,6 +791,14 @@ def make_DFW_mb_model(
         quantity = F.TotalVolume(field=species, volume=ss_subdomain)
         my_model.exports.append(quantity)
         quantities[species.name] = quantity
+        if species.mobile: 
+            flux = F.SurfaceFlux(field=species, surface=inlet)
+            my_model.exports.append(flux)
+            quantities[species.name+"_surface_flux"] = flux
+
+    surface_temperature = F.SurfaceTemperature(my_model.temperature, surface=inlet)
+    my_model.exports.append(surface_temperature)
+    quantities["surface_temperature"] = surface_temperature
 
     ############# Settings #############
     my_model.settings = F.Settings(
