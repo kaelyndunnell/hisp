@@ -884,10 +884,11 @@ def make_temperature_function(
         # get the pulse and time relative to the start of the pulse
         pulse = scenario.get_pulse(t)
         t_rel = t - scenario.get_time_start_current_pulse(t)
+        relative_time_within_pulse = t_rel % pulse.total_duration
         
         if pulse.pulse_type == "BAKE":
             T_value = periodic_pulse_function(
-            t_rel,
+            relative_time_within_pulse,
             pulse=pulse,
             value=483.15, # K
             value_off=343.0, # K
@@ -895,7 +896,7 @@ def make_temperature_function(
             value = np.full_like(x[0], T_value)
 
         else:
-            heat_flux = plasma_data_handling.get_heat(pulse, bin, t_rel)
+            heat_flux = plasma_data_handling.get_heat(pulse, bin, relative_time_within_pulse)
             if (
                 bin.material == "W" or bin.material == "SS"
             ):  # FIXME: update ss temp when gven data:
@@ -939,12 +940,13 @@ def make_particle_flux_function(
         # get the pulse and time relative to the start of the pulse
         pulse = scenario.get_pulse(t)
         relative_time = t - scenario.get_time_start_current_pulse(t)
+        relative_time_within_pulse = relative_time % pulse.total_duration
 
         # get the incident particle flux
         incident_hydrogen_particle_flux = plasma_data_handling.get_particle_flux(
             pulse=pulse,
             bin=bin,
-            t_rel=relative_time,
+            t_rel=relative_time_within_pulse,
             ion=ion,
         )
 
