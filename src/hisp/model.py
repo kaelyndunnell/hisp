@@ -137,18 +137,18 @@ class Model:
             return make_W_mb_model(
                 **common_args,
                 custom_rtol=self.bake_rtol,
-                folder=f"mb{parent_bin_index+1}_{bin.mode}_results",
+                folder=f"mb{parent_bin_index}_{bin.mode}_results",
             )
         elif bin.material == "B":
             return make_B_mb_model(
                 **common_args,
                 custom_rtol=self.make_custom_rtol,
-                folder=f"mb{parent_bin_index+1}_{bin.mode}_results",
+                folder=f"mb{parent_bin_index}_{bin.mode}_results",
             )
         elif bin.material == "SS":
             return make_DFW_mb_model(
                 **common_args,
-                folder=f"mb{parent_bin_index+1}_dfw_results",
+                folder=f"mb{parent_bin_index}_dfw_results",
             )
         else:
             raise ValueError(f"Unknown material: {bin.material} for bin {bin.index}")
