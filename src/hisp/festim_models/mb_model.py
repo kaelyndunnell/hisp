@@ -572,10 +572,6 @@ def make_B_mb_model(
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t5.bp", field=trap5_T),
         ]
 
-    surface_temperature = F.SurfaceTemperature(my_model.temperature, surface=inlet)
-    my_model.exports.append(surface_temperature)
-    quantities["surface_temperature"] = surface_temperature
-
     quantities = {}
     for species in my_model.species:
         quantity = F.TotalVolume(field=species, volume=b_subdomain)
