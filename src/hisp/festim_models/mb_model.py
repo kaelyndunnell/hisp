@@ -364,8 +364,8 @@ def make_B_mb_model(
     trap3_T = F.Species("trap3_T", mobile=False)
     trap4_D = F.Species("trap4_D", mobile=False)
     trap4_T = F.Species("trap4_T", mobile=False)
-    trap5_D = F.Species("trap5_D", mobile=False)
-    trap5_T = F.Species("trap5_T", mobile=False)
+    # trap5_D = F.Species("trap5_D", mobile=False)
+    # trap5_T = F.Species("trap5_T", mobile=False)
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
@@ -396,11 +396,11 @@ def make_B_mb_model(
         name="empty_trap4",
     )
 
-    empty_trap5 = F.ImplicitSpecies(
-        n=1.800e-1*b_density, # from Johnathan Dufour's unpublished TDS study for boron
-        others=[trap5_T, trap5_D], 
-        name="empty_trap5",
-    )
+    # empty_trap5 = F.ImplicitSpecies(
+    #     n=1.800e-1*b_density, # from Johnathan Dufour's unpublished TDS study for boron
+    #     others=[trap5_T, trap5_D], 
+    #     name="empty_trap5",
+    # )
 
     my_model.species = [
         mobile_D,
@@ -413,8 +413,8 @@ def make_B_mb_model(
         trap3_T,
         trap4_D,
         trap4_T,
-        trap5_D,
-        trap5_T,
+        # trap5_D,
+        # trap5_T,
     ]
 
     # hydrogen reactions - 1 per trap per species
@@ -494,24 +494,24 @@ def make_B_mb_model(
             reactant=[mobile_T, empty_trap4],
             product=trap4_T,
         ),
-        F.Reaction(
-            k_0=1e13 / b_density,
-            E_k=E_D,
-            p_0=1e13,  # from Johnathan Dufour's unpublished TDS study for boron
-            E_p=1.776,
-            volume=b_subdomain,
-            reactant=[mobile_D, empty_trap5],
-            product=trap5_D,
-        ),
-        F.Reaction(
-            k_0=1e13 / b_density,
-            E_k=E_D,
-            p_0=1e13,  # from Johnathan Dufour's unpublished TDS study for boron
-            E_p=1.776,
-            volume=b_subdomain,
-            reactant=[mobile_T, empty_trap5],
-            product=trap5_T,
-        ),
+        # F.Reaction(
+        #     k_0=1e13 / b_density,
+        #     E_k=E_D,
+        #     p_0=1e13,  # from Johnathan Dufour's unpublished TDS study for boron
+        #     E_p=1.776,
+        #     volume=b_subdomain,
+        #     reactant=[mobile_D, empty_trap5],
+        #     product=trap5_D,
+        # ),
+        # F.Reaction(
+        #     k_0=1e13 / b_density,
+        #     E_k=E_D,
+        #     p_0=1e13,  # from Johnathan Dufour's unpublished TDS study for boron
+        #     E_p=1.776,
+        #     volume=b_subdomain,
+        #     reactant=[mobile_T, empty_trap5],
+        #     product=trap5_T,
+        # ),
     ]
 
     ############# Temperature Parameters (K) #############
@@ -568,8 +568,8 @@ def make_B_mb_model(
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_d4.bp", field=trap4_D),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t4.bp", field=trap4_T),
-            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d5.bp", field=trap5_D),
-            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t5.bp", field=trap5_T),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_d5.bp", field=trap5_D),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_t5.bp", field=trap5_T),
         ]
 
     quantities = {}
