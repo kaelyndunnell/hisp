@@ -320,7 +320,7 @@ class Model:
             if relative_time % pulse.total_duration > pulse.duration_no_waiting:
                 rtol = 1e-14
             else:
-                rtol = 1e-5
+                rtol = 1e-8
         else: 
             rtol = 1e-10
         return rtol
