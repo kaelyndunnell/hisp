@@ -33,7 +33,7 @@ def test_mb_W_model(temp):
     assert isinstance(quantities, dict)
     for key, value in quantities.items():
         assert isinstance(key, str)
-        assert isinstance(value, F.TotalVolume)
+        assert isinstance(value, (F.TotalVolume, F.SurfaceQuantity, F.SurfaceTemperature)) # to change with SurfaceTemp PR merged
         assert len(value.data) > 0
 
 
@@ -61,7 +61,7 @@ def test_mb_model_B(temp):
     assert isinstance(quantities, dict)
     for key, value in quantities.items():
         assert isinstance(key, str)
-        assert isinstance(value, F.TotalVolume)
+        assert isinstance(value, (F.TotalVolume, F.SurfaceQuantity, F.SurfaceTemperature)) # to change with SurfaceTemp PR merged
         assert len(value.data) > 0
 
 
@@ -90,7 +90,7 @@ def test_mb_model_DFW(temp):
     assert isinstance(quantities, dict)
     for key, value in quantities.items():
         assert isinstance(key, str)
-        assert isinstance(value, F.TotalVolume)
+        assert isinstance(value, (F.TotalVolume, F.SurfaceQuantity, F.SurfaceTemperature)) # to change with SurfaceTemp PR merged
         assert len(value.data) > 0
 
 
