@@ -5,6 +5,7 @@ import numpy as np
 
 class SubBin:
     thickness: float
+    copper_thickness: float
     material: str
     mode: str
     dfw: bool
@@ -31,6 +32,7 @@ class SubBin:
 
         Attributes:
             thickness: The thickness of the subbin (in m).
+            copper_thickness: The thickness of the copper layer behind W bins (m).
             material: The material of the subbin.
             mode: The mode of the subbin (shadowed, wetted, low_wetted, high_wetted).
             dfw: A boolean indicating if the subbin is a Divertor First Wall (DFW) subbin.
@@ -45,6 +47,7 @@ class SubBin:
         self.material = material
         self.mode = mode
         self.dfw = False
+        self.copper_thickness = None
         self.parent_bin_index = None
         self.low_wetted_area = None
         self.high_wetted_area = None
