@@ -53,7 +53,9 @@ class Model:
         my_model, quantities = self.which_model(bin)
 
         # add milestones for stepsize and adaptivity
-        milestones = self.make_milestones(initial_stepsize_value=my_model.settings.stepsize.initial_value)
+        milestones = self.make_milestones(
+            initial_stepsize_value=my_model.settings.stepsize.initial_value
+        )
         milestones.append(my_model.settings.final_time)
         my_model.settings.stepsize.milestones = milestones
 
@@ -167,7 +169,7 @@ class Model:
             )
             if relative_time_within_sub_pulse < time_real_risp_starts - 11:
                 value = None  # s
-            elif relative_time_within_sub_pulse  < time_real_risp_starts + 160:
+            elif relative_time_within_sub_pulse < time_real_risp_starts + 160:
                 value = 1e-3  # s
             # elif relative_time_within_sub_pulse  < time_real_risp_starts + 1:
             #     value = 0.01  # s
@@ -179,10 +181,10 @@ class Model:
         else:
             relative_time_within_sub_pulse = relative_time % pulse.total_duration
             # the stepsize is 1/10 of the duration of the pulse
-            if pulse.pulse_type == "FP": 
+            if pulse.pulse_type == "FP":
                 if relative_time_within_sub_pulse < pulse.duration_no_waiting:
-                    value = 0.1 # s
-                else: 
+                    value = 0.1  # s
+                else:
                     value = pulse.duration_no_waiting / 10
             else:
                 value = pulse.duration_no_waiting / 10
@@ -205,7 +207,7 @@ class Model:
             )
             if relative_time_within_sub_pulse < time_real_risp_starts - 5:
                 value = None  # s
-            elif relative_time_within_sub_pulse  < time_real_risp_starts + 160:
+            elif relative_time_within_sub_pulse < time_real_risp_starts + 160:
                 value = 1e-4  # s
             else:
                 # NOTE this seems to have an influence on the accuracy of the calculation
@@ -213,11 +215,13 @@ class Model:
         else:
             relative_time_within_sub_pulse = relative_time % pulse.total_duration
             # the stepsize is 1/10 of the duration of the pulse
-            if pulse.pulse_type == "FP": 
+            if pulse.pulse_type == "FP":
                 if relative_time_within_sub_pulse < pulse.duration_no_waiting:
-                    value = 0.01 # s
-                else: 
+                    value = 0.01  # s
+                else:
                     value = pulse.duration_no_waiting / 10
+            elif pulse.pulse_type == "BAKE":
+                value = pulse.duration_no_waiting / 10
             else:
                 value = pulse.duration_no_waiting / 100
         return periodic_step_function(
@@ -227,7 +231,7 @@ class Model:
             value=value,
             value_off=None,
         )
-    
+
     def make_milestones(self, initial_stepsize_value: float) -> List[float]:
         """
         Returns the milestones for the stepsize.
@@ -254,21 +258,32 @@ class Model:
             for i in range(pulse.nb_pulses):
 
                 # hack: a milestone right after to ensure the stepsize is small enough
-                milestones.append(start_of_pulse + pulse.total_duration * i + initial_stepsize_value)
+                milestones.append(
+                    start_of_pulse + pulse.total_duration * i + initial_stepsize_value
+                )
 
-                if i == 0: 
+                if i == 0:
                     # end of ramp up
                     milestones.append(start_of_pulse + pulse.ramp_up)
 
-                    # start of ramp down 
-                    milestones.append(start_of_pulse + pulse.ramp_up + pulse.steady_state)
+                    # start of ramp down
+                    milestones.append(
+                        start_of_pulse + pulse.ramp_up + pulse.steady_state
+                    )
 
                 else:
                     # end of ramp up
-                    milestones.append(start_of_pulse + pulse.total_duration * (i - 1) + pulse.ramp_up)
+                    milestones.append(
+                        start_of_pulse + pulse.total_duration * (i - 1) + pulse.ramp_up
+                    )
 
-                    # start of ramp down 
-                    milestones.append(start_of_pulse + pulse.total_duration * (i - 1) + pulse.ramp_up + pulse.steady_state)
+                    # start of ramp down
+                    milestones.append(
+                        start_of_pulse
+                        + pulse.total_duration * (i - 1)
+                        + pulse.ramp_up
+                        + pulse.steady_state
+                    )
 
                 # start of the next pulse
                 milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
@@ -296,7 +311,6 @@ class Model:
                     # a milestone for when the real RISP starts
                     milestones.append(t_begin_real_pulse + pulse.total_duration * i)
 
-
                     # NOTE do we need this?
                     # hack: a milestone right after to ensure the stepsize is small enough
                     milestones.append(
@@ -308,27 +322,27 @@ class Model:
 
         return sorted(np.unique(milestones))
 
-    def make_custom_rtol(self, t:float) -> float:
+    def make_custom_rtol(self, t: float) -> float:
         pulse = self.scenario.get_pulse(t)
         relative_time = t - self.scenario.get_time_start_current_pulse(t)
         if pulse.pulse_type == "GDC" or pulse.pulse_type == "ICWC":
             rtol = 1e-11
-        elif pulse.pulse_type == "BAKE": 
+        elif pulse.pulse_type == "BAKE":
             rtol = 1e-13
         elif pulse.pulse_type == "FP":
-             # rtol = 1e-10
+            # rtol = 1e-10
             if relative_time % pulse.total_duration > pulse.duration_no_waiting:
                 rtol = 1e-14
             else:
                 rtol = 1e-8
-        else: 
+        else:
             rtol = 1e-10
         return rtol
-    
-    def bake_rtol(self, t:float) -> float:
+
+    def bake_rtol(self, t: float) -> float:
         pulse = self.scenario.get_pulse(t)
-        if pulse.pulse_type == "BAKE": 
+        if pulse.pulse_type == "BAKE":
             rtol = 1e-12
-        else: 
+        else:
             rtol = 1e-8
         return rtol
