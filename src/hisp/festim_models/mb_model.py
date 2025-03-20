@@ -857,11 +857,17 @@ def tungsten_slab_temperature(q_front, D_W, D_Cu, T_cool):
         - T_w_surf is the front surface temperature of tungsten (K).
         - T_w_interface is the tungsten-copper interface temperature (K).
     """
-    # Thermal conductivities (W/m·K)
+    # Thermal conductivities (W/m·K) #TODO: add citations
     k_W = 170  # Tungsten thermal conductivity
     k_Cu = 400  # Copper thermal conductivity
     # Heat transfer coefficient from copper to water (W/m^2·K)
     h_Cu_water = 10_000  # Typical value for water cooling
+
+    w_diffusivity = (
+        htm.diffusivities.filter(material="tungsten")
+        .filter(isotope="h")
+        .filter(author="holzner")
+    )
 
     # Temperature drop across tungsten slab
     delta_T_W = (q_front * D_W) / k_W
