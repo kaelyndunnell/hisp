@@ -4,8 +4,8 @@ from hisp.festim_models.mb_model import (
     make_DFW_mb_model,
 )
 
+from hisp.settings import CustomSettings
 import festim as F
-
 import pytest
 
 
@@ -33,7 +33,7 @@ def test_mb_W_model(temp):
     assert isinstance(quantities, dict)
     for key, value in quantities.items():
         assert isinstance(key, str)
-        assert isinstance(value, F.TotalVolume)
+        assert isinstance(value, (F.TotalVolume, F.SurfaceQuantity, F.SurfaceTemperature)) # to change with SurfaceTemp PR merged
         assert len(value.data) > 0
 
 
@@ -61,7 +61,7 @@ def test_mb_model_B(temp):
     assert isinstance(quantities, dict)
     for key, value in quantities.items():
         assert isinstance(key, str)
-        assert isinstance(value, F.TotalVolume)
+        assert isinstance(value, (F.TotalVolume, F.SurfaceQuantity, F.SurfaceTemperature)) # to change with SurfaceTemp PR merged
         assert len(value.data) > 0
 
 
@@ -90,7 +90,7 @@ def test_mb_model_DFW(temp):
     assert isinstance(quantities, dict)
     for key, value in quantities.items():
         assert isinstance(key, str)
-        assert isinstance(value, F.TotalVolume)
+        assert isinstance(value, (F.TotalVolume, F.SurfaceQuantity, F.SurfaceTemperature)) # to change with SurfaceTemp PR merged
         assert len(value.data) > 0
 
 
@@ -153,3 +153,50 @@ def test_model_last_timestep_overshoot():
     my_model.dt.value = 20
 
     my_model.iterate()
+
+
+
+@pytest.mark.parametrize(
+        "rtol", [1e-10, lambda t: 1e-8 if t<10 else 1e-10]
+        )
+def test_callable_rtol(rtol): 
+    """Builds B model to test custom rtol."""
+    (my_model, quantities) = make_B_mb_model(
+        temperature=500,
+        deuterium_ion_flux=lambda _: 1e22,
+        deuterium_atom_flux=lambda _: 1e22,
+        tritium_ion_flux=lambda _: 1e22,
+        tritium_atom_flux=lambda _: 1e22,
+        final_time=50,
+        L=6e-3,
+        custom_rtol=rtol,
+        folder=".",
+    )
+
+    # initialise the model
+    my_model.initialise()
+
+    assert my_model.settings.rtol == rtol
+
+@pytest.mark.parametrize(
+        "atol", [1e10, lambda t: 1e12 if t<10 else 1e10]
+        )
+def test_callable_atol(atol): 
+    """Builds B model to test custom rtol."""
+    (my_model, quantities) = make_B_mb_model(
+        temperature=500,
+        deuterium_ion_flux=lambda _: 1e22,
+        deuterium_atom_flux=lambda _: 1e22,
+        tritium_ion_flux=lambda _: 1e22,
+        tritium_atom_flux=lambda _: 1e22,
+        final_time=50,
+        L=6e-3,
+        custom_atol=atol,
+        custom_rtol=1e-10,
+        folder=".",
+    )
+
+    # initialise the model
+    my_model.initialise()
+
+    assert my_model.settings.atol == atol

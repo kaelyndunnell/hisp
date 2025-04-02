@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 from hisp.bin import SubBin, DivBin, FWBin
-from hisp.helpers import periodic_step_function
+from hisp.helpers import periodic_step_function, periodic_pulse_function
 from hisp.scenario import Pulse
 import pandas as pd
 
@@ -100,10 +100,9 @@ class PlasmaDataHandling:
         total_time_on = pulse.duration_no_waiting
         total_time_pulse = pulse.total_duration
 
-        return periodic_step_function(
+        return periodic_pulse_function(
             t_rel,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
+            pulse=pulse,
             value=value,
             value_off=0,
         )
@@ -261,10 +260,9 @@ class PlasmaDataHandling:
         total_time_on = pulse.duration_no_waiting
         total_time_pulse = pulse.total_duration
 
-        return periodic_step_function(
+        return periodic_pulse_function(
             t_rel,
-            period_on=total_time_on,
-            period_total=total_time_pulse,
+            pulse=pulse,
             value=heat_val,
             value_off=0,
         )

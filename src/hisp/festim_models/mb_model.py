@@ -1,14 +1,20 @@
 from hisp.h_transport_class import CustomProblem
-from hisp.helpers import PulsedSource, gaussian_distribution, Stepsize
+from hisp.helpers import (
+    PulsedSource,
+    gaussian_distribution,
+    Stepsize,
+    periodic_pulse_function,
+)
 from hisp.scenario import Scenario
 from hisp.plamsa_data_handling import PlasmaDataHandling
+from hisp.settings import CustomSettings
 import hisp.bin
 
 import numpy as np
 import festim as F
 import h_transport_materials as htm
 
-from typing import Callable, Tuple, Dict
+from typing import Callable, Tuple, Dict, Union
 from numpy.typing import NDArray
 
 # TODO this is hard coded and show depend on incident energy?
@@ -25,6 +31,9 @@ def make_W_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    custom_rtol: Union[
+        float, Callable
+    ] = 1e-10,  # default rtol unless otherwise specified, used for everything but BAKE
     exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the W MB scenario.
@@ -48,10 +57,8 @@ def make_W_mb_model(
 
     vertices = np.concatenate(  # 1D mesh with extra refinement
         [
-            np.linspace(0, 30e-9, num=300),
-            np.linspace(30e-9, 3e-6, num=400),
-            np.linspace(3e-6, 30e-6, num=400),
-            np.linspace(30e-6, 1e-4, num=400),
+            np.linspace(0, 1e-5, num=100),
+            np.linspace(1e-5, 1e-4, num=300),
             np.linspace(1e-4, L, num=300),
         ]
     )
@@ -88,8 +95,8 @@ def make_W_mb_model(
     trap1_T = F.Species("trap1_T", mobile=False)
     trap2_D = F.Species("trap2_D", mobile=False)
     trap2_T = F.Species("trap2_T", mobile=False)
-    trap3_D = F.Species("trap3_D", mobile=False)
-    trap3_T = F.Species("trap3_T", mobile=False)
+    # trap3_D = F.Species("trap3_D", mobile=False)
+    # trap3_T = F.Species("trap3_T", mobile=False)
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
@@ -104,13 +111,13 @@ def make_W_mb_model(
         name="empty_trap2",
     )
 
-    # TODO: make trap space dependent (existing in only first 10nm)
+    # TODO: make trap space dependent (existing in only first 10nm). commenting out until implemented
     # density_func = lambda x: ufl.conditional(ufl.gt(x[0],10), 6.338e27, 0.0) #  small damanged zone in first 10nm, 1e-1 at.fr.
-    empty_trap3 = F.ImplicitSpecies(
-        n=6.338e27,
-        others=[trap3_T, trap3_D],
-        name="empty_trap3",
-    )
+    # empty_trap3 = F.ImplicitSpecies(
+    #     n=6.338e27,
+    #     others=[trap3_T, trap3_D],
+    #     name="empty_trap3",
+    # )
 
     my_model.species = [
         mobile_D,
@@ -119,8 +126,8 @@ def make_W_mb_model(
         trap1_T,
         trap2_D,
         trap2_T,
-        trap3_D,
-        trap3_T,
+        # trap3_D,
+        # trap3_T,
     ]
 
     interstitial_distance = 1.117e-10  # m
@@ -129,7 +136,8 @@ def make_W_mb_model(
     # hydrogen reactions - 1 per trap per species
     my_model.reactions = [
         F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+            k_0=D_0
+            / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.85,
@@ -138,7 +146,8 @@ def make_W_mb_model(
             product=trap1_D,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+            k_0=D_0
+            / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=0.85,
@@ -147,7 +156,8 @@ def make_W_mb_model(
             product=trap1_T,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+            k_0=D_0
+            / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1,
@@ -156,7 +166,8 @@ def make_W_mb_model(
             product=trap2_D,
         ),
         F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+            k_0=D_0
+            / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
             E_k=E_D,
             p_0=1e13,
             E_p=1,
@@ -164,24 +175,24 @@ def make_W_mb_model(
             reactant=[mobile_T, empty_trap2],
             product=trap2_T,
         ),
-        F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
-            E_k=E_D,
-            p_0=1e13,
-            E_p=1.5,
-            volume=w_subdomain,
-            reactant=[mobile_D, empty_trap3],
-            product=trap3_D,
-        ),
-        F.Reaction(
-            k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
-            E_k=E_D,
-            p_0=1e13,
-            E_p=1.5,
-            volume=w_subdomain,
-            reactant=[mobile_T, empty_trap3],
-            product=trap3_T,
-        ),
+        # F.Reaction(
+        #     k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+        #     E_k=E_D,
+        #     p_0=1e13,
+        #     E_p=1.5,
+        #     volume=w_subdomain,
+        #     reactant=[mobile_D, empty_trap3],
+        #     product=trap3_D,
+        # ),
+        # F.Reaction(
+        #     k_0=D_0 / (interstitial_distance**2 * interstitial_sites_per_atom * w_density),
+        #     E_k=E_D,
+        #     p_0=1e13,
+        #     E_p=1.5,
+        #     volume=w_subdomain,
+        #     reactant=[mobile_T, empty_trap3],
+        #     product=trap3_T,
+        # ),
     ]
 
     ############# Temperature Parameters (K) #############
@@ -263,8 +274,8 @@ def make_W_mb_model(
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t1.bp", field=trap1_T),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_d2.bp", field=trap2_D),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t2.bp", field=trap2_T),
-            F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
-            F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_d3.bp", field=trap3_D),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
         ]
 
     quantities = {}
@@ -272,11 +283,19 @@ def make_W_mb_model(
         quantity = F.TotalVolume(field=species, volume=w_subdomain)
         my_model.exports.append(quantity)
         quantities[species.name] = quantity
+        if species.mobile:
+            flux = F.SurfaceFlux(field=species, surface=inlet)
+            my_model.exports.append(flux)
+            quantities[species.name + "_surface_flux"] = flux
+
+    surface_temperature = F.SurfaceTemperature(my_model.temperature, surface=inlet)
+    my_model.exports.append(surface_temperature)
+    quantities["surface_temperature"] = surface_temperature
 
     ############# Settings #############
-    my_model.settings = F.Settings(
+    my_model.settings = CustomSettings(
         atol=1e10,
-        rtol=1e-10,
+        rtol=custom_rtol,
         max_iterations=100,  # the first timestep needs about 66 iterations....
         final_time=final_time,
     )
@@ -295,6 +314,12 @@ def make_B_mb_model(
     final_time: float,
     folder: str,
     L: float,
+    custom_atol: Union[
+        float, Callable
+    ] = 1e8,  # default atol unless otherwise specified, used for FP, ICWC, RISP in hisp-for-iter
+    custom_rtol: Union[
+        float, Callable
+    ] = 1e-10,  # default rtol unless otherwise specified, used for FP, ICWC, RISP in hisp-for-iter
     exports=False,
 ) -> Tuple[CustomProblem, Dict[str, F.TotalVolume]]:
     """Create a FESTIM model for the B MB scenario.
@@ -354,6 +379,8 @@ def make_B_mb_model(
     trap3_T = F.Species("trap3_T", mobile=False)
     trap4_D = F.Species("trap4_D", mobile=False)
     trap4_T = F.Species("trap4_T", mobile=False)
+    # trap5_D = F.Species("trap5_D", mobile=False)
+    # trap5_T = F.Species("trap5_T", mobile=False)
 
     # traps
     empty_trap1 = F.ImplicitSpecies(  # implicit trap 1
@@ -384,6 +411,12 @@ def make_B_mb_model(
         name="empty_trap4",
     )
 
+    # empty_trap5 = F.ImplicitSpecies(
+    #     n=1.800e-1*b_density, # from Johnathan Dufour's unpublished TDS study for boron
+    #     others=[trap5_T, trap5_D],
+    #     name="empty_trap5",
+    # )
+
     my_model.species = [
         mobile_D,
         mobile_T,
@@ -395,6 +428,8 @@ def make_B_mb_model(
         trap3_T,
         trap4_D,
         trap4_T,
+        # trap5_D,
+        # trap5_T,
     ]
 
     # hydrogen reactions - 1 per trap per species
@@ -474,6 +509,24 @@ def make_B_mb_model(
             reactant=[mobile_T, empty_trap4],
             product=trap4_T,
         ),
+        # F.Reaction(
+        #     k_0=1e13 / b_density,
+        #     E_k=E_D,
+        #     p_0=1e13,  # from Johnathan Dufour's unpublished TDS study for boron
+        #     E_p=1.776,
+        #     volume=b_subdomain,
+        #     reactant=[mobile_D, empty_trap5],
+        #     product=trap5_D,
+        # ),
+        # F.Reaction(
+        #     k_0=1e13 / b_density,
+        #     E_k=E_D,
+        #     p_0=1e13,  # from Johnathan Dufour's unpublished TDS study for boron
+        #     E_p=1.776,
+        #     volume=b_subdomain,
+        #     reactant=[mobile_T, empty_trap5],
+        #     product=trap5_T,
+        # ),
     ]
 
     ############# Temperature Parameters (K) #############
@@ -530,6 +583,8 @@ def make_B_mb_model(
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t3.bp", field=trap3_T),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_d4.bp", field=trap4_D),
             F.VTXSpeciesExport(f"{folder}/trapped_concentration_t4.bp", field=trap4_T),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_d5.bp", field=trap5_D),
+            # F.VTXSpeciesExport(f"{folder}/trapped_concentration_t5.bp", field=trap5_T),
         ]
 
     quantities = {}
@@ -537,12 +592,20 @@ def make_B_mb_model(
         quantity = F.TotalVolume(field=species, volume=b_subdomain)
         my_model.exports.append(quantity)
         quantities[species.name] = quantity
+        if species.mobile:
+            flux = F.SurfaceFlux(field=species, surface=inlet)
+            my_model.exports.append(flux)
+            quantities[species.name + "_surface_flux"] = flux
+
+    surface_temperature = F.SurfaceTemperature(my_model.temperature, surface=inlet)
+    my_model.exports.append(surface_temperature)
+    quantities["surface_temperature"] = surface_temperature
 
     ############# Settings #############
-    my_model.settings = F.Settings(
-        atol=1e8,
-        rtol=1e-10,
-        max_iterations=30,
+    my_model.settings = CustomSettings(
+        atol=custom_atol,
+        rtol=custom_rtol,
+        max_iterations=100,
         final_time=final_time,
     )
 
@@ -743,11 +806,19 @@ def make_DFW_mb_model(
         quantity = F.TotalVolume(field=species, volume=ss_subdomain)
         my_model.exports.append(quantity)
         quantities[species.name] = quantity
+        if species.mobile:
+            flux = F.SurfaceFlux(field=species, surface=inlet)
+            my_model.exports.append(flux)
+            quantities[species.name + "_surface_flux"] = flux
+
+    surface_temperature = F.SurfaceTemperature(my_model.temperature, surface=inlet)
+    my_model.exports.append(surface_temperature)
+    quantities["surface_temperature"] = surface_temperature
 
     ############# Settings #############
     my_model.settings = F.Settings(
         atol=1e10,
-        rtol=1e-10,
+        rtol=1e-6,
         max_iterations=30,
         final_time=final_time,
     )
@@ -769,8 +840,55 @@ slope_T_rear, intercept, r_value, p_value, std_err = scipy.stats.linregress(
 )
 
 
+def tungsten_slab_temperature(q_front, D_W, D_Cu, T_cool):
+    """
+    Calculate the temperature of the front and back surfaces of a tungsten slab
+    with heat flux applied to the front surface and cooling via a copper slab.
+    From T. Wauters
+
+    Parameters:
+    q_front (float): Heat flux at the front surface of the tungsten slab (W/m^2).
+    D_W (float): Thickness of the tungsten slab (m).
+    D_Cu (float): Thickness of the copper slab (m).
+    T_cool (float): Cooling water temperature (K).
+
+    Returns:
+    tuple: (T_w_surf, T_w_interface) where:
+        - T_w_surf is the front surface temperature of tungsten (K).
+        - T_w_interface is the tungsten-copper interface temperature (K).
+    """
+    # Thermal conductivities (W/m·K) #TODO: add citations
+    k_W = 170  # Tungsten thermal conductivity
+    k_Cu = 400  # Copper thermal conductivity
+    # Heat transfer coefficient from copper to water (W/m^2·K)
+    h_Cu_water = 10_000  # Typical value for water cooling
+
+    w_diffusivity = (
+        htm.diffusivities.filter(material="tungsten")
+        .filter(isotope="h")
+        .filter(author="holzner")
+    )
+
+    # Temperature drop across tungsten slab
+    delta_T_W = (q_front * D_W) / k_W
+    # Temperature drop across copper slab
+    delta_T_Cu = (q_front * D_Cu) / k_Cu
+    # Temperature drop at the copper-water interface
+    delta_T_interface = q_front / h_Cu_water
+
+    # Compute temperatures
+    T_w_interface = T_cool + delta_T_interface + delta_T_Cu
+    T_w_surf = T_w_interface + delta_T_W
+
+    return T_w_surf, T_w_interface
+
+
 def calculate_temperature_W(
-    x: float | NDArray, heat_flux: float, coolant_temp: float, thickness: float
+    x: float | NDArray,
+    heat_flux: float,
+    coolant_temp: float,
+    thickness: float,
+    copper_thickness: float,
 ) -> float | NDArray:
     """Calculates the temperature in the W layer based on coolant temperature and heat flux
 
@@ -787,11 +905,19 @@ def calculate_temperature_W(
     Returns:
         temperature in K
     """
-    # the evolution of T surface is taken from Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020).
-    # https://doi.org/10.1038/s41598-020-74844-w
-    T_surface = 1.1e-4 * heat_flux + coolant_temp
 
-    T_rear = slope_T_rear * heat_flux + coolant_temp
+    # T_surface and T_rear calculations taken from tungsten/copper calculations
+    # provided by T. Wauters
+    if copper_thickness is not None:
+        T_surface, T_rear = tungsten_slab_temperature(
+            q_front=heat_flux, D_W=thickness, D_Cu=copper_thickness, T_cool=coolant_temp
+        )
+    else:
+        # the evolution of T surface is taken from Delaporte-Mathurin et al. Sci Rep 10, 17798 (2020).
+        # https://doi.org/10.1038/s41598-020-74844-w
+        T_surface = 1.1e-4 * heat_flux + coolant_temp
+        T_rear = slope_T_rear * heat_flux + coolant_temp
+
     a = (T_rear - T_surface) / thickness
     b = T_surface
     return a * x + b
@@ -852,17 +978,26 @@ def make_temperature_function(
         # get the pulse and time relative to the start of the pulse
         pulse = scenario.get_pulse(t)
         t_rel = t - scenario.get_time_start_current_pulse(t)
+        relative_time_within_pulse = t_rel % pulse.total_duration
 
         if pulse.pulse_type == "BAKE":
-            T_bake = 483.15  # K
-            value = np.full_like(x[0], T_bake)
+            T_value = periodic_pulse_function(
+                relative_time_within_pulse,
+                pulse=pulse,
+                value=483.15,  # K
+                value_off=343.0,  # K
+            )
+            value = np.full_like(x[0], T_value)
+
         else:
-            heat_flux = plasma_data_handling.get_heat(pulse, bin, t_rel)
+            heat_flux = plasma_data_handling.get_heat(
+                pulse, bin, relative_time_within_pulse
+            )
             if (
                 bin.material == "W" or bin.material == "SS"
             ):  # FIXME: update ss temp when gven data:
                 value = calculate_temperature_W(
-                    x[0], heat_flux, coolant_temp, bin.thickness
+                    x[0], heat_flux, coolant_temp, bin.thickness, bin.copper_thickness
                 )
             elif bin.material == "B":
                 T_value = calculate_temperature_B(heat_flux, coolant_temp)
@@ -901,12 +1036,13 @@ def make_particle_flux_function(
         # get the pulse and time relative to the start of the pulse
         pulse = scenario.get_pulse(t)
         relative_time = t - scenario.get_time_start_current_pulse(t)
+        relative_time_within_pulse = relative_time % pulse.total_duration
 
         # get the incident particle flux
         incident_hydrogen_particle_flux = plasma_data_handling.get_particle_flux(
             pulse=pulse,
             bin=bin,
-            t_rel=relative_time,
+            t_rel=relative_time_within_pulse,
             ion=ion,
         )
 

@@ -53,7 +53,9 @@ class Model:
         my_model, quantities = self.which_model(bin)
 
         # add milestones for stepsize and adaptivity
-        milestones = self.make_milestones(initial_stepsize_value=my_model.settings.stepsize.initial_value)
+        milestones = self.make_milestones(
+            initial_stepsize_value=my_model.settings.stepsize.initial_value
+        )
         milestones.append(my_model.settings.final_time)
         my_model.settings.stepsize.milestones = milestones
 
@@ -63,7 +65,10 @@ class Model:
         my_model.settings.stepsize.target_nb_iterations = 4
 
         # add the stepsize cap function
-        my_model.settings.stepsize.max_stepsize = self.max_stepsize
+        if bin.material == "B":
+            my_model.settings.stepsize.max_stepsize = self.B_stepsize
+        else:
+            my_model.settings.stepsize.max_stepsize = self.max_stepsize
 
         # run the model
         my_model.initialise()
@@ -136,17 +141,19 @@ class Model:
         if bin.material == "W":
             return make_W_mb_model(
                 **common_args,
-                folder=f"mb{parent_bin_index+1}_{bin.mode}_results",
+                custom_rtol=self.bake_rtol,
+                folder=f"mb{parent_bin_index}_{bin.mode}_results",
             )
         elif bin.material == "B":
             return make_B_mb_model(
                 **common_args,
-                folder=f"mb{parent_bin_index+1}_{bin.mode}_results",
+                custom_rtol=self.make_custom_rtol,
+                folder=f"mb{parent_bin_index}_{bin.mode}_results",
             )
         elif bin.material == "SS":
             return make_DFW_mb_model(
                 **common_args,
-                folder=f"mb{parent_bin_index+1}_dfw_results",
+                folder=f"mb{parent_bin_index}_dfw_results",
             )
         else:
             raise ValueError(f"Unknown material: {bin.material} for bin {bin.index}")
@@ -162,14 +169,61 @@ class Model:
             )
             if relative_time_within_sub_pulse < time_real_risp_starts - 11:
                 value = None  # s
-            elif relative_time_within_sub_pulse  < time_real_risp_starts + 1:
-                value = 0.01  # s
+            elif relative_time_within_sub_pulse < time_real_risp_starts + 160:
+                value = 1e-3  # s
+            # elif relative_time_within_sub_pulse  < time_real_risp_starts + 1:
+            #     value = 0.01  # s
+            # elif relative_time_within_sub_pulse  < time_real_risp_starts + 50:
+            #     value = 0.1  # s
             else:
                 # NOTE this seems to have an influence on the accuracy of the calculation
                 value = 1  # s
         else:
+            relative_time_within_sub_pulse = relative_time % pulse.total_duration
             # the stepsize is 1/10 of the duration of the pulse
-            value = pulse.duration_no_waiting / 10  # s
+            if pulse.pulse_type == "FP":
+                if relative_time_within_sub_pulse < pulse.duration_no_waiting:
+                    value = 0.1  # s
+                else:
+                    value = pulse.duration_no_waiting / 10
+            else:
+                value = pulse.duration_no_waiting / 10
+        return periodic_step_function(
+            relative_time,
+            period_on=pulse.duration_no_waiting,
+            period_total=pulse.total_duration,
+            value=value,
+            value_off=None,
+        )
+
+    def B_stepsize(self, t: float) -> float:
+        pulse = self.scenario.get_pulse(t)
+        relative_time = t - self.scenario.get_time_start_current_pulse(t)  # Pulse()
+        if pulse.pulse_type == "RISP":
+            relative_time_within_sub_pulse = relative_time % pulse.total_duration
+            # RISP has a special treatment
+            time_real_risp_starts = (
+                100  # (s) relative time at which the real RISP starts
+            )
+            if relative_time_within_sub_pulse < time_real_risp_starts - 5:
+                value = None  # s
+            elif relative_time_within_sub_pulse < time_real_risp_starts + 160:
+                value = 1e-4  # s
+            else:
+                # NOTE this seems to have an influence on the accuracy of the calculation
+                value = 1  # s
+        else:
+            relative_time_within_sub_pulse = relative_time % pulse.total_duration
+            # the stepsize is 1/10 of the duration of the pulse
+            if pulse.pulse_type == "FP":
+                if relative_time_within_sub_pulse < pulse.duration_no_waiting:
+                    value = 0.01  # s
+                else:
+                    value = pulse.duration_no_waiting / 10
+            elif pulse.pulse_type == "BAKE":
+                value = pulse.duration_no_waiting / 10
+            else:
+                value = pulse.duration_no_waiting / 100
         return periodic_step_function(
             relative_time,
             period_on=pulse.duration_no_waiting,
@@ -204,7 +258,32 @@ class Model:
             for i in range(pulse.nb_pulses):
 
                 # hack: a milestone right after to ensure the stepsize is small enough
-                milestones.append(start_of_pulse + pulse.total_duration * i + initial_stepsize_value)
+                milestones.append(
+                    start_of_pulse + pulse.total_duration * i + initial_stepsize_value
+                )
+
+                if i == 0:
+                    # end of ramp up
+                    milestones.append(start_of_pulse + pulse.ramp_up)
+
+                    # start of ramp down
+                    milestones.append(
+                        start_of_pulse + pulse.ramp_up + pulse.steady_state
+                    )
+
+                else:
+                    # end of ramp up
+                    milestones.append(
+                        start_of_pulse + pulse.total_duration * (i - 1) + pulse.ramp_up
+                    )
+
+                    # start of ramp down
+                    milestones.append(
+                        start_of_pulse
+                        + pulse.total_duration * (i - 1)
+                        + pulse.ramp_up
+                        + pulse.steady_state
+                    )
 
                 # start of the next pulse
                 milestones.append(start_of_pulse + pulse.total_duration * (i + 1))
@@ -232,7 +311,6 @@ class Model:
                     # a milestone for when the real RISP starts
                     milestones.append(t_begin_real_pulse + pulse.total_duration * i)
 
-
                     # NOTE do we need this?
                     # hack: a milestone right after to ensure the stepsize is small enough
                     milestones.append(
@@ -243,3 +321,28 @@ class Model:
             current_time = start_of_pulse + pulse.total_duration * pulse.nb_pulses
 
         return sorted(np.unique(milestones))
+
+    def make_custom_rtol(self, t: float) -> float:
+        pulse = self.scenario.get_pulse(t)
+        relative_time = t - self.scenario.get_time_start_current_pulse(t)
+        if pulse.pulse_type == "GDC" or pulse.pulse_type == "ICWC":
+            rtol = 1e-8
+        elif pulse.pulse_type == "BAKE":
+            rtol = 1e-13
+        elif pulse.pulse_type == "FP":
+            # rtol = 1e-10
+            if relative_time % pulse.total_duration > pulse.duration_no_waiting:
+                rtol = 1e-14
+            else:
+                rtol = 1e-8
+        else:
+            rtol = 1e-10
+        return rtol
+
+    def bake_rtol(self, t: float) -> float:
+        pulse = self.scenario.get_pulse(t)
+        if pulse.pulse_type == "BAKE":
+            rtol = 1e-12
+        else:
+            rtol = 1e-8
+        return rtol
