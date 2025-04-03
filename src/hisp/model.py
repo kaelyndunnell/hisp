@@ -332,9 +332,9 @@ class Model:
         elif pulse.pulse_type == "FP":
             # rtol = 1e-10
             if relative_time % pulse.total_duration > pulse.duration_no_waiting:
-                rtol = 1e-14
+                rtol = 1e-13
             else:
-                rtol = 1e-8
+                rtol = 1e-7
         else:
             rtol = 1e-10
         return rtol
