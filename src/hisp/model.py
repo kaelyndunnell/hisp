@@ -217,7 +217,7 @@ class Model:
             # the stepsize is 1/10 of the duration of the pulse
             if pulse.pulse_type == "FP":
                 if relative_time_within_sub_pulse < pulse.duration_no_waiting:
-                    value = 0.01  # s
+                    value = 0.001  # s
                 else:
                     value = pulse.duration_no_waiting / 10
             elif pulse.pulse_type == "BAKE":
@@ -332,9 +332,9 @@ class Model:
         elif pulse.pulse_type == "FP":
             # rtol = 1e-10
             if relative_time % pulse.total_duration > pulse.duration_no_waiting:
-                rtol = 1e-13
+                rtol = 1e-14
             else:
-                rtol = 1e-7
+                rtol = 1e-8
         else:
             rtol = 1e-10
         return rtol
