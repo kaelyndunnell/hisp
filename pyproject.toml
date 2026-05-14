@@ -37,5 +37,11 @@ Homepage = "https://github.com/kaelyndunnell/hisp"
 Issues = "https://github.com/kaelyndunnell/hisp/issues"
 
 
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests requiring PFC-Tritium-Transport (deselect with '-m \"not integration\"')",
+]
+testpaths = ["tests"]
+
 [tool.setuptools_scm]
 write_to = "src/hisp/_version.py"

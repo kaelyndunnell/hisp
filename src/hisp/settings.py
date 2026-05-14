@@ -50,6 +50,7 @@ class CustomSettings(F.Settings):
         transient=True,
         final_time=None,
         stepsize=None,
+        element_degree= 1,
     ) -> None:
         self.atol = atol
         self.rtol = rtol
@@ -57,6 +58,7 @@ class CustomSettings(F.Settings):
         self.transient = transient
         self.final_time = final_time
         self.stepsize = stepsize
+        self.element_degree = element_degree
 
     @property
     def stepsize(self):
@@ -126,3 +128,17 @@ class CustomSettings(F.Settings):
             return "t" in arguments
         else:
             return False
+        
+    
+    @property
+    def element_degree(self) -> int | None:
+        return getattr(self, "_element_degree", None)
+
+    @element_degree.setter
+    def element_degree(self, value: int | None):
+        if value is None:
+            self._element_degree = None
+        elif isinstance(value, int) and value >= 0:
+            self._element_degree = value
+        else:
+            raise TypeError("element_degree must be None or a non-negative int")
